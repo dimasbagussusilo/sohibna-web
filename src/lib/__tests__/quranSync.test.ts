@@ -7,18 +7,23 @@ import { mergeRemote, type Op } from '../quranSync'
 import { DEFAULT_USER_DATA, type UserData } from '../quran'
 import type { Change } from '@/api'
 
+// mergeRemote ignores sync_seq (ordering is the feed's job) — stamp a dummy so
+// the literal satisfies the Change union without spelling every variant.
+const c = (change: Record<string, unknown>): Change =>
+  ({ sync_seq: 0, ...change }) as unknown as Change
+
 const fresh = (): UserData => JSON.parse(JSON.stringify(DEFAULT_USER_DATA))
 
 test('applying a favorite change adds the verse', () => {
-  const out = mergeRemote(fresh(), [{ type: 'favorite', verse_key: '2:255' }] as Change[])
+  const out = mergeRemote(fresh(), [c({ type: 'favorite', verse_key: '2:255' })])
   assert.deepEqual(out.favorites, ['2:255'])
 })
 
 test('mergeRemote is idempotent (same page twice = same result)', () => {
   const page: Change[] = [
-    { type: 'favorite', verse_key: '2:255' },
-    { type: 'bookmark', verse_key: '3:16' },
-    { type: 'label', verse_key: '2:255', label: 'core' },
+    c({ type: 'favorite', verse_key: '2:255' }),
+    c({ type: 'bookmark', verse_key: '3:16' }),
+    c({ type: 'label', verse_key: '2:255', label: 'core' }),
   ]
   const once = mergeRemote(fresh(), page)
   const twice = mergeRemote(once, page)
@@ -27,33 +32,31 @@ test('mergeRemote is idempotent (same page twice = same result)', () => {
 
 test('mergeRemote never mutates the prev snapshot', () => {
   const prev = fresh()
-  mergeRemote(prev, [{ type: 'favorite', verse_key: '1:1' }] as Change[])
+  mergeRemote(prev, [c({ type: 'favorite', verse_key: '1:1' })])
   assert.deepEqual(prev.favorites, [])
 })
 
 test('soft-deleted favorite removes it', () => {
-  const withFav = mergeRemote(fresh(), [{ type: 'favorite', verse_key: '2:255' }] as Change[])
+  const withFav = mergeRemote(fresh(), [c({ type: 'favorite', verse_key: '2:255' })])
   const removed = mergeRemote(withFav, [
-    { type: 'favorite', verse_key: '2:255', deleted: true },
-  ] as Change[])
+    c({ type: 'favorite', verse_key: '2:255', deleted: true }),
+  ])
   assert.deepEqual(removed.favorites, [])
 })
 
 test('empty verse_key bookmark means cleared (null)', () => {
-  const set = mergeRemote(fresh(), [{ type: 'bookmark', verse_key: '3:16' }] as Change[])
+  const set = mergeRemote(fresh(), [c({ type: 'bookmark', verse_key: '3:16' })])
   assert.equal(set.bookmark, '3:16')
-  const cleared = mergeRemote(set, [{ type: 'bookmark', verse_key: '' }] as Change[])
+  const cleared = mergeRemote(set, [c({ type: 'bookmark', verse_key: '' })])
   assert.equal(cleared.bookmark, null)
 })
 
 test('deleted setting resets to the default', () => {
-  const changed = mergeRemote(fresh(), [
-    { type: 'setting', key: 'fontSize', value: 4 },
-  ] as Change[])
+  const changed = mergeRemote(fresh(), [c({ type: 'setting', key: 'fontSize', value: 4 })])
   assert.notEqual(changed.fontSize, DEFAULT_USER_DATA.fontSize)
   const reset = mergeRemote(changed, [
-    { type: 'setting', key: 'fontSize', deleted: true },
-  ] as Change[])
+    c({ type: 'setting', key: 'fontSize', deleted: true }),
+  ])
   assert.equal(reset.fontSize, DEFAULT_USER_DATA.fontSize)
 })
 
@@ -75,16 +78,16 @@ test('memorized verse whole-row overwrite + delete', () => {
       lapses: 0,
       verifiedBy: null,
     },
-  } as Change
-  const withRow = mergeRemote(fresh(), [row])
+  }
+  const withRow = mergeRemote(fresh(), [c(row)])
   assert.ok(withRow.memorized['2:255'])
   const updated = mergeRemote(withRow, [
-    { ...row, payload: { ...row.payload!, status: 'memorized', reviewCount: 1 } },
-  ] as Change[])
+    c({ ...row, payload: { ...row.payload!, status: 'memorized', reviewCount: 1 } }),
+  ])
   assert.equal(updated.memorized['2:255'].status, 'memorized')
   const gone = mergeRemote(updated, [
-    { type: 'memorized_verse', verse_key: '2:255', deleted: true },
-  ] as Change[])
+    c({ type: 'memorized_verse', verse_key: '2:255', deleted: true }),
+  ])
   assert.equal(gone.memorized['2:255'], undefined)
 })
 
