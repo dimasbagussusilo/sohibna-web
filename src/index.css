@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+/* Dark mode is driven by the app's persisted setting (AppContext toggles the
+   `dark` class on <html>), not prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Brand palette used across the RN app via arbitrary values; named here so
+   classes like bg-cream / text-ink / bg-night / text-sage work directly. */
+@theme {
+  --color-cream: #f5f0e6;
+  --color-ink: #2c3e50;
+  --color-night: #0d1f17;
+  --color-sage: #7a9d7a;
+}
+
+/* Tajawal — the UI font (ported from the RN app's assets/fonts). */
+@font-face {
+  font-family: 'Tajawal';
+  src: url('/fonts/Tajawal-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('/fonts/Tajawal-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('/fonts/Tajawal-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+body {
+  font-family: Tajawal, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* RTL icon mirroring (replaces the RN app's RtlMirror / useRtlFlipStyle). */
+[dir='rtl'] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Quran verse text — right-to-left always, regardless of UI language. */
+.quran-rtl {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: isolate;
+}

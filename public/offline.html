@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sohibna — Offline</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Tajawal, system-ui, sans-serif;
+        background: #f5f0e6;
+        color: #2c3e50;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { background: #0d1f17; color: #f5f0e6; }
+      }
+      .card { text-align: center; padding: 2rem; max-width: 24rem; }
+      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+      p { margin: 0.25rem 0; opacity: 0.8; font-size: 0.95rem; }
+      button {
+        margin-top: 1.25rem;
+        padding: 0.6rem 1.5rem;
+        border-radius: 9999px;
+        border: none;
+        background: #7a9d7a;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Anda sedang offline</h1>
+      <p>You are offline. Content you have opened before may still be available.</p>
+      <p>Konten yang pernah dibuka masih tersedia. Silakan periksa koneksi Anda.</p>
+      <button onclick="location.reload()">Coba lagi</button>
+    </div>
+  </body>
+</html>
