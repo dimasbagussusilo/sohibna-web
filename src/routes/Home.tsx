@@ -146,21 +146,32 @@ export function Home() {
         </div>
       ) : null}
 
-      {/* Quick links (P0 subset) */}
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <Link
-          to="/quran"
-          className="rounded-2xl bg-[#7A9D7A] px-4 py-5 text-center font-bold text-white"
-        >
-          {t('tabs.quran')}
-        </Link>
-        <Link
-          to="/calendar"
-          className="rounded-2xl bg-black/5 px-4 py-5 text-center font-bold text-ink dark:bg-white/10 dark:text-cream"
-        >
-          {t('tabs.calendar')}
-        </Link>
+      {/* Quick access */}
+      <div className="mb-4 mt-6 text-[10px] font-bold uppercase tracking-widest text-ink/40 dark:text-cream/40">
+        {t('home.quickAccess')}
+      </div>
+      <div className="grid grid-cols-4 gap-2.5">
+        <QuickLink to="/qibla" icon="🧭" label={t('home.qibla')} />
+        <QuickLink to="/nearby-masjid" icon="🕌" label={t('home.nearbyMasjid')} />
+        <QuickLink to="/iqro" icon="📖" label={t('home.learnQuran')} />
+        <QuickLink to="/shalat" icon="🕌" label={t('home.learnPrayer')} />
+        <QuickLink to="/dzikir" icon="📿" label={t('home.dzikir')} />
+        <QuickLink to="/daily-reflection" icon="🌙" label={t('home.reflectionHistory')} />
+        <QuickLink to="/hafalan" icon="🧠" label={t('home.hafalan')} />
+        <QuickLink to="/quran-goals" icon="🎯" label={t('goals.title')} />
       </div>
     </div>
+  )
+}
+
+function QuickLink({ to, icon, label }: { to: string; icon: string; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex flex-col items-center gap-1.5 rounded-2xl bg-white px-1.5 py-3.5 text-center shadow-sm dark:bg-[#122A1F]"
+    >
+      <span className="text-xl">{icon}</span>
+      <span className="text-[10px] leading-tight text-ink dark:text-cream">{label}</span>
+    </Link>
   )
 }

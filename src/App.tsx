@@ -8,6 +8,13 @@ import { Toast } from '@/components/Toast'
 import { Home } from '@/routes/Home'
 import { QuranDashboard } from '@/routes/QuranDashboard'
 import { QuranSearch } from '@/routes/QuranSearch'
+import { Rulings } from '@/routes/Rulings'
+import { Calendar } from '@/routes/Calendar'
+import { Dzikir } from '@/routes/Dzikir'
+import { DailyReflection, ReflectionHistory } from '@/routes/DailyReflection'
+import { Shalat } from '@/routes/Shalat'
+import { Iqro } from '@/routes/Iqro'
+import { Qibla, NearbyMasjid, AlarmsUnavailable } from '@/routes/QiblaMasjid'
 import { QuranGoals } from '@/routes/QuranGoals'
 import { Hafalan } from '@/routes/Hafalan'
 import { SurahReader } from '@/routes/SurahReader'
@@ -36,15 +43,23 @@ export function App() {
                 }
               >
                 <Route path="/home" element={<Home />} />
-                <Route path="/calendar" element={<ComingSoon />} />
+                <Route path="/calendar" element={<Calendar />} />
                 <Route path="/quran" element={<QuranDashboard />} />
-                <Route path="/rulings" element={<ComingSoon />} />
+                <Route path="/rulings" element={<Rulings />} />
                 <Route path="/me" element={<Me />} />
               </Route>
               <Route path="/surah/:id" element={<SurahReader />} />
               <Route path="/quran-search" element={<QuranSearch />} />
               <Route path="/quran-goals" element={<QuranGoals />} />
               <Route path="/hafalan" element={<Hafalan />} />
+              <Route path="/dzikir" element={<Dzikir />} />
+              <Route path="/daily-reflection" element={<DailyReflection />} />
+              <Route path="/reflection-history" element={<ReflectionHistory />} />
+              <Route path="/shalat" element={<Shalat />} />
+              <Route path="/iqro" element={<Iqro />} />
+              <Route path="/qibla" element={<Qibla />} />
+              <Route path="/nearby-masjid" element={<NearbyMasjid />} />
+              <Route path="/alarms" element={<AlarmsUnavailable />} />
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
             <Toast />
@@ -52,13 +67,5 @@ export function App() {
         </QuranDataProvider>
       </AuthProvider>
     </I18nProvider>
-  )
-}
-
-function ComingSoon() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center">
-      <p className="text-ink/60 dark:text-cream/60">Coming soon (P2)</p>
-    </div>
   )
 }
