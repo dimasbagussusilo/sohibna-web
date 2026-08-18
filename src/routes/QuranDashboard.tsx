@@ -17,6 +17,7 @@ export function QuranDashboard() {
   const { ud, reload } = useQuranData()
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [query, setQuery] = useState('')
+  void setQuery
 
   useEffect(() => {
     let alive = true
@@ -69,15 +70,15 @@ export function QuranDashboard() {
       <h1 className="mb-4 text-xl font-bold text-ink dark:text-cream">{t('tabs.quran')}</h1>
 
       {/* Search */}
-      <div className="mb-5 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm dark:bg-[#122A1F]">
+      <Link
+        to="/quran-search"
+        className="mb-5 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm dark:bg-[#122A1F]"
+      >
         <Search size={16} className="text-ink/40 dark:text-cream/40" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('quranHome.searchSurah')}
-          className="flex-1 bg-transparent text-sm text-ink outline-none dark:text-cream"
-        />
-      </div>
+        <span className="flex-1 text-sm text-ink/40 dark:text-cream/40">
+          {t('quranHome.searchEntry')}
+        </span>
+      </Link>
 
       {/* Continue reading */}
       {continueReading && !query ? (
@@ -122,6 +123,29 @@ export function QuranDashboard() {
           </div>
         </div>
       ) : null}
+
+      {/* Hafalan + goals quick cards */}
+      <div className="mb-5 grid grid-cols-2 gap-3">
+        <Link
+          to="/hafalan"
+          className="rounded-2xl bg-white px-4 py-4 shadow-sm dark:bg-[#122A1F]"
+        >
+          <div className="text-sm font-bold text-ink dark:text-cream">{t('hafalan.title')}</div>
+          <div className="text-[11px] text-ink/50 dark:text-cream/50">
+            {ud.hafalanTargets.filter((x) => !x.archived).length} targets ·{' '}
+            {Object.keys(ud.memorized).length} verses
+          </div>
+        </Link>
+        <Link
+          to="/quran-goals"
+          className="rounded-2xl bg-white px-4 py-4 shadow-sm dark:bg-[#122A1F]"
+        >
+          <div className="text-sm font-bold text-ink dark:text-cream">{t('goals.title')}</div>
+          <div className="text-[11px] text-ink/50 dark:text-cream/50">
+            {ud.khatmGoals.length} goals{ud.streak ? ` · ${ud.streak.current}d` : ''}
+          </div>
+        </Link>
+      </div>
 
       {/* Surah list */}
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm dark:bg-[#122A1F]">

@@ -7,6 +7,9 @@ import { AppShell } from '@/components/AppShell'
 import { Toast } from '@/components/Toast'
 import { Home } from '@/routes/Home'
 import { QuranDashboard } from '@/routes/QuranDashboard'
+import { QuranSearch } from '@/routes/QuranSearch'
+import { QuranGoals } from '@/routes/QuranGoals'
+import { Hafalan } from '@/routes/Hafalan'
 import { SurahReader } from '@/routes/SurahReader'
 import { Login, Register } from '@/routes/Login'
 import { Me } from '@/routes/Me'
@@ -39,6 +42,9 @@ export function App() {
                 <Route path="/me" element={<Me />} />
               </Route>
               <Route path="/surah/:id" element={<SurahReader />} />
+              <Route path="/quran-search" element={<QuranSearch />} />
+              <Route path="/quran-goals" element={<QuranGoals />} />
+              <Route path="/hafalan" element={<Hafalan />} />
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
             <Toast />
