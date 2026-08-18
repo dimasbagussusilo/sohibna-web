@@ -1,15 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { BrowserRouter } from 'react-router'
 import './index.css'
 import { App } from './App'
 
-// Route table mirrors the RN app's expo-router file tree (src/app/**):
-//   /            → redirect to /home
-//   /(tabs)      → home, calendar, quran, rulings, me (TabBar + AppShell)
-//   stack screens → login, register, surah/:id, ... (no tab bar)
+// BrowserRouter + declarative <Routes> in App.tsx (route table mirrors the
+// RN app's expo-router file tree: / → home; (tabs) under the shell; stack
+// screens like /surah/:id render without the tab bar).
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={createBrowserRouter([{ path: '/', element: <App /> }])} />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 )
