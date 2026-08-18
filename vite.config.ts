@@ -95,7 +95,7 @@ export default defineConfig({
 
 // The API origin as configured for this build (dev default localhost:8080).
 function apiOrigin(): string {
-  const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+  const base = process.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
   try {
     return new URL(base).origin
   } catch {
