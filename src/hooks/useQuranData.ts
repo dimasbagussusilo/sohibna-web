@@ -13,16 +13,19 @@
 // PUT to scoped per-resource PATCHes.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@/lib/storage';
-import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome } from '@/lib/quran';
+import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type AppLang } from '@/lib/quran';
 import { clearLegacyGuestData } from '@/lib/quranStorage';
 import {
   mergeRemote,
+  migrateLegacySyncKeys,
   loadCursor,
   saveCursor,
   clearCursor,
   loadQueue,
   saveQueue,
   clearQueue,
+  loadCache,
+  saveCache,
   flushQueue,
   type Op,
 } from '@/lib/quranSync';
@@ -31,12 +34,16 @@ import { getDeviceId } from '@/lib/deviceId';
 import { useAuth } from '@/context/AuthContext';
 import type { GoalType, GoalUnit } from '@/api';
 import { seedMemorized, seedLearning, applyReviewOutcome } from '@/hafalan/spacedRepetition';
-
 import { uuidv4 } from '@/lib/uuid';
 
 // UserData keys that are reader SETTINGS (synced as per-key PATCH /settings).
 // Collection keys (favorites/bookmark/labels/lastRead/labelLibrary) have their
 // own dedicated resources and never come through setUD.
+//
+// ⚠ Every entry here MUST also exist in the server's allowedSettingKeys
+// (internal/quran/models.go) — a key the server rejects returns 400, which
+// poisons the head of the FIFO op queue (flushQueue aborts at the first
+// failure). App-level prefs go through 'app.*' keys, NOT this set.
 const SETTING_KEYS = new Set<string>([
   'script',
   'fontSize',
@@ -45,7 +52,6 @@ const SETTING_KEYS = new Set<string>([
   'showIndonesian',
   'showEnglishTafsir',
   'showIndoTafsir',
-  'darkMode',
   'audioRate',
   'repeatMode',
   'repeatCount',
@@ -58,6 +64,9 @@ const SETTING_KEYS = new Set<string>([
   // translations/tafsir when switching back (see displayModeTransition).
   'displayMode',
   'readingSnapshot',
+  // True once the user manually picks translations/tafsir in Reader Settings —
+  // pauses "content follows app language" (see useQuranContentLang).
+  'contentLangOverride',
   // lastReadSlots is a whole-map setting (named marks → {verseKey, ts}). Synced
   // as one JSON value via /settings (setSetting assigns it directly). The per-mark
   // `ts` is what lets "Continue Reading" pick the most-recently-created mark.
@@ -70,8 +79,111 @@ const SETTING_KEYS = new Set<string>([
 // server is their source of truth, so we don't cache stale local state over it.
 const LOCAL_UD_KEY = 'sohibna.quran.guestUD';
 
+// Per-user backfill flag: once a user's local-only prayer/reflection history +
+// app prefs have been offered to the server, never re-scan (the scan reads every
+// AsyncStorage key, and re-uploading after logout/re-login would race edits made
+// on other devices).
+const backfillFlagKey = (userId: string) => `sohibna.quran.backfill.${userId}`;
+
+// Chunk sizes for backfill batch ops — bounded so one flaky request can't wedge
+// the FIFO queue for long (flushQueue aborts at the first failure).
+const BACKFILL_PRAYER_CHUNK = 100;
+const BACKFILL_REFLECTION_CHUNK = 20;
+
+// Legacy local prayer-tracker keys ('prayed:<YYYY-MM-DD>') store CAPITALIZED
+// prayer names; the synced PrayerDay shape is lowercase.
+const PRAYER_NAME_MAP: Record<string, keyof PrayerDay> = {
+  Fajr: 'fajr',
+  Dhuhr: 'dhuhr',
+  Asr: 'asr',
+  Maghrib: 'maghrib',
+  Isha: 'isha',
+};
+
+// collectBackfillOps scans the device's local-only progress (legacy
+// 'prayed:<day>' keys, 'reflection:<date>:<mood>' entries, and app prefs the
+// account doesn't have yet) and returns the ops that would upload them.
+// ACCOUNT WINS: any key the server snapshot already has is skipped silently —
+// this protects an existing account from being clobbered by another device's
+// local data, and a re-login from re-uploading days the user changed elsewhere.
+async function collectBackfillOps(snapshot: UserData): Promise<Op[]> {
+  const ops: Op[] = [];
+  const keys = await AsyncStorage.getAllKeys();
+
+  // Prayer days the server doesn't have yet.
+  const prayerItems: { day: string; data: PrayerDay }[] = [];
+  for (const k of keys) {
+    if (!k.startsWith('prayed:')) continue;
+    const day = k.slice('prayed:'.length);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day in snapshot.prayerDays) continue;
+    try {
+      const raw = await AsyncStorage.getItem(k);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as Record<string, boolean>;
+      const data = { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false };
+      for (const [name, on] of Object.entries(parsed)) {
+        const prop = PRAYER_NAME_MAP[name];
+        if (prop) data[prop] = !!on;
+      }
+      prayerItems.push({ day, data });
+    } catch {
+      /* skip malformed day keys */
+    }
+  }
+  for (let i = 0; i < prayerItems.length; i += BACKFILL_PRAYER_CHUNK) {
+    ops.push({ kind: 'prayerDays', items: prayerItems.slice(i, i + BACKFILL_PRAYER_CHUNK) });
+  }
+
+  // Reflections the server doesn't have yet.
+  const reflectionItems: ReflectionEntryData[] = [];
+  for (const k of keys) {
+    if (!k.startsWith('reflection:')) continue;
+    const rest = k.slice('reflection:'.length); // '<date>:<mood>'
+    const key = rest.split(':').slice(0, 2).join(':');
+    if (!/^\d{4}-\d{2}-\d{2}:[a-z]+$/.test(key) || key in snapshot.reflections) continue;
+    try {
+      const raw = await AsyncStorage.getItem(k);
+      if (!raw) continue;
+      const entry = JSON.parse(raw) as ReflectionEntryData;
+      if (entry && typeof entry.date === 'string' && typeof entry.mood === 'string') {
+        reflectionItems.push(entry);
+      }
+    } catch {
+      /* skip malformed entries */
+    }
+  }
+  for (let i = 0; i < reflectionItems.length; i += BACKFILL_REFLECTION_CHUNK) {
+    ops.push({ kind: 'reflections', items: reflectionItems.slice(i, i + BACKFILL_REFLECTION_CHUNK) });
+  }
+
+  // App prefs the account has no value for yet (null = not set server-side).
+  if (snapshot.appSettings.darkMode === null) {
+    const raw = await AsyncStorage.getItem('sohibna:dark_mode');
+    if (raw === 'true' || raw === 'false') ops.push({ kind: 'setting', key: 'app.darkMode', value: raw === 'true' });
+  }
+  if (snapshot.appSettings.lang === null) {
+    const raw = await AsyncStorage.getItem('sohibna:lang');
+    if (raw === 'id' || raw === 'en' || raw === 'ar') ops.push({ kind: 'setting', key: 'app.lang', value: raw });
+  }
+  if (snapshot.appSettings.alarms === null) {
+    const raw = await AsyncStorage.getItem('sohibna:alarm_settings');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        ops.push({ kind: 'setting', key: 'app.alarms', value: parsed });
+      } catch {
+        /* skip malformed settings */
+      }
+    }
+  }
+  return ops;
+}
+
 export function useQuranData() {
-  const { token, loading: authLoading, logout } = useAuth();
+  const { token, user, loading: authLoading, logout } = useAuth();
+  // Sync-scope id: per-user cursor/queue/cache keys ('guest' when logged out)
+  // so two accounts on one device never reuse each other's sync state.
+  const uid = user?.id ?? 'guest';
   const [ud, setUdState] = useState<UserData>(DEFAULT_USER_DATA);
   // Exposed so the reader can avoid rendering Arabic with DEFAULT settings before
   // the real saved document has loaded (otherwise the first surah open flashes
@@ -96,6 +208,12 @@ export function useQuranData() {
   useEffect(() => {
     udRef.current = ud;
   }, [ud]);
+  // uid in a ref for async callbacks (flush/backfill) — reads the CURRENT scope
+  // even across awaits after a logout switched it.
+  const uidRef = useRef<string>(uid);
+  useEffect(() => {
+    uidRef.current = uid;
+  }, [uid]);
   const deviceId = useMemo(() => getDeviceId(), []);
 
   // flush sends queued ops FIFO, stopping at the first failure (leaving the rest
@@ -106,7 +224,7 @@ export function useQuranData() {
     try {
       const remaining = await flushQueue(deviceId, queueRef.current);
       queueRef.current = remaining;
-      await saveQueue(remaining);
+      await saveQueue(uidRef.current, remaining);
     } catch (e) {
       if (e instanceof AuthError) void logout();
       // network/5xx: leave the queue intact for the next foreground/mutation
@@ -121,10 +239,30 @@ export function useQuranData() {
     (op: Op) => {
       if (!tokenRef.current) return;
       queueRef.current = [...queueRef.current, op];
-      void saveQueue(queueRef.current);
+      void saveQueue(uidRef.current, queueRef.current);
       void flush();
     },
     [flush],
+  );
+
+  // backfillLocalProgress uploads local-only progress ONCE per user (gated by
+  // the per-user flag, set only after the ops are queued). Runs at the tail of
+  // a successful fullPull — the snapshot decides which keys the server lacks.
+  const backfillLocalProgress = useCallback(
+    async (snapshot: UserData) => {
+      if (!tokenRef.current) return;
+      const uid = uidRef.current;
+      if (uid === 'guest') return;
+      try {
+        if (await AsyncStorage.getItem(backfillFlagKey(uid))) return;
+        const ops = await collectBackfillOps(snapshot);
+        for (const op of ops) enqueueOp(op);
+        await AsyncStorage.setItem(backfillFlagKey(uid), '1');
+      } catch {
+        /* best-effort: if the flag write failed we retry on the next login */
+      }
+    },
+    [enqueueOp],
   );
 
   // deltaPull fetches changes since the cursor and merges them, looping while the
@@ -137,12 +275,16 @@ export function useQuranData() {
       while (hasMore) {
         const feed = await getChanges(deviceId, since, 200);
         if (feed.changes.length) {
-          setUdState((prev) => mergeRemote(prev, feed.changes));
+          setUdState((prev) => {
+            const merged = mergeRemote(prev, feed.changes);
+            void saveCache(uidRef.current, merged);
+            return merged;
+          });
         }
         since = feed.cursor;
         if (since > cursorRef.current) {
           cursorRef.current = since;
-          await saveCursor(since);
+          await saveCursor(uidRef.current, since);
         }
         hasMore = feed.has_more;
       }
@@ -153,16 +295,23 @@ export function useQuranData() {
   }, [deviceId, logout]);
 
   // fullPull loads the complete live snapshot (fresh login / cursor reset),
-  // seeds the cursor, and flushes any queued ops. On network failure it falls
-  // back to a guest-style local load so the UI still renders.
+  // seeds the cursor, backfills local-only progress once, and flushes queued
+  // ops. On network failure it renders the cached snapshot (or defaults) so
+  // progress is never "missing" on an offline cold start.
   const fullPull = useCallback(async () => {
     if (!tokenRef.current) return;
     try {
       const st = await getState(deviceId);
       cursorRef.current = st.cursor;
-      await saveCursor(st.cursor);
-      setUdState(mergeRemote(DEFAULT_USER_DATA, st.changes));
+      await saveCursor(uidRef.current, st.cursor);
+      const merged = mergeRemote(DEFAULT_USER_DATA, st.changes);
+      setUdState(merged);
+      void saveCache(uidRef.current, merged);
       setLoaded(true);
+      // One-time: upload local-only prayer/reflection history + app prefs the
+      // account doesn't have yet (server wins conflicts). Must run here — the
+      // snapshot is the only way to know which keys the server already has.
+      await backfillLocalProgress(merged);
       // Best-effort: tell the server our timezone so streak day boundaries are
       // computed in the reader's local day, not UTC.
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -173,14 +322,17 @@ export function useQuranData() {
         void logout();
         return;
       }
-      // offline at login: render defaults so the reader is usable, and reset the
-      // cursor so the next foreground delta pull (once online) reconstructs the
-      // full account state from seq 0.
+      // offline at login: render the last cached snapshot (defaults when none)
+      // so the reader is usable with the user's data, and reset the cursor so
+      // the next foreground delta pull (once online) reconstructs the full
+      // account state from seq 0 over the cached base (merges are idempotent).
       cursorRef.current = 0;
-      await saveCursor(0);
-      setUdState({ ...DEFAULT_USER_DATA });
+      await saveCursor(uidRef.current, 0);
+      const cached = await loadCache(uidRef.current);
+      setUdState(cached ?? { ...DEFAULT_USER_DATA });
       setLoaded(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId, enqueueOp, flush, logout]);
 
   // (Re)load when the auth token settles or changes. Authed → full pull; guest →
@@ -190,18 +342,23 @@ export function useQuranData() {
     let cancelled = false;
     (async () => {
       if (token) {
-        cursorRef.current = await loadCursor();
-        queueRef.current = await loadQueue();
+        // Move pre-0008 un-suffixed sync keys into this user's scope once, then
+        // load THIS user's cursor/queue (per-user keys — account switches can't
+        // reuse each other's state).
+        await migrateLegacySyncKeys(uid);
+        cursorRef.current = await loadCursor(uid);
+        queueRef.current = await loadQueue(uid);
         if (!cancelled) void fullPull();
       } else {
         // Guest: no account to sync to, but persist UserData LOCALLY so a
         // returning guest's script/font/reciter/favorites/labels survive a
         // restart instead of resetting to defaults. Legacy on-device guest
-        // data (pre-sync format) is wiped first.
+        // data (pre-sync format) is wiped first. Only the 'guest' scope is
+        // cleared — other accounts' cursors/queues/caches stay untouched.
         cursorRef.current = 0;
         queueRef.current = [];
-        await clearCursor();
-        await clearQueue();
+        await clearCursor('guest');
+        await clearQueue('guest');
         await clearLegacyGuestData();
         let guestUD: UserData | null = null;
         try {
@@ -222,7 +379,8 @@ export function useQuranData() {
     return () => {
       cancelled = true;
     };
-  }, [token, authLoading, fullPull]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, uid, authLoading, fullPull]);
 
   // On foreground: pull deltas + flush queued ops (catches changes made on
   // another device while this one was backgrounded). Web equivalents of RN's
@@ -265,6 +423,8 @@ export function useQuranData() {
 
   // persist enqueues a scoped op when authed. Guests don't persist (their state
   // is in-memory only), so a guest mutation just updates the UI for the session.
+  // (`next` is unused on web — the RN twin applies it — but kept for signature
+  // parity across the mirror.)
   const persist = useCallback(
     (_next: UserData, op: Op | null) => {
       if (tokenRef.current && op) enqueueOp(op);
@@ -621,6 +781,51 @@ export function useQuranData() {
     [persist],
   );
 
+  // ── Account-attached progress + app prefs (0008) ─────────────────────────
+  // All computed from udRef.current OUTSIDE state updaters (StrictMode would
+  // double-fire side effects inside one). Guests keep their AsyncStorage path;
+  // these accessors only sync when authed (enqueueOp is a guest no-op, but the
+  // state update still lands so the UI reflects the change).
+
+  // togglePrayerDay flips one prayer of one day's map and pushes the WHOLE day
+  // (one row = one sync unit, last-write-wins per day).
+  const togglePrayerDay = useCallback(
+    (day: string, prayer: keyof PrayerDay) => {
+      const prev = udRef.current;
+      const existing = prev.prayerDays[day] ?? { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false };
+      const data: PrayerDay = { ...existing, [prayer]: !existing[prayer] };
+      const next = { ...prev, prayerDays: { ...prev.prayerDays, [day]: data } };
+      setUdState(next);
+      if (tokenRef.current) enqueueOp({ kind: 'prayerDays', items: [{ day, data }] });
+    },
+    [enqueueOp],
+  );
+
+  // saveReflection pushes one whole entry (verse + transcript) keyed 'date:mood'.
+  const saveReflection = useCallback(
+    (entry: ReflectionEntryData) => {
+      const prev = udRef.current;
+      const key = `${entry.date}:${entry.mood}`;
+      const next = { ...prev, reflections: { ...prev.reflections, [key]: entry } };
+      setUdState(next);
+      if (tokenRef.current) enqueueOp({ kind: 'reflections', items: [entry] });
+    },
+    [enqueueOp],
+  );
+
+  // setAppSetting updates one app pref ('app.darkMode' | 'app.lang' | 'app.alarms')
+  // on UserData.appSettings and enqueues the setting op. No-op for guests beyond
+  // the local state change (their device-local stores own the value).
+  const setAppSetting = useCallback(
+    (key: 'darkMode' | 'lang' | 'alarms', value: boolean | AppLang | unknown) => {
+      const prev = udRef.current;
+      const next = { ...prev, appSettings: { ...prev.appSettings, [key]: value } };
+      setUdState(next);
+      if (tokenRef.current) enqueueOp({ kind: 'setting', key: `app.${key}`, value });
+    },
+    [enqueueOp],
+  );
+
   return {
     ud,
     loaded,
@@ -643,5 +848,8 @@ export function useQuranData() {
     markMemorized,
     recordReview,
     removeMemorizedVerse,
+    togglePrayerDay,
+    saveReflection,
+    setAppSetting,
   };
 }

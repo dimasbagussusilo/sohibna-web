@@ -9,7 +9,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { askReflection, type ReflectionMessage, type ReflectionVersePayload } from '@/api';
 import { useI18n } from '@/context/I18nContext';
-import { loadReflection, saveReflection, reflectionDateKey } from './history';
+import { useAuth } from '@/context/AuthContext';
+import { useQuranData } from '@/hooks/useQuranData';
+import { loadReflection, saveReflection, reflectionDateKey, type ReflectionEntry } from './history';
 import { pickMoodVerse, type MoodId } from './moods';
 
 // Most recent turns sent to the model. llama-3.3-70b has a 128k context window, so
@@ -26,6 +28,8 @@ type Options = {
 
 export function useReflectionChat({ mood, verse, date }: Options) {
   const { t, lang } = useI18n();
+  const { user } = useAuth();
+  const { ud, loaded: udLoaded, saveReflection: saveReflectionRemote } = useQuranData();
   const day = date ?? reflectionDateKey();
   const verseKey = pickMoodVerse(mood, day);
 
@@ -35,9 +39,23 @@ export function useReflectionChat({ mood, verse, date }: Options) {
 
   // Resume the saved reflection for this day+mood, or seed a localized greeting
   // when starting fresh. Re-runs when the mood changes (the on-screen selector),
-  // swapping in that mood's conversation.
+  // swapping in that mood's conversation. Authed: prefer the synced copy
+  // (fresher across devices); local is the guest/offline fallback.
   useEffect(() => {
     let cancelled = false;
+    const remote = user && udLoaded ? ud.reflections[`${day}:${mood}`] : undefined;
+    if (remote) {
+      // Defer the setState so it isn't synchronous within the effect (async
+      // IIFE keeps the react-hooks/set-state-in-effect rule quiet, same as
+      // every other hydrate-then-set effect in this codebase).
+      (async () => {
+        await Promise.resolve();
+        if (!cancelled) setMessages(remote.messages);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
     loadReflection(day, mood).then((entry) => {
       if (cancelled) return;
       if (entry) {
@@ -49,17 +67,20 @@ export function useReflectionChat({ mood, verse, date }: Options) {
     return () => {
       cancelled = true;
     };
-    // Re-run only when the day or mood changes; `t` is stable per language.
+    // Re-run only when the day/mood changes or the synced copy lands; `t` is
+    // stable per language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [day, mood, lang]);
+  }, [day, mood, lang, user, udLoaded, ud.reflections]);
 
+  // persist dual-writes: the local key (guest/offline + backfill source) and,
+  // when authed, the synced store (one whole entry per 'date:mood', LWW).
   const persist = useCallback(
     (msgs: ReflectionMessage[]) => {
-      saveReflection({ date: day, mood, verseKey, messages: msgs, updatedAt: Date.now() }).catch(
-        () => {},
-      );
+      const entry: ReflectionEntry = { date: day, mood, verseKey, messages: msgs, updatedAt: Date.now() };
+      saveReflection(entry).catch(() => {});
+      if (user) saveReflectionRemote(entry);
     },
-    [day, mood, verseKey],
+    [day, mood, verseKey, user, saveReflectionRemote],
   );
 
   const send = useCallback(

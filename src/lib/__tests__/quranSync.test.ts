@@ -101,3 +101,86 @@ test('op queue shape is JSON-stable', () => {
   assert.equal(revived[0].kind, 'favorite')
   assert.equal(revived[1].kind, 'setting')
 })
+
+// ── Account-attached progress + app prefs (0008) ────────────────────────────
+
+test('prayer_day change stores the whole day map; tombstone removes it', () => {
+  const day = { fajr: true, dhuhr: false, asr: true, maghrib: false, isha: false }
+  const withDay = mergeRemote(fresh(), [c({ type: 'prayer_day', key: '2026-08-18', payload: day })])
+  assert.deepEqual(withDay.prayerDays['2026-08-18'], day)
+  // Idempotent re-apply.
+  assert.deepEqual(mergeRemote(withDay, [c({ type: 'prayer_day', key: '2026-08-18', payload: day })]).prayerDays, withDay.prayerDays)
+  // LWW: a second day-write replaces the map whole.
+  const day2 = { ...day, dhuhr: true }
+  assert.equal(mergeRemote(withDay, [c({ type: 'prayer_day', key: '2026-08-18', payload: day2 })]).prayerDays['2026-08-18'].dhuhr, true)
+  // Tombstone deletes the key.
+  const gone = mergeRemote(withDay, [c({ type: 'prayer_day', key: '2026-08-18', deleted: true })])
+  assert.equal(gone.prayerDays['2026-08-18'], undefined)
+})
+
+test('prayer_day merge never mutates the prev snapshot', () => {
+  const prev = fresh()
+  mergeRemote(prev, [c({ type: 'prayer_day', key: '2026-08-18', payload: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false } })])
+  assert.deepEqual(prev.prayerDays, {})
+})
+
+test('reflection change stores the entry whole; tombstone removes it', () => {
+  const entry = {
+    date: '2026-08-18',
+    mood: 'calm',
+    verseKey: '94:5',
+    messages: [{ role: 'assistant' as const, content: 'hi' }],
+    updatedAt: 1755432000000,
+  }
+  const withEntry = mergeRemote(fresh(), [c({ type: 'reflection', key: '2026-08-18:calm', payload: entry })])
+  assert.deepEqual(withEntry.reflections['2026-08-18:calm'], entry)
+  const gone = mergeRemote(withEntry, [c({ type: 'reflection', key: '2026-08-18:calm', deleted: true })])
+  assert.equal(gone.reflections['2026-08-18:calm'], undefined)
+})
+
+test('app.* settings route to appSettings, not UserData scalars', () => {
+  const out = mergeRemote(fresh(), [
+    c({ type: 'setting', key: 'app.darkMode', value: true }),
+    c({ type: 'setting', key: 'app.lang', value: 'ar' }),
+    c({ type: 'setting', key: 'app.alarms', value: { leadMinutes: 10 } }),
+  ])
+  assert.equal(out.appSettings.darkMode, true)
+  assert.equal(out.appSettings.lang, 'ar')
+  assert.deepEqual(out.appSettings.alarms, { leadMinutes: 10 })
+})
+
+test('deleted/null app.* setting resets to null (account has no value)', () => {
+  const withVals = mergeRemote(fresh(), [
+    c({ type: 'setting', key: 'app.darkMode', value: true }),
+    c({ type: 'setting', key: 'app.lang', value: 'en' }),
+  ])
+  const reset = mergeRemote(withVals, [
+    c({ type: 'setting', key: 'app.darkMode', deleted: true }),
+    c({ type: 'setting', key: 'app.lang', value: null }),
+  ])
+  assert.equal(reset.appSettings.darkMode, null)
+  assert.equal(reset.appSettings.lang, null)
+})
+
+test('unknown change type is ignored (forward-compat for old clients)', () => {
+  const prev = fresh()
+  const out = mergeRemote(prev, [c({ type: 'future_thing', key: 'x', payload: { a: 1 } })])
+  assert.deepEqual(out, prev)
+})
+
+test('app.* merge never mutates the prev snapshot', () => {
+  const prev = mergeRemote(fresh(), [c({ type: 'setting', key: 'app.darkMode', value: true })])
+  const before = JSON.stringify(prev.appSettings)
+  mergeRemote(prev, [c({ type: 'setting', key: 'app.lang', value: 'id' })])
+  assert.equal(JSON.stringify(prev.appSettings), before)
+})
+
+test('op queue round-trips the new batch kinds', () => {
+  const ops: Op[] = [
+    { kind: 'prayerDays', items: [{ day: '2026-08-18', data: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false } }] },
+    { kind: 'reflections', items: [{ date: '2026-08-18', mood: 'calm', verseKey: '94:5', messages: [], updatedAt: 1 }] },
+  ]
+  const revived = JSON.parse(JSON.stringify(ops)) as Op[]
+  assert.equal(revived[0].kind, 'prayerDays')
+  assert.equal(revived[1].kind, 'reflections')
+})

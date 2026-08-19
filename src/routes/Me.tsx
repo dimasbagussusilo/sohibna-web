@@ -3,6 +3,7 @@ import { LogOut, Moon, Sun, Globe, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
+import { useQuranData } from '@/hooks/useQuranData'
 import { langName } from '@/i18n/langName'
 import type { Lang } from '@/i18n/types'
 
@@ -12,6 +13,7 @@ export function Me() {
   const { t, lang, setLang } = useI18n()
   const { user, logout } = useAuth()
   const { darkMode, setDarkMode } = useApp()
+  const { setAppSetting } = useQuranData()
   const navigate = useNavigate()
 
   const LANGS: Lang[] = ['id', 'en', 'ar']
@@ -48,7 +50,12 @@ export function Me() {
           {LANGS.map((l) => (
             <button
               key={l}
-              onClick={() => setLang(l)}
+              onClick={() => {
+                setLang(l)
+                // User-initiated switch → also attach to the account (the
+                // fromSync apply in App.tsx never reaches here).
+                if (user) setAppSetting('lang', l)
+              }}
               className={`flex-1 rounded-xl px-3 py-2.5 text-sm ${
                 lang === l
                   ? 'bg-[#8FBC8F] font-semibold text-white'

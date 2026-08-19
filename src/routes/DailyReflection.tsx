@@ -5,7 +5,9 @@ import { fetchVerseByKey, type Verse } from '@/lib/quran'
 import { pickMoodVerse, pickTranslation, type MoodId } from '@/reflection/moods'
 import { useReflectionChat } from '@/reflection/useReflectionChat'
 import { useI18n } from '@/context/I18nContext'
-import { reflectionDateKey } from '@/reflection/history'
+import { useAuth } from '@/context/AuthContext'
+import { useQuranData } from '@/hooks/useQuranData'
+import { reflectionDateKey, type ReflectionEntry } from '@/reflection/history'
 
 // Daily Reflection (web port): pick a mood → a mood-specific ayah of the day →
 // chat with the AI companion grounded in that verse. Per-day local history.
@@ -215,20 +217,27 @@ function dictChips(mood: MoodId): unknown {
   return Array.isArray(chips) ? chips : []
 }
 
-// Reflection history: list saved days (local-only), tap to reopen read-only.
+// Reflection history: local entries ∪ synced entries (authed), newer
+// updatedAt wins per 'date:mood'; tap to reopen read-only.
 export function ReflectionHistory() {
   const { t, lang } = useI18n()
   const navigate = useNavigate()
-  const [entries, setEntries] = useState<
-    { date: string; mood: MoodId; verseKey: string; updatedAt: number }[] | null
-  >(null)
+  const { user } = useAuth()
+  const { ud } = useQuranData()
+  const [entries, setEntries] = useState<ReflectionEntry[] | null>(null)
 
+  const remote = user ? ud.reflections : null
   useEffect(() => {
-    import('@/reflection/history').then(async ({ listReflections }) => {
-      const all = await listReflections()
-      setEntries(all)
+    import('@/reflection/history').then(async ({ listReflections, mergeReflectionLists }) => {
+      const local = await listReflections()
+      const merged = mergeReflectionLists(local, remote ? Object.values(remote) : []).sort((a, b) => {
+        if (a.date !== b.date) return a.date < b.date ? 1 : -1
+        return (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
+      })
+      setEntries(merged)
     })
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remote])
 
   return (
     <div className="min-h-dvh bg-cream dark:bg-night">
@@ -271,7 +280,9 @@ export function ReflectionHistory() {
                     })}
                   </span>
                   <span className="block text-[11px] text-ink/50 dark:text-cream/50">
-                    {t(`home.mood.${e.mood}`)} · {e.verseKey}
+                    {/* Synced entries carry mood: string — narrow for the typed key. */}
+                    {t(`home.mood.${(['calm', 'sad', 'anxious', 'tired'] as const).includes(e.mood as MoodId) ? e.mood : 'calm'}` as never)}{' '}
+                    · {e.verseKey}
                   </span>
                 </span>
                 <ChevronLeft size={14} className="rtl-flip rotate-180 text-ink/30 dark:text-cream/30" />

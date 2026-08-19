@@ -138,6 +138,49 @@ export type ReadingSnapshot = {
   showIndoTafsir: boolean;
 };
 
+// ── Account-attached progress + prefs (0008) ────────────────────────────────
+// Declared HERE (not imported from reflection/) because reflection/history.ts
+// already type-imports from this module; a value import would close the cycle.
+// The server mirrors these shapes in quran_prayer_days.data / quran_reflections
+// .payload (migration 0008) — keep the field names in lock-step.
+
+// One Home prayer-tracker day. Booleans per prayer; the whole object is one
+// sync unit (last-write-wins per day, never merged per-prayer across devices).
+export type PrayerDay = {
+  fajr: boolean;
+  dhuhr: boolean;
+  asr: boolean;
+  maghrib: boolean;
+  isha: boolean;
+};
+
+// One Daily Reflection chat message (user question / assistant reply).
+export type ReflectionChatMessage = { role: 'user' | 'assistant'; content: string };
+
+// One Daily Reflection entry: the mood-specific ayah shown that day plus the
+// AI companion transcript. `updatedAt` orders the merged local-vs-remote list
+// (a local in-progress entry can be newer than the server's copy); it never
+// resolves sync conflicts — those are server sync_seq, last-write-wins.
+export type ReflectionEntryData = {
+  date: string; // YYYY-MM-DD
+  mood: string; // MoodId ('calm'|'sad'|'anxious'|'tired')
+  verseKey: string;
+  messages: ReflectionChatMessage[];
+  updatedAt: number; // epoch ms
+};
+
+export type AppLang = 'id' | 'en' | 'ar';
+
+// App-level prefs riding the reader-settings KV under 'app.*' keys. Fields are
+// null until the account has a value, so a fresh login never overwrites the
+// device-local setting with a default. `alarms` is opaque (AlarmSettings-shaped
+// on RN, never applied on web) so this shared module stays platform-neutral.
+export type AppSettings = {
+  darkMode: boolean | null;
+  lang: AppLang | null;
+  alarms: unknown | null;
+};
+
 export interface UserData {
   favorites: string[];
   bookmark: string | null;
@@ -147,6 +190,15 @@ export interface UserData {
   // not a fixed set.)
   labelLibrary: string[];
   lastRead: Record<number, LastReadEntry>;
+  // Account-attached progress (0008): Home prayer tracker, keyed by device-local
+  // 'YYYY-MM-DD'. One day = one sync unit (whole boolean map, last-write-wins).
+  prayerDays: Record<string, PrayerDay>;
+  // Daily Reflection entries keyed 'YYYY-MM-DD:<mood>'. One entry = one sync unit
+  // (verse + AI chat transcript whole). Guests keep these in local storage only.
+  reflections: Record<string, ReflectionEntryData>;
+  // App-level prefs synced under 'app.*' reader-setting keys. null = no account
+  // value → the device-local setting stands.
+  appSettings: AppSettings;
   // Named "last read" slots — user-named reading marks, each holding exactly ONE
   // verse (overwritten on re-mark) PLUS the timestamp it was last set, so we can
   // tell which mark was created/touched most recently ("Continue Reading"). Synced
@@ -322,6 +374,9 @@ export const DEFAULT_USER_DATA: UserData = {
   khatmGoals: [],
   hafalanTargets: [],
   memorized: {},
+  prayerDays: {},
+  reflections: {},
+  appSettings: { darkMode: null, lang: null, alarms: null },
 };
 
 // displayModeTransition — switching verse ↔ reading mode. Shared by the reader's

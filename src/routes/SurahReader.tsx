@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
-import { ChevronLeft, Settings, Star, Tag } from 'lucide-react'
+import { ChevronLeft, Download, Search, Settings, Star, Tag } from 'lucide-react'
 import {
   ensureSegments,
   fetchChapters,
@@ -21,8 +21,10 @@ import { VerseCard } from '@/components/quran/VerseCard'
 import { AudioSettingsSheet } from '@/components/quran/AudioSettingsSheet'
 import { ReadingMarkSheet } from '@/components/quran/ReadingMarkSheet'
 import { DashboardSheet } from '@/components/quran/DashboardSheet'
+import { DownloadSheet } from '@/components/quran/DownloadSheet'
 import { AudioPlayerBar } from '@/components/AudioPlayerBar'
 import { useQuranAudio } from '@/hooks/useQuranAudio'
+import { useHotkeys } from '@/hooks/useHotkeys'
 import { uuidv4 } from '@/lib/uuid'
 
 // Surah reader (web, P0): verse display mode with all four scripts,
@@ -60,6 +62,8 @@ export function SurahReader() {
   const [activeWordKey, setActiveWordKey] = useState<string | null>(null)
   const [markSheetVk, setMarkSheetVk] = useState<string | null>(null)
   const [showDash, setShowDash] = useState(false)
+  const [sideQuery, setSideQuery] = useState('')
+  const [showDownload, setShowDownload] = useState(false)
   const enteredAtRef = useRef<number>(Date.now())
   const lastReadVkRef = useRef<string | null>(null)
 
@@ -165,6 +169,7 @@ export function SurahReader() {
     jumpedRef.current = true
     const el = document.getElementById(`verse-${CSS.escape(jumpVk)}`)
     el?.scrollIntoView({ block: 'center' })
+    focusVkRef.current = jumpVk
   }, [verses, jumpVk])
 
   // Record last-read (throttled to the latest visible verse) + document.title.
@@ -221,6 +226,50 @@ export function SurahReader() {
     [ud],
   )
 
+  // Reader-local desktop shortcuts (see ShortcutsOverlay for the cheat sheet).
+  const focusVkRef = useRef<string | null>(null)
+  const stepVerse = useCallback(
+    (dir: 1 | -1) => {
+      const cur = focusVkRef.current ?? verses[0]?.verse_key
+      if (!cur) return
+      const idx = verses.findIndex((v) => v.verse_key === cur)
+      const target = verses[idx + dir]
+      if (!target) return
+      focusVkRef.current = target.verse_key
+      document
+        .getElementById(`verse-${CSS.escape(target.verse_key)}`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    },
+    [verses],
+  )
+  useHotkeys([
+    { keys: 'j', handler: () => stepVerse(1) },
+    { keys: 'k', handler: () => stepVerse(-1) },
+    { keys: 'p', handler: () => audio.togglePlay() },
+    { keys: '[', handler: () => audio.prev() },
+    { keys: ']', handler: () => audio.next() },
+    {
+      keys: 'f',
+      handler: () => {
+        const vk = focusVkRef.current ?? audio.currentVk ?? verses[0]?.verse_key
+        if (vk) toggleFav(vk)
+      },
+    },
+    { keys: 's', handler: () => setShowSettings((v) => !v) },
+    { keys: 'a', handler: () => setShowAudioSettings((v) => !v) },
+    {
+      keys: 'Escape',
+      handler: () => {
+        setShowSettings(false)
+        setShowAudioSettings(false)
+        setShowDash(false)
+        setShowDownload(false)
+        setLabelSheetVk(null)
+        setMarkSheetVk(null)
+      },
+    },
+  ])
+
   const reciterName = useMemo(
     () => reciters.find((r) => r.id === ud.reciterId)?.reciter_name,
     [reciters, ud.reciterId],
@@ -253,6 +302,13 @@ export function SurahReader() {
           {t('dashboard.myData')}
         </button>
         <button
+          onClick={() => setShowDownload(true)}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
+          aria-label="downloads"
+        >
+          <Download size={18} />
+        </button>
+        <button
           onClick={() => setShowSettings(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
           aria-label="settings"
@@ -269,7 +325,46 @@ export function SurahReader() {
       ) : error ? (
         <div className="px-6 py-24 text-center text-sm text-red-500">{error}</div>
       ) : (
-        <main className="mx-auto max-w-3xl pt-3">
+        <div className="flex">
+          {/* Desktop sidebar: searchable surah list */}
+          <aside className="sticky top-[53px] hidden h-[calc(100dvh-53px)] w-72 shrink-0 overflow-y-auto border-e border-black/5 px-3 py-4 dark:border-white/10 xl:block">
+            <div className="mb-3 flex items-center gap-2 rounded-xl bg-black/5 px-3 py-2 dark:bg-white/10">
+              <Search size={13} className="text-ink/40 dark:text-cream/40" />
+              <input
+                value={sideQuery}
+                onChange={(e) => setSideQuery(e.target.value)}
+                placeholder={t('quranHome.searchSurah')}
+                className="w-full bg-transparent text-xs text-ink outline-none dark:text-cream"
+              />
+            </div>
+            {chapters
+              .filter((c) => {
+                const q = sideQuery.trim().toLowerCase()
+                if (!q) return true
+                return (
+                  c.name_simple.toLowerCase().includes(q) ||
+                  (c.translated_name?.name || '').toLowerCase().includes(q) ||
+                  String(c.id) === q
+                )
+              })
+              .map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => navigate(`/surah/${c.id}`)}
+                  className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-start text-xs ${
+                    c.id === surahId
+                      ? 'bg-[#8FBC8F]/15 font-bold text-[#8FBC8F]'
+                      : 'text-ink hover:bg-black/5 dark:text-cream dark:hover:bg-white/10'
+                  }`}
+                >
+                  <span className="w-6 shrink-0 font-mono text-[10px] opacity-50">{c.id}</span>
+                  <span className="min-w-0 flex-1 truncate">{c.name_simple}</span>
+                  <span className="quran-rtl shrink-0 text-sm">{c.name_arabic}</span>
+                </button>
+              ))}
+          </aside>
+
+          <main className="mx-auto min-w-0 max-w-3xl flex-1 pt-3">
           {/* Surah header card */}
           {chapter ? (
             <div className="mx-3 mb-4 rounded-2xl bg-[#7A9D7A]/15 px-4 py-5 text-center">
@@ -323,6 +418,7 @@ export function SurahReader() {
             )
           })}
         </main>
+        </div>
       )}
 
       {/* Settings sheet */}
@@ -424,6 +520,8 @@ export function SurahReader() {
       ) : null}
 
       {showDash ? <DashboardSheet onClose={() => setShowDash(false)} /> : null}
+
+      {showDownload ? <DownloadSheet onClose={() => setShowDownload(false)} /> : null}
 
       {showAudioSettings ? (
         <AudioSettingsSheet

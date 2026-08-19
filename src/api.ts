@@ -6,6 +6,7 @@ import {
   refreshNow,
   type Session,
 } from '@/lib/authSession';
+import type { PrayerDay, ReflectionEntryData } from '@/lib/quran';
 
 export type Perspective = { label: string; view: string };
 
@@ -270,7 +271,9 @@ export type Change =
   | KhatmChange
   | StreakChange
   | HafalanTargetChange
-  | MemorizedVerseChange;
+  | MemorizedVerseChange
+  | PrayerDayChange
+  | ReflectionChange;
 
 // Richer-reading rows are carried whole in `payload`.
 export interface ReadingLogChange extends BaseChange {
@@ -341,6 +344,19 @@ export interface MemorizedVerseChange extends BaseChange {
     lapses: number;
     verifiedBy?: 'manual' | 'ai' | null;
   };
+}
+
+// Account-attached progress (0008). Keyed like the client maps: prayer_day by
+// 'YYYY-MM-DD', reflection by 'YYYY-MM-DD:<mood>'.
+export interface PrayerDayChange extends BaseChange {
+  type: 'prayer_day';
+  key: string;
+  payload: PrayerDay;
+}
+export interface ReflectionChange extends BaseChange {
+  type: 'reflection';
+  key: string;
+  payload: ReflectionEntryData;
 }
 
 export interface FeedResponse {
@@ -506,4 +522,27 @@ export const upsertMemorizedVerse = (
 export const deleteMemorizedVerse = (deviceId: string, verseKey: string) =>
   syncFetch<{ ok: boolean }>(deviceId, `/quran/me/hafalan/memorized/${encodeURIComponent(verseKey)}`, {
     method: 'DELETE',
+  });
+
+// ── Account-attached progress (0008) — prayer days + reflections ────────────
+// Batch bodies: callers chunk (≤100 prayer days / ≤20 reflections per call) so
+// a guest-history backfill doesn't need one request per row and a single flaky
+// request can't wedge the whole FIFO queue behind it.
+
+export const patchPrayerDays = (
+  deviceId: string,
+  items: { day: string; data: PrayerDay }[],
+) =>
+  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/prayers', {
+    method: 'PATCH',
+    body: JSON.stringify({ items }),
+  });
+
+export const patchReflections = (
+  deviceId: string,
+  items: ReflectionEntryData[],
+) =>
+  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/reflections', {
+    method: 'PATCH',
+    body: JSON.stringify({ items }),
   });

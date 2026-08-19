@@ -1,10 +1,14 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router'
-import { I18nProvider } from '@/context/I18nContext'
-import { AuthProvider } from '@/context/AuthContext'
+import { I18nProvider, useI18n } from '@/context/I18nContext'
+import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { QuranDataProvider } from '@/context/QuranDataContext'
 import { AppProvider } from '@/context/AppContext'
+import { useQuranData } from '@/hooks/useQuranData'
 import { AppShell } from '@/components/AppShell'
 import { Toast } from '@/components/Toast'
+import { GlobalHotkeys } from '@/components/ShortcutsOverlay'
+import { OfflineBanner } from '@/components/OfflineBanner'
 import { Home } from '@/routes/Home'
 import { QuranDashboard } from '@/routes/QuranDashboard'
 import { QuranSearch } from '@/routes/QuranSearch'
@@ -21,6 +25,22 @@ import { SurahReader } from '@/routes/SurahReader'
 import { Login, Register } from '@/routes/Login'
 import { Me } from '@/routes/Me'
 
+// Applies the account's synced UI language once the store has it (0008). Inner
+// consumer by design — I18nProvider is outermost for pre-paint RTL, so the
+// account apply must live below it. fromSync skips the push-back; the
+// remote !== lang guard makes it idempotent (web applies instantly, no restart).
+function AccountLangApply() {
+  const { user } = useAuth()
+  const { ud, loaded } = useQuranData()
+  const { lang, setLang } = useI18n()
+  const remote = user && loaded ? ud.appSettings.lang : null
+  useEffect(() => {
+    if (!remote || remote === lang) return
+    setLang(remote, { fromSync: true })
+  }, [remote, lang, setLang])
+  return null
+}
+
 // Root: same provider nesting as the RN app's src/app/_layout.tsx —
 // I18n → Auth → QuranData → App → shell + toast. Route table mirrors the
 // expo-router file tree: / → home; (tabs) under the shell; stack screens
@@ -31,6 +51,7 @@ export function App() {
       <AuthProvider>
         <QuranDataProvider>
           <AppProvider>
+            <AccountLangApply />
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/login" element={<Login />} />
@@ -62,6 +83,8 @@ export function App() {
               <Route path="/alarms" element={<AlarmsUnavailable />} />
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
+            <GlobalHotkeys />
+            <OfflineBanner />
             <Toast />
           </AppProvider>
         </QuranDataProvider>

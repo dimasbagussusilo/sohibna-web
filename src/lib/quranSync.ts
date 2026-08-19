@@ -27,6 +27,8 @@ import {
   upsertMemorizedVerse,
   deleteMemorizedVerse,
   patchTZ,
+  patchPrayerDays,
+  patchReflections,
   type Change,
   type GoalType,
   type GoalUnit,
@@ -37,10 +39,23 @@ import {
   type KhatmGoal,
   type HafalanTarget,
   type MemorizedVerse,
+  type PrayerDay,
+  type ReflectionEntryData,
+  type AppLang,
 } from '@/lib/quran';
 
-const CURSOR_KEY = 'sohibna.quran.cursor';
-const QUEUE_KEY = 'sohibna.quran.pending';
+// Persistence keys are PER-USER: two accounts sharing a device must not reuse
+// each other's cursor (a stale cursor silently skips the newer account's rows)
+// or each other's queue. `userId` is the auth user id, or 'guest' logged out.
+// Legacy un-suffixed keys are migrated once (see migrateLegacySyncKeys).
+const cursorKey = (userId: string) => `sohibna.quran.cursor.${userId}`;
+const queueKey = (userId: string) => `sohibna.quran.pending.${userId}`;
+// Offline snapshot cache: the last successfully-merged UserData, rendered when
+// a full pull fails offline so progress is never "missing" on a cold start
+// without network (paired with the cursor-0 reset for online recovery).
+const cacheKey = (userId: string) => `sohibna.quran.cache.${userId}`;
+const LEGACY_CURSOR_KEY = 'sohibna.quran.cursor';
+const LEGACY_QUEUE_KEY = 'sohibna.quran.pending';
 
 // ── Merge: apply a feed page (or state snapshot) to a UserData draft ─────────
 
@@ -59,6 +74,9 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
     // memorized is a map mutated per-verse in the 'memorized_verse' case; copy it
     // so the delta pull never mutates the prev snapshot in place.
     memorized: { ...prev.memorized },
+    prayerDays: { ...prev.prayerDays },
+    reflections: { ...prev.reflections },
+    appSettings: { ...prev.appSettings },
   };
 
   for (const c of changes) {
@@ -107,6 +125,18 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         }
         break;
       case 'setting':
+        // App-level prefs ('app.*') live in next.appSettings, not the UserData
+        // scalars — intercept before setSetting (which drops unknown keys).
+        // deleted/null → null = "no account value" (device-local stands).
+        if (c.key === 'app.darkMode' || c.key === 'app.lang' || c.key === 'app.alarms') {
+          const app = { ...next.appSettings };
+          const reset = c.deleted || c.value == null;
+          if (c.key === 'app.darkMode') app.darkMode = reset ? null : c.value === true;
+          else if (c.key === 'app.lang') app.lang = reset ? null : (c.value as AppLang);
+          else app.alarms = reset ? null : c.value;
+          next.appSettings = app;
+          break;
+        }
         // Each known setting key maps 1:1 to a UserData scalar. A deleted key
         // resets to its default.
         if (c.deleted) {
@@ -201,6 +231,23 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
           };
         }
         break;
+      case 'prayer_day': {
+        // Whole-day boolean map, last-write-wins per day (never merged per-prayer
+        // across devices). Deleted → the day is removed entirely.
+        const days = { ...next.prayerDays };
+        if (c.deleted) delete days[c.key];
+        else days[c.key] = { ...c.payload };
+        next.prayerDays = days;
+        break;
+      }
+      case 'reflection': {
+        // One entry (verse + transcript) whole, last-write-wins per 'date:mood'.
+        const refl = { ...next.reflections };
+        if (c.deleted) delete refl[c.key];
+        else refl[c.key] = { ...c.payload };
+        next.reflections = refl;
+        break;
+      }
     }
   }
   return next;
@@ -244,6 +291,10 @@ export type Op =
   | { kind: 'hafalanTargetDelete'; id: string }
   | { kind: 'memorizedVerse'; verse: MemorizedVerse }
   | { kind: 'memorizedVerseDelete'; verseKey: string }
+  // Account-attached progress (0008): batched items (callers chunk ≤100 days /
+  // ≤20 reflections) so one flaky request can't wedge the queue for long.
+  | { kind: 'prayerDays'; items: { day: string; data: PrayerDay }[] }
+  | { kind: 'reflections'; items: ReflectionEntryData[] }
   | { kind: 'tz'; tz: string };
 
 // applyOp sends one op as its scoped PATCH. Throws on network/HTTP failure (the
@@ -289,6 +340,12 @@ async function applyOp(deviceId: string, op: Op): Promise<void> {
     case 'memorizedVerseDelete':
       await deleteMemorizedVerse(deviceId, op.verseKey);
       break;
+    case 'prayerDays':
+      await patchPrayerDays(deviceId, op.items);
+      break;
+    case 'reflections':
+      await patchReflections(deviceId, op.items);
+      break;
     case 'tz':
       await patchTZ(deviceId, op.tz);
       break;
@@ -307,25 +364,39 @@ export async function flushQueue(deviceId: string, queue: Op[]): Promise<Op[]> {
   return remaining;
 }
 
-// ── Cursor + queue persistence ──────────────────────────────────────────────
+// ── Cursor + queue + snapshot-cache persistence (per-user) ─────────────────
 
-export async function loadCursor(): Promise<number> {
-  const raw = await AsyncStorage.getItem(CURSOR_KEY);
+// migrateLegacySyncKeys moves the pre-0008 un-suffixed cursor/queue keys to the
+// per-user namespace on the first authed load of the new build, so offline ops
+// queued by the old version aren't stranded. The cursor needs no migration —
+// fullPull reseeds it from /state.
+export async function migrateLegacySyncKeys(userId: string): Promise<void> {
+  if (userId === 'guest') return;
+  const legacyQ = await AsyncStorage.getItem(LEGACY_QUEUE_KEY);
+  if (legacyQ != null && (await AsyncStorage.getItem(queueKey(userId))) == null) {
+    await AsyncStorage.setItem(queueKey(userId), legacyQ);
+  }
+  await AsyncStorage.removeItem(LEGACY_QUEUE_KEY);
+  await AsyncStorage.removeItem(LEGACY_CURSOR_KEY);
+}
+
+export async function loadCursor(userId: string): Promise<number> {
+  const raw = await AsyncStorage.getItem(cursorKey(userId));
   if (!raw) return 0;
   const n = parseInt(raw, 10);
   return Number.isFinite(n) ? n : 0;
 }
 
-export async function saveCursor(cursor: number): Promise<void> {
-  await AsyncStorage.setItem(CURSOR_KEY, String(cursor));
+export async function saveCursor(userId: string, cursor: number): Promise<void> {
+  await AsyncStorage.setItem(cursorKey(userId), String(cursor));
 }
 
-export async function clearCursor(): Promise<void> {
-  await AsyncStorage.removeItem(CURSOR_KEY);
+export async function clearCursor(userId: string): Promise<void> {
+  await AsyncStorage.removeItem(cursorKey(userId));
 }
 
-export async function loadQueue(): Promise<Op[]> {
-  const raw = await AsyncStorage.getItem(QUEUE_KEY);
+export async function loadQueue(userId: string): Promise<Op[]> {
+  const raw = await AsyncStorage.getItem(queueKey(userId));
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Op[];
@@ -335,10 +406,38 @@ export async function loadQueue(): Promise<Op[]> {
   }
 }
 
-export async function saveQueue(queue: Op[]): Promise<void> {
-  await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+export async function saveQueue(userId: string, queue: Op[]): Promise<void> {
+  await AsyncStorage.setItem(queueKey(userId), JSON.stringify(queue));
 }
 
-export async function clearQueue(): Promise<void> {
-  await AsyncStorage.removeItem(QUEUE_KEY);
+export async function clearQueue(userId: string): Promise<void> {
+  await AsyncStorage.removeItem(queueKey(userId));
+}
+
+// Snapshot cache: the last merged UserData, written after every successful
+// full/delta pull and read when a pull fails offline (render cache → next
+// online foreground pull from cursor 0 converges via idempotent merges).
+export async function loadCache(userId: string): Promise<UserData | null> {
+  const raw = await AsyncStorage.getItem(cacheKey(userId));
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as UserData;
+    // Spread defaults first so fields added after this cache was written are
+    // backfilled instead of undefined (same pattern as the guest doc).
+    return { ...DEFAULT_USER_DATA, ...parsed };
+  } catch {
+    return null;
+  }
+}
+
+export async function saveCache(userId: string, ud: UserData): Promise<void> {
+  try {
+    await AsyncStorage.setItem(cacheKey(userId), JSON.stringify(ud));
+  } catch {
+    /* cache write is best-effort — never block a pull on it */
+  }
+}
+
+export async function clearCache(userId: string): Promise<void> {
+  await AsyncStorage.removeItem(cacheKey(userId));
 }

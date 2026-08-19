@@ -38,7 +38,7 @@ function applyDocumentLang(lang: Lang): void {
 
 type I18nState = {
   lang: Lang
-  setLang: (lang: Lang) => void
+  setLang: (lang: Lang, opts?: { fromSync?: boolean }) => void
   /** Whether the active language lays out right-to-left (Arabic). */
   isRTL: boolean
   /** The active layout direction, for the few inline styles that need it. */
@@ -90,10 +90,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // Switch language. The DOM reflows under the new dir immediately — no
   // restart needed (web advantage over the RN app's RNRestart approach).
-  const setLang = useCallback((next: Lang) => {
+  // `opts.fromSync` marks an account-driven apply: the value came FROM the
+  // server, so the caller skips pushing it back (the Me page's user-initiated
+  // path still pushes via setAppSetting).
+  const setLang = useCallback((next: Lang, opts?: { fromSync?: boolean }) => {
     setLangState(next)
     applyDocumentLang(next)
     storage.setItem(LANG_KEY, next).catch(() => {})
+    void opts
   }, [])
 
   const isRTL = isRTLFor(lang)

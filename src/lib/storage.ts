@@ -1,9 +1,11 @@
 // localStorage-backed storage with the AsyncStorage API shape, so ported
 // call-sites keep their async signatures verbatim. All the app's persisted
 // keys live here (same key strings as the RN app):
-//   sohibna.quran.cursor / sohibna.quran.pending / sohibna.quran.guestUD
+//   sohibna.quran.cursor.<uid> / sohibna.quran.pending.<uid> (per-user, 0008;
+//     legacy un-suffixed keys are migrated once) / sohibna.quran.cache.<uid>
+//     (offline snapshot) / sohibna.quran.guestUD / sohibna.quran.backfill.<uid>
 //   sohibna.auth_* / sohibna.device_id / sohibna:lang / sohibna:dark_mode
-//   reflection:* / location / place-name / islamic-events caches
+//   reflection:* / prayed:* / location / place-name / islamic-events caches
 //
 // SECURITY NOTE: the RN app kept tokens in the OS keychain (SecureStore). Web
 // has no equivalent available to JS, so refresh/access tokens live in
