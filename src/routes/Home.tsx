@@ -59,7 +59,7 @@ export function Home() {
   })
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-6">
+    <div className="mx-auto max-w-3xl px-4 pt-6 lg:max-w-4xl xl:max-w-5xl">
       {/* Greeting + dark toggle */}
       <div className="mb-5 flex items-start justify-between">
         <div>
@@ -91,66 +91,69 @@ export function Home() {
         )}
       </div>
 
-      {/* Next prayer banner */}
-      {next && times ? (
-        <div className="mb-5 rounded-3xl bg-night px-5 py-6 text-center text-cream dark:bg-[#163024]">
-          <div className="text-[11px] uppercase tracking-widest text-cream/50">
-            {t('home.nextPrayer')}
+      {/* Next prayer banner + today's schedule — side by side on desktop */}
+      <div className="mb-5 lg:grid lg:grid-cols-[1fr_1.2fr] lg:items-stretch lg:gap-4">
+        {/* Next prayer banner */}
+        {next && times ? (
+          <div className="mb-5 rounded-3xl bg-night px-5 py-6 text-center text-cream dark:bg-[#163024] lg:mb-0 lg:flex lg:flex-col lg:justify-center">
+            <div className="text-[11px] uppercase tracking-widest text-cream/50">
+              {t('home.nextPrayer')}
+            </div>
+            <div className="mt-1 text-3xl font-bold">{next.name}</div>
+            <div className="mt-1 text-sm text-cream/70">
+              {formatTime(next.time)} · {formatRemaining(next.time, new Date(now))}
+            </div>
           </div>
-          <div className="mt-1 text-3xl font-bold">{next.name}</div>
-          <div className="mt-1 text-sm text-cream/70">
-            {formatTime(next.time)} · {formatRemaining(next.time, new Date(now))}
+        ) : coords ? (
+          <div className="mb-5 rounded-3xl bg-night px-5 py-6 text-center text-cream dark:bg-[#163024] lg:mb-0 lg:flex lg:flex-col lg:justify-center">
+            <div className="text-sm text-cream/70">{t('home.prayersDone')}</div>
           </div>
-        </div>
-      ) : coords ? (
-        <div className="mb-5 rounded-3xl bg-night px-5 py-6 text-center text-cream dark:bg-[#163024]">
-          <div className="text-sm text-cream/70">{t('home.prayersDone')}</div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {/* Today's schedule */}
-      {times ? (
-        <div className="overflow-hidden rounded-3xl bg-white shadow-sm dark:bg-[#122A1F]">
-          {ROWS.map((r, i) => {
-            const active = next?.name === r.name
-            return (
-              <div
-                key={r.key}
-                className={`flex items-center justify-between px-5 py-3.5 ${
-                  i > 0 ? 'border-t border-gray-100 dark:border-white/10' : ''
-                } ${active ? 'bg-[#8FBC8F]/10' : ''}`}
-              >
-                <span
-                  className={`text-sm ${active ? 'font-bold text-[#8FBC8F]' : 'text-ink dark:text-cream'}`}
+        {/* Today's schedule */}
+        {times ? (
+          <div className="overflow-hidden rounded-3xl bg-white shadow-sm dark:bg-[#122A1F]">
+            {ROWS.map((r, i) => {
+              const active = next?.name === r.name
+              return (
+                <div
+                  key={r.key}
+                  className={`flex items-center justify-between px-5 py-3.5 ${
+                    i > 0 ? 'border-t border-gray-100 dark:border-white/10' : ''
+                  } ${active ? 'bg-[#8FBC8F]/10' : ''}`}
                 >
-                  {t(`alarms.prayerName.${r.name}` as never)}
-                </span>
-                <span className={`font-mono text-sm ${active ? 'font-bold text-[#8FBC8F]' : 'text-ink/70 dark:text-cream/70'}`}>
-                  {formatTime(times[r.key])}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      ) : !locLoading ? (
-        <div className="rounded-3xl bg-white px-5 py-8 text-center text-sm text-ink/50 shadow-sm dark:bg-[#122A1F] dark:text-cream/50">
-          {t('alarms.locationNotSet')}
-          <div className="mt-3">
-            <button
-              onClick={() => void requestAuto()}
-              className="inline-flex items-center gap-2 rounded-full bg-[#8FBC8F] px-4 py-2 text-sm font-semibold text-white"
-            >
-              <RefreshCw size={14} /> {t('common.grantLocation')}
-            </button>
+                  <span
+                    className={`text-sm ${active ? 'font-bold text-[#8FBC8F]' : 'text-ink dark:text-cream'}`}
+                  >
+                    {t(`alarms.prayerName.${r.name}` as never)}
+                  </span>
+                  <span className={`font-mono text-sm ${active ? 'font-bold text-[#8FBC8F]' : 'text-ink/70 dark:text-cream/70'}`}>
+                    {formatTime(times[r.key])}
+                  </span>
+                </div>
+              )
+            })}
           </div>
-        </div>
-      ) : null}
+        ) : !locLoading ? (
+          <div className="rounded-3xl bg-white px-5 py-8 text-center text-sm text-ink/50 shadow-sm dark:bg-[#122A1F] dark:text-cream/50">
+            {t('alarms.locationNotSet')}
+            <div className="mt-3">
+              <button
+                onClick={() => void requestAuto()}
+                className="inline-flex items-center gap-2 rounded-full bg-[#8FBC8F] px-4 py-2 text-sm font-semibold text-white"
+              >
+                <RefreshCw size={14} /> {t('common.grantLocation')}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       {/* Quick access */}
       <div className="mb-4 mt-6 text-[10px] font-bold uppercase tracking-widest text-ink/40 dark:text-cream/40">
         {t('home.quickAccess')}
       </div>
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-4 gap-2.5 lg:grid-cols-8">
         <QuickLink to="/qibla" icon="🧭" label={t('home.qibla')} />
         <QuickLink to="/nearby-masjid" icon="🕌" label={t('home.nearbyMasjid')} />
         <QuickLink to="/iqro" icon="📖" label={t('home.learnQuran')} />

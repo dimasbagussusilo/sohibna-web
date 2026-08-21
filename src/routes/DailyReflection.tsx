@@ -54,7 +54,7 @@ export function DailyReflection() {
   const moods: MoodId[] = ['calm', 'sad', 'anxious', 'tired']
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cream dark:bg-night">
+    <div className="flex min-h-dvh flex-col bg-cream dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
@@ -114,7 +114,7 @@ export function DailyReflection() {
             <div className="h-16 animate-pulse rounded-xl bg-black/5 dark:bg-white/10" />
           ) : (
             <>
-              <div className="quran-rtl mb-2 text-right text-lg leading-loose text-ink dark:text-cream">
+              <div className="quran-rtl mb-2 text-right text-[30px] text-ink dark:text-cream">
                 {verse?.text_uthmani ?? '—'}
               </div>
               <div className="text-xs leading-relaxed text-ink/60 dark:text-cream/60">
@@ -186,7 +186,7 @@ export function DailyReflection() {
           }}
           className="sticky bottom-0 border-t border-black/5 bg-cream px-4 py-3 dark:border-white/10 dark:bg-night"
         >
-          <div className="mx-auto flex max-w-3xl gap-2">
+          <div className="mx-auto flex max-w-3xl gap-2 lg:max-w-4xl">
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -240,7 +240,7 @@ export function ReflectionHistory() {
   }, [remote])
 
   return (
-    <div className="min-h-dvh bg-cream dark:bg-night">
+    <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
@@ -255,7 +255,7 @@ export function ReflectionHistory() {
         <span className="w-9" />
       </header>
 
-      <div className="mx-auto max-w-3xl px-4 pt-4">
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-4xl">
         {entries === null ? (
           <p className="py-10 text-center text-xs text-ink/40 dark:text-cream/40">…</p>
         ) : entries.length ? (

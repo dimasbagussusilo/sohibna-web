@@ -36,7 +36,7 @@ export function Iqro() {
   }
 
   return (
-    <div className="min-h-dvh bg-cream dark:bg-night">
+    <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
@@ -51,7 +51,7 @@ export function Iqro() {
         <span className="w-9" />
       </header>
 
-      <div className="mx-auto max-w-3xl px-4 pt-4">
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-4xl">
         {/* Volume selector */}
         <div className="mb-4 flex flex-wrap gap-2">
           {VOLUMES.filter((v) => !v.disabled).map((v) => (
@@ -88,7 +88,9 @@ export function Iqro() {
                           : 'bg-black/[0.03] dark:bg-white/5'
                       }`}
                     >
-                      <span className="quran-rtl text-2xl text-ink dark:text-cream">{l.arab}</span>
+                      <span className="quran-rtl text-[40px] leading-tight text-ink dark:text-cream">
+                        {l.arab}
+                      </span>
                       <span className="mt-1 text-[10px] text-ink/50 dark:text-cream/50">
                         {l.name}
                       </span>
@@ -120,7 +122,7 @@ export function Iqro() {
                     </span>
                   ))}
                 </span>
-                <span className="quran-rtl mt-1 text-xl text-ink dark:text-cream">
+                <span className="quran-rtl mt-1 text-[28px] text-ink dark:text-cream">
                   {w.connectedText}
                 </span>
                 <Volume2 size={11} className="mt-1.5 text-[#8FBC8F]" />
@@ -175,7 +177,7 @@ function RulesVolume({
             speaking === r.id ? 'ring-2 ring-[#8FBC8F]' : ''
           }`}
         >
-          <span className="quran-rtl text-2xl text-ink dark:text-cream">{r.arab}</span>
+          <span className="quran-rtl text-[32px] leading-snug text-ink dark:text-cream">{r.arab}</span>
           <span className="mt-1 text-[11px] font-semibold text-ink/70 dark:text-cream/70">
             {r.name}
           </span>

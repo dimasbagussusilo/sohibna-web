@@ -6,6 +6,7 @@ import { QuranDataProvider } from '@/context/QuranDataContext'
 import { AppProvider } from '@/context/AppContext'
 import { useQuranData } from '@/hooks/useQuranData'
 import { AppShell } from '@/components/AppShell'
+import { TabBar } from '@/components/TabBar'
 import { Toast } from '@/components/Toast'
 import { GlobalHotkeys } from '@/components/ShortcutsOverlay'
 import { OfflineBanner } from '@/components/OfflineBanner'
@@ -83,6 +84,7 @@ export function App() {
               <Route path="/alarms" element={<AlarmsUnavailable />} />
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
+            <TabBar />
             <GlobalHotkeys />
             <OfflineBanner />
             <Toast />

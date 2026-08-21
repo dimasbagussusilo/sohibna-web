@@ -31,7 +31,7 @@ export function Rulings() {
   )
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-5">
+    <div className="mx-auto max-w-3xl px-4 pt-5 lg:max-w-4xl xl:max-w-5xl">
       <div className="mb-1 text-lg font-bold text-ink dark:text-cream">{t('rulings.title')}</div>
       <p className="mb-4 text-xs text-ink/50 dark:text-cream/50">{t('rulings.subtitle')}</p>
 

@@ -94,7 +94,7 @@ export function QuranSearch() {
   }
 
   return (
-    <div className="min-h-dvh bg-cream dark:bg-night">
+    <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/quran'))}
@@ -119,7 +119,7 @@ export function QuranSearch() {
       </header>
 
       {/* Tabs */}
-      <div className="mx-auto max-w-3xl px-4 pt-3">
+      <div className="mx-auto max-w-3xl px-4 pt-3 lg:max-w-4xl">
         <div className="mb-4 grid grid-cols-3 gap-1 rounded-xl bg-black/5 p-1 dark:bg-white/10">
           {(
             [
@@ -199,7 +199,7 @@ export function QuranSearch() {
                       <div className="mb-1.5 font-mono text-[10px] text-[#8FBC8F]">
                         {h.verseKey}
                       </div>
-                      <div className="quran-rtl mb-2 text-right text-lg leading-loose text-ink dark:text-cream">
+                      <div className="quran-rtl mb-2 text-right text-xl text-ink dark:text-cream">
                         {h.arabic}
                       </div>
                       <div className="text-xs leading-relaxed text-ink/70 dark:text-cream/70">
@@ -257,7 +257,7 @@ export function QuranSearch() {
                       className="block w-full rounded-2xl bg-white p-4 text-start shadow-sm dark:bg-[#122A1F]"
                     >
                       <div className="mb-1.5 font-mono text-[10px] text-[#8FBC8F]">{r.key}</div>
-                      <div className="quran-rtl mb-2 text-right text-lg leading-loose text-ink dark:text-cream">
+                      <div className="quran-rtl mb-2 text-right text-xl text-ink dark:text-cream">
                         {r.arabic}
                       </div>
                       <div className="text-xs leading-relaxed text-ink/70 dark:text-cream/70">

@@ -19,7 +19,7 @@ export function Me() {
   const LANGS: Lang[] = ['id', 'en', 'ar']
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-6">
+    <div className="mx-auto max-w-3xl px-4 pt-6 lg:max-w-4xl">
       {/* Profile */}
       <div className="mb-5 flex items-center gap-4 rounded-3xl bg-white p-5 shadow-sm dark:bg-[#122A1F]">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#8FBC8F]/20 text-xl font-bold text-[#8FBC8F]">

@@ -46,7 +46,7 @@ export function QuranGoals() {
   }, [refresh, ud.khatmGoals.length])
 
   return (
-    <div className="min-h-dvh bg-cream pb-10 dark:bg-night">
+    <div className="min-h-dvh bg-cream pb-10 dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/quran'))}
@@ -67,7 +67,7 @@ export function QuranGoals() {
         </button>
       </header>
 
-      <div className="mx-auto max-w-3xl space-y-3 px-4 pt-4">
+      <div className="mx-auto max-w-3xl space-y-3 px-4 pt-4 lg:max-w-4xl">
         {/* Streak */}
         {ud.streak ? (
           <div className="rounded-3xl bg-night px-5 py-5 text-cream dark:bg-[#163024]">

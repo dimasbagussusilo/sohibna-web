@@ -1,9 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useI18n } from '@/context/I18nContext'
 
-// Web port of the RN AppText: a <span> that pins the Tajawal weight when the
-// UI language is RTL. On web, CSS font inheritance mostly makes this a plain
-// span, but keeping the component keeps ported screens' JSX shape identical.
+// Web port of the RN AppText. On web the Tajawal-for-Arabic rule lives in
+// index.css (html[dir='rtl'] body { font-family: Tajawal }), so unlike RN —
+// where fontFamily doesn't cascade View→Text and every Text must re-pin it —
+// this component is a plain element; keeping it preserves the ported screens'
+// JSX shape and gives a single place to attach font behaviour if it diverges
+// again.
 type Weight = '400' | '500' | '700'
 
 const WEIGHT_TO_CLASS: Record<Weight, string> = {
@@ -26,17 +28,9 @@ export function AppText({
   style?: CSSProperties
   as?: 'span' | 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'div' | 'label'
 } & React.HTMLAttributes<HTMLElement>) {
-  const { isRTL } = useI18n()
   const Tag = as
-  // Tajawal has explicit weight files; when RTL, make sure the Tajawal family
-  // (not a synthesized fallback) renders the requested weight.
-  const family: CSSProperties = isRTL ? { fontFamily: 'Tajawal, sans-serif' } : {}
   return (
-    <Tag
-      className={`${weight ? WEIGHT_TO_CLASS[weight] : ''} ${className}`}
-      style={{ ...family, ...style }}
-      {...rest}
-    >
+    <Tag className={`${weight ? WEIGHT_TO_CLASS[weight] : ''} ${className}`} style={style} {...rest}>
       {children}
     </Tag>
   )

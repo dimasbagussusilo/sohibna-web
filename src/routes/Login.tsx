@@ -29,7 +29,7 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-cream px-4 dark:bg-night">
+    <div className="flex min-h-dvh items-center justify-center bg-cream px-4 dark:bg-night lg:ps-20">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           <div className="quran-rtl mb-2 text-4xl">صحبنا</div>
@@ -122,7 +122,7 @@ export function Register() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-cream px-4 dark:bg-night">
+    <div className="flex min-h-dvh items-center justify-center bg-cream px-4 dark:bg-night lg:ps-20">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           <div className="quran-rtl mb-2 text-4xl">صحبنا</div>

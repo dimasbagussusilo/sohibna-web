@@ -73,7 +73,7 @@ export function Shalat() {
   const mazhabInfo = MAZHAB_INFO[mazhab]
 
   return (
-    <div className="min-h-dvh bg-cream dark:bg-night">
+    <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
@@ -88,7 +88,7 @@ export function Shalat() {
         <span className="w-9" />
       </header>
 
-      <div className="mx-auto max-w-3xl px-4 pt-4">
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-4xl">
         {/* Section tabs */}
         <div className="mb-4 grid grid-cols-3 gap-1 rounded-xl bg-black/5 p-1 dark:bg-white/10">
           {(
@@ -241,7 +241,7 @@ export function Shalat() {
                     <div className="text-xs text-ink/60 dark:text-cream/60">{bi(s.desc, lang)}</div>
                   ) : null}
                   {s.arabic ? (
-                    <div className="quran-rtl mt-1 text-right text-base text-ink dark:text-cream">
+                    <div className="quran-rtl mt-1 text-right text-xl text-ink dark:text-cream">
                       {s.arabic}
                     </div>
                   ) : null}
@@ -330,7 +330,7 @@ function RecitationCard({
           </button>
         </div>
       ) : null}
-      <div className="quran-rtl mb-2 text-right text-lg leading-loose text-ink dark:text-cream">
+      <div className="quran-rtl mb-2 text-right text-[28px] text-ink dark:text-cream">
         {item.arabic}
       </div>
       {item.latin ? (

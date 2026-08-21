@@ -56,7 +56,7 @@ export function Calendar() {
   })
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-5">
+    <div className="mx-auto max-w-3xl px-4 pt-5 lg:max-w-4xl xl:max-w-5xl">
       {/* Hijri headline */}
       <div className="mb-4 rounded-3xl bg-night px-5 py-5 text-cream dark:bg-[#163024]">
         <div className="text-[11px] uppercase tracking-widest text-cream/50">
@@ -73,8 +73,9 @@ export function Calendar() {
         </div>
       </div>
 
-      {/* Month grid */}
-      <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:bg-[#122A1F]">
+      {/* Month grid + selected-day panel — side by side on desktop */}
+      <div className="mb-4 lg:grid lg:grid-cols-[1.4fr_1fr] lg:items-start lg:gap-4">
+      <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:bg-[#122A1F] lg:mb-0">
         <div className="mb-3 flex items-center justify-between">
           <button
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
@@ -145,7 +146,7 @@ export function Calendar() {
       </div>
 
       {/* Selected day */}
-      <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:bg-[#122A1F]">
+      <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:bg-[#122A1F] lg:mb-0">
         <div className="mb-2 text-sm font-bold text-ink dark:text-cream">
           {selected.toLocaleDateString(lang === 'ar' ? 'ar' : lang, {
             weekday: 'long',
@@ -186,6 +187,7 @@ export function Calendar() {
             {t('calendar.noEventsDay')}
           </p>
         )}
+      </div>
       </div>
 
       {/* Upcoming occasions */}

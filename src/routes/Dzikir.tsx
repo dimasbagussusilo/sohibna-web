@@ -39,7 +39,7 @@ export function Dzikir() {
   }
 
   return (
-    <div className="min-h-dvh bg-cream dark:bg-night">
+    <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
@@ -54,7 +54,7 @@ export function Dzikir() {
         <span className="w-9" />
       </header>
 
-      <div className="mx-auto max-w-3xl px-4 pt-4">
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-4xl">
         <p className="mb-4 text-xs text-ink/50 dark:text-cream/50">{t('dzikir.intro')}</p>
 
         {/* Category tabs */}
@@ -93,7 +93,7 @@ export function Dzikir() {
                   </button>
                 </div>
               ) : null}
-              <div className="quran-rtl mb-3 text-right text-lg leading-loose text-ink dark:text-cream">
+              <div className="quran-rtl mb-3 text-right text-[28px] text-ink dark:text-cream">
                 {item.arabic}
               </div>
               {item.latin ? (

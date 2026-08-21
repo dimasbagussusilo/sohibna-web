@@ -66,7 +66,7 @@ export function QuranDashboard() {
   )
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-5">
+    <div className="mx-auto max-w-3xl px-4 pt-5 lg:max-w-4xl xl:max-w-5xl">
       <h1 className="mb-4 text-xl font-bold text-ink dark:text-cream">{t('tabs.quran')}</h1>
 
       {/* Search */}

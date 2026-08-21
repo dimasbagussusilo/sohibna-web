@@ -276,7 +276,11 @@ export function SurahReader() {
   )
 
   return (
-    <div className={`min-h-dvh bg-cream pb-16 dark:bg-night ${audio.currentVk ? "pb-36" : ""}`}>
+    <div
+      className={`min-h-dvh bg-cream pb-16 dark:bg-night lg:ps-20 ${
+        audio.currentVk ? "pb-36" : ""
+      }`}
+    >
       {/* Header */}
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
         <button
@@ -364,7 +368,7 @@ export function SurahReader() {
               ))}
           </aside>
 
-          <main className="mx-auto min-w-0 max-w-3xl flex-1 pt-3">
+          <main className="mx-auto min-w-0 max-w-3xl flex-1 pt-3 xl:max-w-4xl">
           {/* Surah header card */}
           {chapter ? (
             <div className="mx-3 mb-4 rounded-2xl bg-[#7A9D7A]/15 px-4 py-5 text-center">

@@ -13,7 +13,15 @@
   --color-sage: #7a9d7a;
 }
 
-/* Tajawal — the UI font (ported from the RN app's assets/fonts). */
+/* Fonts — mirrors the RN app:
+   1. UI text: the platform system font (RN's default when no fontFamily is
+      set). Tajawal applies ONLY when the UI language is Arabic (the RN
+      AppText behaviour) — scoped to <html dir="rtl"> below.
+   2. Arabic *content* (duas, niats, Iqro glyphs — the .quran-rtl spans):
+      the device's Naskh. Android ships Noto Naskh Arabic as its system
+      Arabic face; we self-host the same family so desktop browsers (whose
+      default Arabic fallback is often a thin Naskh substitute) render
+      identically to mobile. */
 @font-face {
   font-family: 'Tajawal';
   src: url('/fonts/Tajawal-Regular.ttf') format('truetype');
@@ -32,6 +40,18 @@
   font-weight: 700;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  src: url('/fonts/NotoNaskhArabic-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  src: url('/fonts/NotoNaskhArabic-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
 
 html,
 body {
@@ -40,9 +60,15 @@ body {
 }
 
 body {
-  font-family: Tajawal, system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+}
+
+/* Arabic UI language: switch the whole UI to Tajawal (RN AppText equivalent —
+   Tajawal is the UI font only for Arabic; id/en keep the system font). */
+html[dir='rtl'] body {
+  font-family: Tajawal, system-ui, sans-serif;
 }
 
 /* RTL icon mirroring (replaces the RN app's RtlMirror / useRtlFlipStyle). */
@@ -50,9 +76,12 @@ body {
   transform: scaleX(-1);
 }
 
-/* Quran verse text — right-to-left always, regardless of UI language. */
+/* Quran / dua / Arabic-script content — right-to-left always, regardless of
+   UI language, in the Naskh face (matches the device rendering on mobile). */
 .quran-rtl {
   direction: rtl;
   text-align: right;
   unicode-bidi: isolate;
+  font-family: 'Noto Naskh Arabic', 'Scheherazade New', serif;
+  line-height: 1.7;
 }
