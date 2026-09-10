@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-ARG VITE_API_BASE_URL=https://sohibna-api.cendekita.id
+ARG VITE_API_BASE_URL=https://sohibna-api.catatanbidan.id
 ARG VITE_GOOGLE_WEB_CLIENT_ID=
 ARG VITE_FIREBASE_API_KEY=
 ARG VITE_FIREBASE_AUTH_DOMAIN=

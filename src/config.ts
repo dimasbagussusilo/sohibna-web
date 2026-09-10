@@ -1,7 +1,7 @@
 // Base URL of the sohibna-api backend (default :8080).
 //
 // Set via the `VITE_API_BASE_URL` env var so the production build points at
-// the deployed backend (https://sohibna-api.cendekita.id) while local dev
+// the deployed backend (https://sohibna-api.catatanbidan.id) while local dev
 // keeps the default. The value is inlined at build time by Vite, so it must
 // be present when the bundle is created.
 export const API_BASE_URL: string =

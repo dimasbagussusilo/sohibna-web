@@ -10,7 +10,7 @@ automatically via GitHub Actions.
    repository secrets:
    - `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` — same values as the API repo
    - `KUBE_CONFIG` — same cluster kubeconfig as the API repo
-   - `VITE_API_BASE_URL` — `https://sohibna-api.cendekita.id`
+   - `VITE_API_BASE_URL` — `https://sohibna-api.catatanbidan.id`
    - `VITE_GOOGLE_WEB_CLIENT_ID` + the four `VITE_FIREBASE_*` values (Web app
      config from the Firebase console; until set, the Google button is hidden
      and email login still works)
