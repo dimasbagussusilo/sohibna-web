@@ -286,7 +286,7 @@ export function SurahReader() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/quran'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -308,14 +308,14 @@ export function SurahReader() {
         <button
           onClick={() => setShowDownload(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="downloads"
+          aria-label={t('a11y.downloads')}
         >
           <Download size={18} />
         </button>
         <button
           onClick={() => setShowSettings(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="settings"
+          aria-label={t('a11y.settings')}
         >
           <Settings size={20} />
         </button>
@@ -554,7 +554,7 @@ function ScrollTopFab({ topRef }: { topRef: React.RefObject<HTMLDivElement | nul
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       className="fixed bottom-20 end-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-[#8FBC8F] text-white shadow-lg lg:bottom-6"
-      aria-label="scroll to top"
+      aria-label={t('a11y.scrollToTop')}
     >
       ↑
     </button>

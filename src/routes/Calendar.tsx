@@ -80,7 +80,7 @@ export function Calendar() {
           <button
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
             className="rtl-flip h-8 w-8 rounded-full bg-black/5 text-ink dark:bg-white/10 dark:text-cream"
-            aria-label="previous month"
+            aria-label={t('a11y.previousMonth')}
           >
             ‹
           </button>
@@ -88,7 +88,7 @@ export function Calendar() {
           <button
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
             className="rtl-flip h-8 w-8 rounded-full bg-black/5 text-ink dark:bg-white/10 dark:text-cream"
-            aria-label="next month"
+            aria-label={t('a11y.nextMonth')}
           >
             ›
           </button>

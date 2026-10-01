@@ -1,10 +1,12 @@
 import type { Lang } from '@/i18n/types';
 
 // Type shapes for the Iqro curriculum, ported from iqro/1–4.html datasets.
-// Pedagogical prose is bilingual (Bi); terms/transliteration stay plain strings.
+// Pedagogical prose is trilingual (Bi). Term names (letters, harakat, tajwid
+// rules) are also Bi: Indonesian/English keep the transliteration, Arabic gets
+// the native term (السكون، الفتحة…).
 
-/** A bilingual string — Indonesian source + English translation. */
-export type Bi = { id: string; en: string };
+/** A trilingual string — Indonesian source + English and Arabic translations. */
+export type Bi = { id: string; en: string; ar: string };
 
 /** Deeply resolves every Bi in a shape to a plain string for the given lang. */
 export type Resolved<T> = T extends Bi
@@ -21,7 +23,7 @@ export type { Lang };
 export type Letter = {
   id: string;
   arab: string;
-  name: string;
+  name: Bi;
   /** Latin transliteration, kept for reference (audio speaks the Arabic). */
   audio: string;
   /** Posisi Mulut (Makhraj) — where the sound is articulated. */
@@ -63,7 +65,7 @@ export type Syllable = {
 
 export type HarakatRule = {
   id: string;
-  title: string;
+  title: Bi;
   subtitle: Bi;
   icon: string;
   analogyIcon: string;
@@ -79,7 +81,7 @@ export type HarakatRule = {
 /** A tajwid rule (Phase 7). */
 export type TajwidRule = {
   id: string;
-  title: string;
+  title: Bi;
   subtitle: Bi;
   icon: string;
   analogyIcon: string;
@@ -100,7 +102,7 @@ export type HarakatSyllable = { arab: string; latin: string };
 
 export type HarakatSign = {
   id: string;
-  name: string;
+  name: Bi;
   sign: string;
   sound: string;
   carrier: string;
@@ -111,20 +113,21 @@ export type HarakatSign = {
 /** A long-vowel lengthener (alif/waw/ya) — Phase 5. */
 export type LongVowel = {
   id: string;
-  name: string;
+  name: Bi;
   letter: string;
   pair: string;
   word: string;
   latin: string;
   meaning: Bi;
-  vowel: string;
+  /** Name of the harakat this lengthener extends (matches HarakatSign.name). */
+  vowel: Bi;
   desc: Bi;
 };
 
 /** A hamzah / alif variant form — Phase 6. */
 export type HamzahForm = {
   id: string;
-  name: string;
+  name: Bi;
   form: string;
   word: string;
   latin: string;

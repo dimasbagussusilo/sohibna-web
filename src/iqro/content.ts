@@ -11,23 +11,24 @@ import {
   HAMZAH_FORMS,
 } from './data';
 
-// A Bi value has exactly these two keys. Used to detect translatable leaves
+// A Bi value has exactly these three keys. Used to detect translatable leaves
 // during the deep resolve walk.
 const isBi = (x: unknown): x is Bi =>
   !!x &&
   typeof x === 'object' &&
   'id' in x &&
   'en' in x &&
-  Object.keys(x).length === 2;
+  'ar' in x &&
+  Object.keys(x).length === 3;
 
 /**
  * Deeply resolve every Bi leaf in a data tree to a plain string for the given
  * language. Lets components keep reading `letter.anatomy` as a string while the
- * underlying data stays bilingual.
+ * underlying data stays trilingual.
  */
 export function resolve<T>(node: T, lang: Lang): Resolved<T> {
   if (isBi(node)) {
-    return (lang === 'en' ? node.en : node.id) as Resolved<T>;
+    return node[lang] as Resolved<T>;
   }
   if (Array.isArray(node)) {
     return node.map((n) => resolve(n, lang)) as Resolved<T>;

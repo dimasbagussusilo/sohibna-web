@@ -60,7 +60,7 @@ function MobileTabBar() {
     <nav
       className={`fixed inset-x-0 bottom-0 z-40 lg:hidden ${pillBg}`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Main"
+      aria-label={t('a11y.mainNav')}
     >
       <div className="relative mx-auto flex h-[62px] max-w-md items-end justify-between px-5">
         {/* Notch: half-disc of the page bg faking a cutout behind the FAB */}

@@ -80,17 +80,17 @@ export function AudioPlayerBar({
         </span>
         <div className="flex flex-row items-center gap-4">
           {onOpenSettings ? (
-            <button onClick={onOpenSettings} aria-label="audio settings">
+            <button onClick={onOpenSettings} aria-label={t('a11y.audioSettings')}>
               <Settings color="#9ca3af" size={20} />
             </button>
           ) : null}
           {onPrev ? (
-            <button onClick={onPrev} aria-label="previous">
+            <button onClick={onPrev} aria-label={t('a11y.previous')}>
               <SkipBack color="#9ca3af" size={22} className="rtl-flip" />
             </button>
           ) : null}
           {onCycleRate ? (
-            <button onClick={onCycleRate} className="flex flex-row items-center" aria-label="speed">
+            <button onClick={onCycleRate} className="flex flex-row items-center" aria-label={t('a11y.speed')}>
               <Gauge color="#9ca3af" size={18} />
               <span className="ms-1 text-xs font-bold text-stone-500 dark:text-gray-400">
                 {rate}×
@@ -109,11 +109,11 @@ export function AudioPlayerBar({
             )}
           </button>
           {onNext ? (
-            <button onClick={onNext} aria-label="next">
+            <button onClick={onNext} aria-label={t('a11y.next')}>
               <SkipForward color="#9ca3af" size={22} className="rtl-flip" />
             </button>
           ) : null}
-          <button onClick={onClose} aria-label="close player">
+          <button onClick={onClose} aria-label={t('a11y.closePlayer')}>
             <X color="#9ca3af" size={22} />
           </button>
         </div>

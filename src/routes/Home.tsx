@@ -71,7 +71,7 @@ export function Home() {
         <button
           onClick={() => setDarkMode(!darkMode)}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 text-ink dark:bg-white/10 dark:text-cream"
-          aria-label="dark mode"
+          aria-label={t('a11y.darkMode')}
         >
           {darkMode ? <Sun size={18} /> : <Moon size={18} />}
         </button>

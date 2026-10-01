@@ -44,7 +44,7 @@ export function Dzikir() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>

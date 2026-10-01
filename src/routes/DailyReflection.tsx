@@ -59,7 +59,7 @@ export function DailyReflection() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -69,7 +69,7 @@ export function DailyReflection() {
         <Link
           to="/reflection-history"
           className="flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="history"
+          aria-label={t('a11y.history')}
         >
           <History size={19} />
         </Link>
@@ -197,7 +197,7 @@ export function DailyReflection() {
               type="submit"
               disabled={loading || !draft.trim()}
               className="flex h-11 w-11 items-center justify-center rounded-full bg-[#8FBC8F] text-white disabled:opacity-40"
-              aria-label="send"
+              aria-label={t('a11y.send')}
             >
               <Send size={17} className="rtl-flip" />
             </button>
@@ -245,7 +245,7 @@ export function ReflectionHistory() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>

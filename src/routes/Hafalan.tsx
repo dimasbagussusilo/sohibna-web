@@ -58,7 +58,7 @@ export function Hafalan() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/quran'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -68,7 +68,7 @@ export function Hafalan() {
         <button
           onClick={() => setShowEditor(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8FBC8F] text-white"
-          aria-label="add target"
+          aria-label={t('a11y.addTarget')}
         >
           <Plus size={18} />
         </button>
@@ -139,7 +139,7 @@ export function Hafalan() {
                       <button
                         onClick={() => removeHafalanTarget(target.id)}
                         className="p-1 text-ink/30 dark:text-cream/30"
-                        aria-label="delete target"
+                        aria-label={t('a11y.deleteTarget')}
                       >
                         <X size={14} />
                       </button>

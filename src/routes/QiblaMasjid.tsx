@@ -27,7 +27,7 @@ export function Qibla() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -135,7 +135,7 @@ export function NearbyMasjid() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -152,7 +152,7 @@ export function NearbyMasjid() {
         </div>
         <div className="overflow-hidden rounded-3xl shadow-sm">
           <iframe
-            title="nearby masjid"
+            title={t('a11y.nearbyMasjid')}
             src={embedUrl}
             className="h-[65dvh] w-full border-0"
             loading="lazy"

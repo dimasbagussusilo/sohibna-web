@@ -78,7 +78,7 @@ export function Shalat() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/home'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -145,7 +145,7 @@ export function Shalat() {
                 }}
                 disabled={prayerIdx === 0}
                 className="rtl-flip text-ink/40 disabled:opacity-30 dark:text-cream/40"
-                aria-label="prev prayer"
+                aria-label={t('a11y.prevPrayer')}
               >
                 <ChevronLeft size={18} />
               </button>
@@ -161,7 +161,7 @@ export function Shalat() {
                 onClick={() => setPrayerIdx((i) => Math.min(FARD_PRAYERS.length - 1, i + 1))}
                 disabled={prayerIdx === FARD_PRAYERS.length - 1}
                 className="rtl-flip rotate-180 text-ink/40 disabled:opacity-30 dark:text-cream/40"
-                aria-label="next prayer"
+                aria-label={t('a11y.nextPrayer')}
               >
                 <ChevronLeft size={18} />
               </button>

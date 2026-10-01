@@ -51,7 +51,7 @@ export function QuranGoals() {
         <button
           onClick={() => (history.length > 1 ? navigate(-1) : navigate('/quran'))}
           className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
-          aria-label="back"
+          aria-label={t('a11y.back')}
         >
           <ChevronLeft size={22} />
         </button>
@@ -61,7 +61,7 @@ export function QuranGoals() {
         <button
           onClick={() => setShowEditor(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8FBC8F] text-white"
-          aria-label="add goal"
+          aria-label={t('a11y.addGoal')}
         >
           <Plus size={18} />
         </button>
@@ -105,7 +105,7 @@ export function QuranGoals() {
                   <button
                     onClick={() => removeKhatmGoal(g.id)}
                     className="p-1 text-ink/30 dark:text-cream/30"
-                    aria-label="delete goal"
+                    aria-label={t('a11y.deleteGoal')}
                   >
                     <X size={14} />
                   </button>

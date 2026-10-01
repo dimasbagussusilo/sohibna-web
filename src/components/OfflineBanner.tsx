@@ -41,7 +41,7 @@ export function OfflineBanner() {
           <button
             onClick={() => setDismissedInstall(true)}
             className="text-cream/50"
-            aria-label="dismiss"
+            aria-label={t('a11y.dismiss')}
           >
             ✕
           </button>

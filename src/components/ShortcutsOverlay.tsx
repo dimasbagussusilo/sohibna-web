@@ -42,29 +42,24 @@ export function GlobalHotkeys() {
   return showSheet ? <ShortcutsSheet onClose={() => setShowSheet(false)} /> : null
 }
 
-const GROUPS: { title: string; rows: [string, string][] }[] = [
-  {
-    title: 'Global',
-    rows: [
-      ['/', 'Search Quran'],
-      ['g h / c / q / r / m', 'Home / Calendar / Quran / Rulings / Me'],
-      ['d', 'Dark mode'],
-      ['l', 'Language'],
-      ['?', 'Shortcuts'],
-      ['Esc', 'Close'],
-    ],
-  },
-  {
-    title: 'Reader',
-    rows: [
-      ['j / k', 'Next / previous verse'],
-      ['p', 'Play / pause'],
-      ['[ / ]', 'Prev / next verse audio'],
-      ['f', 'Favorite verse'],
-      ['s', 'Reader settings'],
-      ['a', 'Audio settings'],
-    ],
-  },
+// Row labels are i18n keys (shortcuts.*); the kbd combinations are literal.
+const GROUP_KEYS: [kbd: string, labelKey: string][][] = [
+  [
+    ['/', 'shortcuts.searchQuran'],
+    ['g h / c / q / r / m', 'shortcuts.goNav'],
+    ['d', 'shortcuts.darkMode'],
+    ['l', 'shortcuts.language'],
+    ['?', 'shortcuts.sheet'],
+    ['Esc', 'shortcuts.close'],
+  ],
+  [
+    ['j / k', 'shortcuts.nextPrevVerse'],
+    ['p', 'shortcuts.playPause'],
+    ['[ / ]', 'shortcuts.nextPrevAudio'],
+    ['f', 'shortcuts.favoriteVerse'],
+    ['s', 'shortcuts.readerSettings'],
+    ['a', 'shortcuts.audioSettings'],
+  ],
 ]
 
 export function ShortcutsSheet({ onClose }: { onClose: () => void }) {
@@ -80,22 +75,25 @@ export function ShortcutsSheet({ onClose }: { onClose: () => void }) {
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="text-sm font-bold text-ink dark:text-cream">
-            ⌨️ {t('common.close') === 'Close' ? 'Keyboard shortcuts' : 'Pintasan keyboard'}
+            ⌨️ {t('shortcuts.title')}
           </span>
           <button onClick={onClose} className="text-ink/40 dark:text-cream/40">✕</button>
         </div>
-        {GROUPS.map((g) => (
+        {[
+          { title: t('shortcuts.global'), rows: GROUP_KEYS[0] },
+          { title: t('shortcuts.reader'), rows: GROUP_KEYS[1] },
+        ].map((g) => (
           <div key={g.title} className="mb-4">
             <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-ink/40 dark:text-cream/40">
               {g.title}
             </div>
             <div className="space-y-1.5">
-              {g.rows.map(([k, label]) => (
+              {g.rows.map(([k, labelKey]) => (
                 <div key={k} className="flex items-center justify-between gap-4">
                   <kbd className="rounded-md border border-gray-200 bg-black/5 px-2 py-0.5 font-mono text-[11px] text-ink dark:border-white/10 dark:bg-white/10 dark:text-cream">
                     {k}
                   </kbd>
-                  <span className="text-xs text-ink/70 dark:text-cream/70">{label}</span>
+                  <span className="text-xs text-ink/70 dark:text-cream/70">{t(labelKey)}</span>
                 </div>
               ))}
             </div>

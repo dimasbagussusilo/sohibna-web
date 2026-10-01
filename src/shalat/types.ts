@@ -1,11 +1,11 @@
 import type { Lang } from '@/i18n/types';
 
 // Type shapes for the "Belajar Shalat" curriculum. Mirrors the Iqro approach:
-// pedagogical prose/meaning is bilingual (Bi); Arabic + transliteration are
+// pedagogical prose/meaning is trilingual (Bi); Arabic + transliteration are
 // plain strings (so TTS can read the Arabic directly).
 
-/** A bilingual string — Indonesian source + English translation. */
-export type Bi = { id: string; en: string };
+/** A trilingual string — Indonesian source + English and Arabic translations. */
+export type Bi = { id: string; en: string; ar: string };
 
 /** Deeply resolves every Bi in a shape to a plain string for the given lang. */
 export type Resolved<T> = T extends Bi

@@ -15,7 +15,7 @@ export function MarkMenuTrigger({
   onToggle: () => void
 }) {
   return (
-    <button onClick={onToggle} className="relative p-1.5" aria-label="marks">
+    <button onClick={onToggle} className="relative p-1.5" aria-label={t('a11y.marks')}>
       <MoreHorizontal color={open ? '#8FBC8F' : '#9ca3af'} size={18} />
       {hasAnyMark && !open ? (
         <span className="absolute top-1 right-1 h-2 w-2 rounded-full border border-[#FBF8F1] bg-[#f59e0b] dark:border-[#122A1F]" />
