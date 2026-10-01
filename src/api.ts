@@ -6,7 +6,7 @@ import {
   refreshNow,
   type Session,
 } from '@/lib/authSession';
-import type { PrayerDay, ReflectionEntryData } from '@/lib/quran';
+import type { PrayerDay, ReflectionEntryData, RulingsChatEntryData } from '@/lib/quran';
 
 export type Perspective = { label: string; view: string };
 
@@ -72,6 +72,12 @@ export type AskResult = {
 
 export const askRuling = (question: string, lang: string) =>
   postJSON<AskResult>('/rulings/ask', { question, lang });
+
+export type RulingsChatMessage = { role: 'user' | 'assistant'; content: string };
+export type RulingsChatResult = { reply: string };
+export const askRulingsChat = (messages: RulingsChatMessage[], lang: string) =>
+  postJSON<RulingsChatResult>('/rulings/chat', { messages, lang });
+
 
 // Daily Reflection companion: POST /reflection/chat. One multi-turn reply from a
 // warm, verse-grounded Islamic companion (the contract lives server-side). The
@@ -273,7 +279,8 @@ export type Change =
   | HafalanTargetChange
   | MemorizedVerseChange
   | PrayerDayChange
-  | ReflectionChange;
+  | ReflectionChange
+  | RulingsChatChange;
 
 // Richer-reading rows are carried whole in `payload`.
 export interface ReadingLogChange extends BaseChange {
@@ -357,6 +364,12 @@ export interface ReflectionChange extends BaseChange {
   type: 'reflection';
   key: string;
   payload: ReflectionEntryData;
+}
+
+export interface RulingsChatChange extends BaseChange {
+  type: 'rulings_chat';
+  key: string;
+  payload: RulingsChatEntryData['payload'];
 }
 
 export interface FeedResponse {
@@ -543,6 +556,15 @@ export const patchReflections = (
   items: ReflectionEntryData[],
 ) =>
   syncFetch<{ ok: boolean }>(deviceId, '/quran/me/reflections', {
+    method: 'PATCH',
+    body: JSON.stringify({ items }),
+  });
+
+export const patchRulingsChats = (
+  deviceId: string,
+  items: RulingsChatEntryData[],
+) =>
+  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/rulings/chats', {
     method: 'PATCH',
     body: JSON.stringify({ items }),
   });

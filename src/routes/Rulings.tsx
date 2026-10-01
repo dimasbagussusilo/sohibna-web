@@ -1,18 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Sparkles, ChevronRight } from 'lucide-react'
-import { askRuling, fetchRulings, type AskResult, type RulingEntry } from '@/api'
+import { useEffect, useMemo, useState, useRef } from 'react'
+import { Sparkles, ChevronRight, ArrowLeft, Send, MessageCircle } from 'lucide-react'
+import { fetchRulings, type RulingEntry } from '@/api'
 import { rulingCategory, rulingPerspectives, rulingQuestion } from '@/lib/rulingsI18n'
 import { useI18n } from '@/context/I18nContext'
+import { useQuranData } from '@/hooks/useQuranData'
+import { useRulingsChat } from '@/rulings/useRulingsChat'
 
-// Rulings tab (web port): category filter + collection, expandable multi-
-// perspective detail, and the "Ask AI" box (multi-perspective summary — NOT a
-// fatwa; the disclaimer is always shown).
 export function Rulings() {
   const { t, lang } = useI18n()
+  const { ud } = useQuranData()
   const [rulings, setRulings] = useState<RulingEntry[] | null>(null)
   const [category, setCategory] = useState<string>('all')
   const [openSlug, setOpenSlug] = useState<string | null>(null)
-  const [showAsk, setShowAsk] = useState(false)
+  
+  // UUID for the current chat session
+  const [activeChatId, setActiveChatId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchRulings()
@@ -30,14 +32,22 @@ export function Rulings() {
     [rulings, category],
   )
 
+  const chatSessions = useMemo(() => {
+    return Object.values(ud.rulingsChats || {}).filter(c => !c.deleted)
+  }, [ud.rulingsChats])
+
+  if (activeChatId) {
+    return <ChatScreen chatId={activeChatId} onClose={() => setActiveChatId(null)} />
+  }
+
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-5 lg:max-w-4xl xl:max-w-5xl">
+    <div className="mx-auto max-w-3xl px-4 pt-5 lg:max-w-4xl xl:max-w-5xl pb-24">
       <div className="mb-1 text-lg font-bold text-ink dark:text-cream">{t('rulings.title')}</div>
       <p className="mb-4 text-xs text-ink/50 dark:text-cream/50">{t('rulings.subtitle')}</p>
 
-      {/* Ask AI */}
+      {/* Ask AI / New Chat */}
       <button
-        onClick={() => setShowAsk(true)}
+        onClick={() => setActiveChatId(crypto.randomUUID())}
         className="mb-5 flex w-full items-center gap-3 rounded-2xl bg-night px-4 py-4 text-cream dark:bg-[#163024]"
       >
         <Sparkles size={20} className="text-[#8FBC8F]" />
@@ -47,6 +57,31 @@ export function Rulings() {
         </span>
         <ChevronRight size={16} className="rtl-flip text-cream/50" />
       </button>
+
+      {/* Chat History */}
+      {chatSessions.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-ink/50 dark:text-cream/50">
+            Saved AI Sessions
+          </h3>
+          <div className="space-y-2">
+            {chatSessions.map((chat) => {
+              const preview = chat.payload[0]?.content || 'Empty Chat'
+              return (
+                <button
+                  key={chat.id}
+                  onClick={() => setActiveChatId(chat.id)}
+                  className="flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3 text-start shadow-sm dark:bg-[#122A1F]"
+                >
+                  <MessageCircle size={16} className="text-[#8FBC8F]" />
+                  <span className="truncate text-sm text-ink dark:text-cream flex-1">{preview}</span>
+                  <ChevronRight size={14} className="text-ink/30 dark:text-cream/30" />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Category chips */}
       <div className="mb-4 flex flex-wrap gap-2">
@@ -115,104 +150,119 @@ export function Rulings() {
       ) : (
         <p className="py-10 text-center text-xs text-ink/40 dark:text-cream/40">—</p>
       )}
-
-      {showAsk ? <AskSheet onClose={() => setShowAsk(false)} /> : null}
     </div>
   )
 }
 
-// The Ask-AI sheet: question → multi-perspective summary. AI down / 503 → the
-// polite unavailable message (never a fake answer).
-function AskSheet({ onClose }: { onClose: () => void }) {
-  const { t, lang } = useI18n()
-  const [question, setQuestion] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [answer, setAnswer] = useState<AskResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }) {
+  const { t } = useI18n()
+  const { messages, send, loading, error } = useRulingsChat({ chatId })
+  const [draft, setDraft] = useState('')
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  const ask = async (e: React.FormEvent) => {
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
+
+  const onSend = (e: React.FormEvent) => {
     e.preventDefault()
-    const q = question.trim()
-    if (!q) return
-    setBusy(true)
-    setError(null)
-    setAnswer(null)
-    try {
-      setAnswer(await askRuling(q, lang))
-    } catch {
-      setError(t('rulings.noSummary'))
-    } finally {
-      setBusy(false)
-    }
+    if (!draft.trim() || loading) return
+    send(draft)
+    setDraft('')
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 dark:bg-[#122A1F] sm:rounded-3xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
+    <div className="flex h-[100dvh] flex-col bg-cream dark:bg-night lg:ps-20 pb-[env(safe-area-inset-bottom)]">
+      <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
+        <button
+          onClick={onClose}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-black/5 active:bg-black/10 dark:text-cream dark:hover:bg-white/10 dark:active:bg-white/20"
+        >
+          <ArrowLeft size={20} className="rtl-flip" />
+        </button>
+        <div className="flex flex-1 flex-col truncate">
           <span className="flex items-center gap-2 text-sm font-bold text-ink dark:text-cream">
-            <Sparkles size={15} className="text-[#8FBC8F]" /> {t('rulings.askAi')}
+            <Sparkles size={14} className="text-[#8FBC8F]" /> AI Assistant
           </span>
-          <button onClick={onClose} className="text-ink/40 dark:text-cream/40">✕</button>
+          <span className="truncate text-[11px] text-ink/50 dark:text-cream/50">
+            {t('rulings.title')}
+          </span>
         </div>
+      </header>
 
-        <form onSubmit={ask} className="flex gap-2">
-          <input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="mx-auto flex max-w-2xl flex-col gap-4">
+          {/* Disclaimer at the top */}
+          <div className="rounded-2xl border border-orange-200/50 bg-orange-50/50 px-4 py-3 dark:border-orange-900/30 dark:bg-orange-900/10 mb-2">
+            <p className="text-[11px] leading-relaxed text-orange-900/80 dark:text-orange-200/80">
+              {t('rulings.rememberPrefix')}
+              {t('rulings.rememberBody')}
+              <b>{t('rulings.notFatwaCaps')}</b>
+              {t('rulings.rememberTail')}
+            </p>
+          </div>
+
+          {messages.length === 0 && !loading && (
+            <div className="py-10 text-center text-sm text-ink/40 dark:text-cream/40">
+              {t('rulings.typeQuestion')}
+            </div>
+          )}
+
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                m.role === 'user'
+                  ? 'ms-auto bg-[#8FBC8F] text-white'
+                  : 'me-auto bg-white text-ink shadow-sm dark:bg-[#122A1F] dark:text-cream'
+              }`}
+            >
+              <div className="whitespace-pre-wrap">{m.content}</div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="me-auto max-w-[85%] rounded-2xl bg-white px-4 py-3 text-sm text-ink/50 shadow-sm dark:bg-[#122A1F] dark:text-cream/50">
+              <span className="flex gap-1">
+                <span className="animate-bounce">•</span>
+                <span className="animate-bounce delay-75">•</span>
+                <span className="animate-bounce delay-150">•</span>
+              </span>
+            </div>
+          )}
+
+          {error && (
+            <div className="mx-auto rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400">
+              {error}
+            </div>
+          )}
+          <div ref={bottomRef} className="h-2" />
+        </div>
+      </div>
+
+      <div className="border-t border-black/5 bg-cream px-4 py-3 pb-safe dark:border-white/10 dark:bg-night lg:bg-transparent lg:dark:bg-transparent">
+        <form onSubmit={onSend} className="mx-auto flex max-w-2xl items-end gap-2">
+          <textarea
+            rows={1}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                onSend(e)
+              }
+            }}
             placeholder={t('rulings.typeQuestion')}
-            className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-[#8FBC8F] dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
+            className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border-0 bg-white px-4 py-3 text-sm text-ink shadow-sm outline-none ring-1 ring-inset ring-black/5 focus:ring-2 focus:ring-[#8FBC8F] dark:bg-[#122A1F] dark:text-cream dark:ring-white/10"
           />
           <button
             type="submit"
-            disabled={busy}
-            className="rounded-xl bg-[#8FBC8F] px-4 text-sm font-semibold text-white disabled:opacity-50"
+            disabled={!draft.trim() || loading}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#8FBC8F] text-white shadow-sm transition-opacity disabled:opacity-50"
           >
-            {busy ? '…' : '→'}
+            <Send size={18} className="ms-1 rtl-flip" />
           </button>
         </form>
-
-        {busy ? (
-          <p className="py-6 text-center text-xs text-ink/50 dark:text-cream/50">
-            {t('rulings.aiSummarizing')}
-          </p>
-        ) : null}
-        {error ? <p className="py-6 text-center text-xs text-red-400">{error}</p> : null}
-
-        {answer ? (
-          <div className="mt-4 space-y-3">
-            {answer.intro ? (
-              <p className="text-xs italic text-ink/60 dark:text-cream/60">{answer.intro}</p>
-            ) : null}
-            {(answer.perspectives ?? []).map((p, i) => (
-              <div key={i}>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-[#8FBC8F]">
-                  {p.label}
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-ink/80 dark:text-cream/80">{p.view}</p>
-              </div>
-            ))}
-            {answer.summary ? (
-              <p className="text-xs leading-relaxed text-ink/80 dark:text-cream/80">
-                {answer.summary}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-
-        {/* Standing disclaimer — ikhtilaf honesty (religion-content standard) */}
-        <p className="mt-4 border-t border-gray-100 pt-3 text-[10px] leading-relaxed text-ink/40 dark:border-white/10 dark:text-cream/40">
-          {t('rulings.rememberPrefix')}
-          {t('rulings.rememberBody')}
-          <b>{t('rulings.notFatwaCaps')}</b>
-          {t('rulings.rememberTail')}
-        </p>
       </div>
     </div>
   )

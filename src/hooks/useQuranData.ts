@@ -13,7 +13,7 @@
 // PUT to scoped per-resource PATCHes.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@/lib/storage';
-import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type AppLang } from '@/lib/quran';
+import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type RulingsChatEntryData, type AppLang } from '@/lib/quran';
 import { clearLegacyGuestData } from '@/lib/quranStorage';
 import {
   mergeRemote,
@@ -813,6 +813,17 @@ export function useQuranData() {
     [enqueueOp],
   );
 
+  const saveRulingsChat = useCallback(
+    (entry: RulingsChatEntryData) => {
+      const prev = udRef.current;
+      const key = entry.id;
+      const next = { ...prev, rulingsChats: { ...prev.rulingsChats, [key]: entry } };
+      setUdState(next);
+      if (tokenRef.current) enqueueOp({ kind: 'rulingsChats', items: [entry] });
+    },
+    [enqueueOp],
+  );
+
   // setAppSetting updates one app pref ('app.darkMode' | 'app.lang' | 'app.alarms')
   // on UserData.appSettings and enqueues the setting op. No-op for guests beyond
   // the local state change (their device-local stores own the value).
@@ -850,6 +861,7 @@ export function useQuranData() {
     removeMemorizedVerse,
     togglePrayerDay,
     saveReflection,
+    saveRulingsChat,
     setAppSetting,
   };
 }

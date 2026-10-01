@@ -29,6 +29,7 @@ import {
   patchTZ,
   patchPrayerDays,
   patchReflections,
+  patchRulingsChats,
   type Change,
   type GoalType,
   type GoalUnit,
@@ -40,7 +41,7 @@ import {
   type HafalanTarget,
   type MemorizedVerse,
   type PrayerDay,
-  type ReflectionEntryData,
+  type ReflectionEntryData, type RulingsChatEntryData,
   type AppLang,
 } from '@/lib/quran';
 
@@ -295,6 +296,7 @@ export type Op =
   // ≤20 reflections) so one flaky request can't wedge the queue for long.
   | { kind: 'prayerDays'; items: { day: string; data: PrayerDay }[] }
   | { kind: 'reflections'; items: ReflectionEntryData[] }
+  | { kind: 'rulingsChats'; items: RulingsChatEntryData[] }
   | { kind: 'tz'; tz: string };
 
 // applyOp sends one op as its scoped PATCH. Throws on network/HTTP failure (the
@@ -345,6 +347,9 @@ async function applyOp(deviceId: string, op: Op): Promise<void> {
       break;
     case 'reflections':
       await patchReflections(deviceId, op.items);
+      break;
+    case 'rulingsChats':
+      await patchRulingsChats(deviceId, op.items);
       break;
     case 'tz':
       await patchTZ(deviceId, op.tz);

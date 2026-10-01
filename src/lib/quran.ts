@@ -196,6 +196,8 @@ export interface UserData {
   // Daily Reflection entries keyed 'YYYY-MM-DD:<mood>'. One entry = one sync unit
   // (verse + AI chat transcript whole). Guests keep these in local storage only.
   reflections: Record<string, ReflectionEntryData>;
+  // Rulings chats entries keyed by UUID.
+  rulingsChats: Record<string, RulingsChatEntryData>;
   // App-level prefs synced under 'app.*' reader-setting keys. null = no account
   // value → the device-local setting stands.
   appSettings: AppSettings;
@@ -243,6 +245,13 @@ export interface UserData {
   hafalanTargets: HafalanTarget[];
   memorized: Record<string, MemorizedVerse>;
 }
+
+export interface RulingsChatEntryData {
+  id: string; // uuid
+  payload: { role: string; content: string }[];
+  deleted?: boolean;
+}
+
 
 // StreakInfo is the cached daily-streak rollup, recomputed server-side from the
 // reading log (in the user's TZ) whenever a session is logged.
@@ -376,6 +385,7 @@ export const DEFAULT_USER_DATA: UserData = {
   memorized: {},
   prayerDays: {},
   reflections: {},
+  rulingsChats: {},
   appSettings: { darkMode: null, lang: null, alarms: null },
 };
 
