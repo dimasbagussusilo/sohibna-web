@@ -8,6 +8,7 @@ import { useQuranData } from '@/hooks/useQuranData'
 import { AppShell } from '@/components/AppShell'
 import { TabBar } from '@/components/TabBar'
 import { Toast } from '@/components/Toast'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { GlobalHotkeys } from '@/components/ShortcutsOverlay'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { Home } from '@/routes/Home'
@@ -88,6 +89,7 @@ export function App() {
             <GlobalHotkeys />
             <OfflineBanner />
             <Toast />
+            <ConfirmDialog />
           </AppProvider>
         </QuranDataProvider>
       </AuthProvider>

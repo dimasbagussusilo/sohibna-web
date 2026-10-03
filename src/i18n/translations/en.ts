@@ -527,6 +527,9 @@ export const translations: Translation = {
     aiWarning: 'AI can make mistakes. Please verify with a trusted scholar.',
     noSavedChats: 'No saved chats yet.',
     savedSessions: 'Saved AI Sessions',
+        deleteChatTitle: 'Delete chat?',
+    deleteChatMsg: 'This conversation will be removed from your saved chats.',
+    deleteChatConfirm: 'Delete',
   },
 
   qibla: {

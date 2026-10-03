@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import storage from '@/lib/storage'
 import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/hooks/useQuranData'
@@ -12,12 +12,28 @@ import { useQuranData } from '@/hooks/useQuranData'
 // back to the local key. null = the account has no value → local wins.
 const DARK_KEY = 'sohibna:dark_mode'
 
+// One themed confirmation dialog for the whole app (replaces the system
+// window.confirm default). askConfirm resolves true on confirm, false on
+// cancel / backdrop-dismiss / Escape.
+export type ConfirmRequest = {
+  title: string
+  message?: string
+  confirmText?: string
+  cancelText?: string
+  destructive?: boolean // confirm button renders red
+  hideCancel?: boolean // informational variant: single dismiss button
+}
+type PendingConfirm = ConfirmRequest & { resolve: (ok: boolean) => void }
+
 type AppState = {
   loading: boolean
   toastMsg: string
   toast: (msg: string) => void
   darkMode: boolean
   setDarkMode: (on: boolean) => void
+  confirmReq: PendingConfirm | null
+  askConfirm: (req: ConfirmRequest) => Promise<boolean>
+  settleConfirm: (ok: boolean) => void
 }
 
 const AppContext = createContext<AppState>({
@@ -26,6 +42,9 @@ const AppContext = createContext<AppState>({
   toast: () => {},
   darkMode: false,
   setDarkMode: () => {},
+  confirmReq: null,
+  askConfirm: () => Promise.resolve(false),
+  settleConfirm: () => {},
 })
 
 // Push the dark class + theme-color onto the document.
@@ -69,6 +88,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setToastMsg(''), 3000)
   }, [])
 
+  // Global confirm dialog. The pending request lives in a ref so a second
+  // askConfirm can dismiss (resolve false) a still-open one without side
+  // effects inside a state updater.
+  const confirmRef = useRef<PendingConfirm | null>(null)
+  const [confirmReq, setConfirmReq] = useState<PendingConfirm | null>(null)
+  const askConfirm = useCallback((req: ConfirmRequest) => {
+    return new Promise<boolean>((resolve) => {
+      confirmRef.current?.resolve(false)
+      const pending: PendingConfirm = { ...req, resolve }
+      confirmRef.current = pending
+      setConfirmReq(pending)
+    })
+  }, [])
+  const settleConfirm = useCallback((ok: boolean) => {
+    confirmRef.current?.resolve(ok)
+    confirmRef.current = null
+    setConfirmReq(null)
+  }, [])
+
   // Apply the account's dark-mode pref once the synced state lands. Async
   // IIFE so no setState runs synchronously inside the effect; the
   // remote !== local guard makes it idempotent (no loop with the write-back).
@@ -100,7 +138,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <AppContext.Provider value={{ loading, toastMsg, toast, darkMode, setDarkMode }}>
+    <AppContext.Provider
+      value={{ loading, toastMsg, toast, darkMode, setDarkMode, confirmReq, askConfirm, settleConfirm }}
+    >
       {children}
     </AppContext.Provider>
   )

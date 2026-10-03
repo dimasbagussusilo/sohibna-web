@@ -7,6 +7,17 @@ import { loadRulingsChat, saveRulingsChatLocal, type RulingsChatEntry } from './
 
 const MAX_HISTORY = 10;
 
+// Assistant replies (long markdown essays) are re-sent as context on follow-ups.
+// Cap them so the request stays small — and under the server's 2000-char per-
+// message validation on the currently-deployed API.
+const MAX_CONTEXT_CHARS = 1000;
+const capContext = (msgs: RulingsChatMessage[]): RulingsChatMessage[] =>
+  msgs.map((m) =>
+    m.role === 'assistant' && m.content.length > MAX_CONTEXT_CHARS
+      ? { ...m, content: m.content.slice(0, MAX_CONTEXT_CHARS - 1) + '…' }
+      : m,
+  );
+
 type Options = {
   chatId: string;
 };
@@ -43,7 +54,7 @@ export function useRulingsChat({ chatId }: Options) {
 
   const persist = useCallback(
     (msgs: RulingsChatMessage[]) => {
-      const entry: RulingsChatEntry = { id: chatId, payload: msgs };
+      const entry: RulingsChatEntry = { id: chatId, payload: msgs, updatedAt: Date.now() };
       saveRulingsChatLocal(entry).catch(() => {});
       if (user) saveRulingsChatRemote(entry);
     },
@@ -65,7 +76,7 @@ export function useRulingsChat({ chatId }: Options) {
 
       setLoading(true);
       try {
-        const outbound = withUser.slice(-MAX_HISTORY);
+        const outbound = capContext(withUser.slice(-MAX_HISTORY));
         const { reply } = await askRulingsChat(outbound, lang);
         const withReply = [
           ...withUser,

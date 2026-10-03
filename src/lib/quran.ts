@@ -250,6 +250,9 @@ export interface RulingsChatEntryData {
   id: string; // uuid
   payload: { role: string; content: string }[];
   deleted?: boolean;
+  // Epoch ms of the last activity — stamped by the client on save and by the
+  // server (rulings_chats.updated_at) in the sync feed; sorts the saved list.
+  updatedAt?: number;
 }
 
 

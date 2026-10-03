@@ -11,7 +11,7 @@ import { Sheet } from './AudioSettingsSheet'
 // is the synced UserData view; tapping a row jumps to the verse.
 export function DashboardSheet({ onClose }: { onClose: () => void }) {
   const { t } = useI18n()
-  const { toast } = useApp()
+  const { toast, askConfirm } = useApp()
   const navigate = useNavigate()
   const { ud, removeLabelEverywhere, clearLastReadSlot } = useQuranData()
   const [tab, setTab] = useState<'lastread' | 'favorites' | 'labels'>('lastread')
@@ -42,9 +42,16 @@ export function DashboardSheet({ onClose }: { onClose: () => void }) {
 
   const labelEntries = Object.entries(ud.labels)
 
-  const delLabel = (label: string) => {
+  const delLabel = async (label: string) => {
     const n = labelEntries.filter(([, ls]) => ls.includes(label)).length
-    if (confirm(t('dashboard.deleteLabelMsg', { label, n }))) {
+    const ok = await askConfirm({
+      title: t('dashboard.deleteLabelTitle'),
+      message: t('dashboard.deleteLabelMsg', { label, n }),
+      confirmText: t('dashboard.delete'),
+      cancelText: t('common.cancel'),
+      destructive: true,
+    })
+    if (ok) {
       removeLabelEverywhere(label)
       toast(t('dashboard.delete'))
     }
@@ -87,10 +94,15 @@ export function DashboardSheet({ onClose }: { onClose: () => void }) {
                     </span>
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(t('dashboard.deleteMarkMsg', { name: m.name }))) {
-                        clearLastReadSlot(m.name)
-                      }
+                    onClick={async () => {
+                      const ok = await askConfirm({
+                        title: t('dashboard.deleteMarkTitle'),
+                        message: t('dashboard.deleteMarkMsg', { name: m.name }),
+                        confirmText: t('dashboard.delete'),
+                        cancelText: t('common.cancel'),
+                        destructive: true,
+                      })
+                      if (ok) clearLastReadSlot(m.name)
                     }}
                     className="ms-2 text-xs text-red-400"
                   >

@@ -1,39 +1,26 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { Sparkles, ChevronRight, ArrowLeft, Send, MessageCircle } from 'lucide-react'
-import { fetchRulings, type RulingEntry } from '@/api'
-import { rulingCategory, rulingPerspectives, rulingQuestion } from '@/lib/rulingsI18n'
+import { Sparkles, ChevronRight, ArrowLeft, Send, MessageCircle, Trash2 } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
+import { useApp } from '@/context/AppContext'
 import { useQuranData } from '@/hooks/useQuranData'
 import { useRulingsChat } from '@/rulings/useRulingsChat'
+import { mergeRulingsChatLists, deleteRulingsChatLocal } from '@/rulings/history'
+
+// The static curated "Rulings Collection" was retired — the RAG chat answers all
+// of it from the kitab library. The page is now chat-first: the Ask-AI portal
+// and the saved sessions.
 
 export function Rulings() {
-  const { t, lang } = useI18n()
-  const { ud } = useQuranData()
-  const [rulings, setRulings] = useState<RulingEntry[] | null>(null)
-  const [category, setCategory] = useState<string>('all')
-  const [openSlug, setOpenSlug] = useState<string | null>(null)
-  
+  const { t } = useI18n()
+  const { ud, deleteRulingsChat: deleteRemoteChat } = useQuranData()
+  const { askConfirm } = useApp()
+
   // UUID for the current chat session
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchRulings()
-      .then(setRulings)
-      .catch(() => setRulings([]))
-  }, [])
-
-  const categories = useMemo(() => {
-    if (!rulings) return []
-    return ['all', ...Array.from(new Set(rulings.map((r) => r.category)))]
-  }, [rulings])
-
-  const filtered = useMemo(
-    () => (category === 'all' ? rulings ?? [] : (rulings ?? []).filter((r) => r.category === category)),
-    [rulings, category],
-  )
-
   const chatSessions = useMemo(() => {
-    return Object.values(ud.rulingsChats || {}).filter(c => !c.deleted)
+    // merge() also applies the deterministic most-recent-first ordering.
+    return mergeRulingsChatLists([], Object.values(ud.rulingsChats || {}))
   }, [ud.rulingsChats])
 
   if (activeChatId) {
@@ -62,93 +49,44 @@ export function Rulings() {
       {chatSessions.length > 0 && (
         <div className="mb-6">
           <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-ink/50 dark:text-cream/50">
-            Saved AI Sessions
+            {t('rulings.savedSessions')}
           </h3>
           <div className="space-y-2">
             {chatSessions.map((chat) => {
               const preview = chat.payload[0]?.content || 'Empty Chat'
               return (
-                <button
+                <div
                   key={chat.id}
                   onClick={() => setActiveChatId(chat.id)}
-                  className="flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3 text-start shadow-sm dark:bg-[#122A1F]"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 text-start shadow-sm dark:bg-[#122A1F]"
                 >
                   <MessageCircle size={16} className="text-[#8FBC8F]" />
                   <span className="truncate text-sm text-ink dark:text-cream flex-1">{preview}</span>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      const ok = await askConfirm({
+                        title: t('rulings.deleteChatTitle'),
+                        message: t('rulings.deleteChatMsg'),
+                        confirmText: t('rulings.deleteChatConfirm'),
+                        cancelText: t('common.cancel'),
+                        destructive: true,
+                      })
+                      if (!ok) return
+                      deleteRulingsChatLocal(chat.id).catch(() => {})
+                      deleteRemoteChat(chat.id)
+                    }}
+                    aria-label={t('rulings.deleteChatTitle')}
+                    className="shrink-0 rounded-full p-1.5 text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                   <ChevronRight size={14} className="text-ink/30 dark:text-cream/30" />
-                </button>
+                </div>
               )
             })}
           </div>
         </div>
-      )}
-
-      {/* Category chips */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {categories.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCategory(c)}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${
-              category === c
-                ? 'bg-[#8FBC8F] text-white'
-                : 'bg-black/5 text-ink dark:bg-white/10 dark:text-cream'
-            }`}
-          >
-            {c === 'all' ? t('rulings.all') : rulingCategory(c, lang)}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
-      {rulings === null ? (
-        <p className="py-10 text-center text-xs text-ink/40 dark:text-cream/40">
-          {t('rulings.loadingRulings')}
-        </p>
-      ) : filtered.length ? (
-        <div className="overflow-hidden rounded-3xl bg-white shadow-sm dark:bg-[#122A1F]">
-          {filtered.map((r, i) => {
-            const open = openSlug === r.slug
-            return (
-              <div key={r.slug} className={i > 0 ? 'border-t border-gray-100 dark:border-white/10' : ''}>
-                <button
-                  onClick={() => setOpenSlug(open ? null : r.slug)}
-                  className="flex w-full items-center gap-3 px-4 py-3.5 text-start"
-                >
-                  <span className="rounded-full bg-[#8FBC8F]/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#8FBC8F]">
-                    {rulingCategory(r.category, lang)}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink dark:text-cream">
-                    {rulingQuestion(r, lang)}
-                  </span>
-                  <ChevronRight
-                    size={15}
-                    className={`rtl-flip shrink-0 text-ink/30 transition-transform dark:text-cream/30 ${open ? 'rotate-90' : ''}`}
-                  />
-                </button>
-                {open ? (
-                  <div className="space-y-3 border-t border-gray-100 bg-black/[0.02] px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
-                    {rulingPerspectives(r, lang).map((p, j) => (
-                      <div key={j}>
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-[#8FBC8F]">
-                          {p.label}
-                        </div>
-                        <p className="mt-1 text-xs leading-relaxed text-ink/80 dark:text-cream/80">
-                          {p.view}
-                        </p>
-                      </div>
-                    ))}
-                    <p className="pt-1 text-[10px] italic text-ink/40 dark:text-cream/40">
-                      {t('rulings.multiPerspectiveNote')}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        <p className="py-10 text-center text-xs text-ink/40 dark:text-cream/40">—</p>
       )}
     </div>
   )
@@ -245,6 +183,7 @@ function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }
           <textarea
             rows={1}
             value={draft}
+            maxLength={500}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -263,6 +202,11 @@ function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }
             <Send size={18} className="ms-1 rtl-flip" />
           </button>
         </form>
+        {draft.length >= 400 && (
+          <div className="mx-auto mt-1 max-w-2xl text-end text-[10px] text-ink/40 dark:text-cream/40">
+            {draft.length}/500
+          </div>
+        )}
       </div>
     </div>
   )

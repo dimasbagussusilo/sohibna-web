@@ -78,6 +78,7 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
     prayerDays: { ...prev.prayerDays },
     reflections: { ...prev.reflections },
     appSettings: { ...prev.appSettings },
+    rulingsChats: { ...prev.rulingsChats },
   };
 
   for (const c of changes) {
@@ -247,6 +248,15 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         if (c.deleted) delete refl[c.key];
         else refl[c.key] = { ...c.payload };
         next.reflections = refl;
+        break;
+      }
+      case 'rulings_chat': {
+        // Whole chat per id, last-write-wins. Without this the feed rows were
+        // silently dropped, so saved sessions never synced DOWN to other devices.
+        const chats = { ...next.rulingsChats };
+        if (c.deleted) delete chats[c.key];
+        else chats[c.key] = { id: c.key, payload: c.payload, updatedAt: c.updated_at };
+        next.rulingsChats = chats;
         break;
       }
     }

@@ -536,6 +536,9 @@ export const translations = {
     aiWarning: 'AI dapat melakukan kesalahan. Harap pertimbangkan dengan pandangan ulama ahli.',
     noSavedChats: 'Belum ada obrolan yang disimpan.',
     savedSessions: 'Obrolan AI Tersimpan',
+        deleteChatTitle: 'Hapus obrolan?',
+    deleteChatMsg: 'Obrolan ini akan dihapus dari daftar tersimpan.',
+    deleteChatConfirm: 'Hapus',
   },
 
   qibla: {

@@ -538,6 +538,9 @@ export const translations: Translation = {
     aiWarning: 'قد يخطئ الذكاء الاصطناعي. يرجى التحقق مع عالم موثوق.',
     noSavedChats: 'لا توجد محادثات محفوظة بعد.',
     savedSessions: 'الجلسات المحفوظة',
+        deleteChatTitle: 'حذف المحادثة؟',
+    deleteChatMsg: 'ستُحذف هذه المحادثة من محادثاتك المحفوظة.',
+    deleteChatConfirm: 'حذف',
   },
 
   qibla: {

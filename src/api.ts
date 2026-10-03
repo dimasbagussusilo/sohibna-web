@@ -8,19 +8,6 @@ import {
 } from '@/lib/authSession';
 import type { PrayerDay, ReflectionEntryData, RulingsChatEntryData } from '@/lib/quran';
 
-export type Perspective = { label: string; view: string };
-
-export type RulingEntry = {
-  id: string;
-  slug: string;
-  category: string;
-  question: string;
-  intro: string;
-  keywords: string[];
-  perspectives: Perspective[];
-  created_at: string;
-  updated_at: string;
-};
 
 // Islamic event categories (shared with src/lib/islamicEvents.ts CATEGORY_META).
 export type EventCategory = 'wajib-fast' | 'sunnah-fast' | 'event' | 'night' | 'forbidden-fast';
@@ -58,20 +45,6 @@ async function getJSON<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export const fetchRulings = () => getJSON<RulingEntry[]>('/rulings');
-export const fetchRuling = (slug: string) => getJSON<RulingEntry>(`/rulings/${encodeURIComponent(slug)}`);
-
-// "Tanya AI" ruling assistant: POST /rulings/ask. The model answers from its
-// own Islamic knowledge (multi-perspective, no fatwa) — not the catalog. The
-// response language follows the app's active language.
-export type AskResult = {
-  summary?: string;
-  intro?: string;
-  perspectives?: Perspective[];
-};
-
-export const askRuling = (question: string, lang: string) =>
-  postJSON<AskResult>('/rulings/ask', { question, lang });
 
 export type RulingsChatMessage = { role: 'user' | 'assistant'; content: string };
 export type RulingsChatResult = { reply: string };
@@ -370,6 +343,7 @@ export interface RulingsChatChange extends BaseChange {
   type: 'rulings_chat';
   key: string;
   payload: RulingsChatEntryData['payload'];
+  updated_at?: number; // epoch ms, server-stamped (last write)
 }
 
 export interface FeedResponse {

@@ -824,6 +824,20 @@ export function useQuranData() {
     [enqueueOp],
   );
 
+  // deleteRulingsChat removes a saved session locally and enqueues a deleted
+  // tombstone so the row disappears on every device after the next flush.
+  const deleteRulingsChat = useCallback(
+    (id: string) => {
+      const prev = udRef.current;
+      if (!prev.rulingsChats[id]) return;
+      const next = { ...prev, rulingsChats: { ...prev.rulingsChats } };
+      delete next.rulingsChats[id];
+      setUdState(next);
+      if (tokenRef.current) enqueueOp({ kind: 'rulingsChats', items: [{ id, payload: [], deleted: true }] });
+    },
+    [enqueueOp],
+  );
+
   // setAppSetting updates one app pref ('app.darkMode' | 'app.lang' | 'app.alarms')
   // on UserData.appSettings and enqueues the setting op. No-op for guests beyond
   // the local state change (their device-local stores own the value).
@@ -862,6 +876,7 @@ export function useQuranData() {
     togglePrayerDay,
     saveReflection,
     saveRulingsChat,
+    deleteRulingsChat,
     setAppSetting,
   };
 }

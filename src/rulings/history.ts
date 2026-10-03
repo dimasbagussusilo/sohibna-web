@@ -12,7 +12,12 @@ export function mergeRulingsChatLists(local: RulingsChatEntry[], remote: Rulings
     // If deleted, we can optionally skip or keep it, but sync marks it as deleted.
     byKey.set(e.id, e);
   }
-  return [...byKey.values()].filter(e => !e.deleted);
+  // Deterministic order: most recent activity first. Entries saved before
+  // timestamps existed (no updatedAt) sink below timestamped ones, keeping their
+  // insertion order (Array#sort is stable).
+  return [...byKey.values()]
+    .filter(e => !e.deleted)
+    .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
 }
 
 export async function loadRulingsChat(id: string): Promise<RulingsChatEntry | null> {
