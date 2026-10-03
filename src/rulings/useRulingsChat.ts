@@ -9,14 +9,21 @@ const MAX_HISTORY = 10;
 
 // Assistant replies (long markdown essays) are re-sent as context on follow-ups.
 // Cap them so the request stays small — and under the server's 2000-char per-
-// message validation on the currently-deployed API.
+// message validation on the currently-deployed API. The MOST RECENT reply is
+// kept whole: follow-ups like "simplify that" act on it (the server trims it at
+// a generous bound).
 const MAX_CONTEXT_CHARS = 1000;
-const capContext = (msgs: RulingsChatMessage[]): RulingsChatMessage[] =>
-  msgs.map((m) =>
-    m.role === 'assistant' && m.content.length > MAX_CONTEXT_CHARS
+const capContext = (msgs: RulingsChatMessage[]): RulingsChatMessage[] => {
+  let lastAssistant = -1;
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    if (msgs[i].role === 'assistant') { lastAssistant = i; break; }
+  }
+  return msgs.map((m, i) =>
+    m.role === 'assistant' && i !== lastAssistant && m.content.length > MAX_CONTEXT_CHARS
       ? { ...m, content: m.content.slice(0, MAX_CONTEXT_CHARS - 1) + '…' }
       : m,
   );
+};
 
 type Options = {
   chatId: string;
