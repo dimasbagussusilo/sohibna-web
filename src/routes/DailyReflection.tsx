@@ -8,6 +8,7 @@ import { useI18n } from '@/context/I18nContext'
 import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/hooks/useQuranData'
 import { reflectionDateKey, type ReflectionEntry } from '@/reflection/history'
+import { MarkdownText } from '@/components/MarkdownText'
 
 // Daily Reflection (web port): pick a mood → a mood-specific ayah of the day →
 // chat with the AI companion grounded in that verse. Per-day local history.
@@ -140,7 +141,11 @@ export function DailyReflection() {
                 : 'me-auto bg-white text-ink shadow-sm dark:bg-[#122A1F] dark:text-cream'
             }`}
           >
-            {m.content}
+            {m.role === 'user' ? (
+                <div className="whitespace-pre-wrap">{m.content}</div>
+            ) : (
+                <MarkdownText text={m.content} />
+            )}
           </div>
         ))}
         {loading ? (

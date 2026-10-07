@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext'
 import { useQuranData } from '@/hooks/useQuranData'
 import { useRulingsChat } from '@/rulings/useRulingsChat'
 import { mergeRulingsChatLists, deleteRulingsChatLocal } from '@/rulings/history'
+import { MarkdownText } from '@/components/MarkdownText'
 
 // The static curated "Rulings Collection" was retired — the RAG chat answers all
 // of it from the kitab library. The page is now chat-first: the Ask-AI portal
@@ -155,7 +156,11 @@ function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }
                   : 'me-auto bg-white text-ink shadow-sm dark:bg-[#122A1F] dark:text-cream'
               }`}
             >
-              <div className="whitespace-pre-wrap">{m.content}</div>
+              {m.role === 'user' ? (
+                <div className="whitespace-pre-wrap">{m.content}</div>
+              ) : (
+                <MarkdownText text={m.content} />
+              )}
             </div>
           ))}
 

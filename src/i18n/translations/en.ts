@@ -506,7 +506,7 @@ export const translations: Translation = {
     notFatwa: 'not a fatwa',
     disclaimerTail: '. Always confirm with a scholar or ustaz you trust.',
     askAi: 'Ask AI',
-    askAiSub: 'Ask any question about Islamic rulings, or tap a suggestion below.',
+    askAiSub: 'Ask any question about Islamic rulings, for example about worship, transactions, or daily sharia.',
     typeQuestion: 'Type your question…',
     aiSummarizing: 'AI is thinking…',
     questionLabel: 'Question',

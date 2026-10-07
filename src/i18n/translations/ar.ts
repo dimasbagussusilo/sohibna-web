@@ -517,7 +517,7 @@ export const translations: Translation = {
     disclaimerTail:
       '. أكّد دائمًا مع عالم أو شيخ تثق به.',
     askAi: 'اسأل الذكاء الاصطناعي',
-    askAiSub: 'اسأل أي شيء عن أحكام الإسلام، أو انقر على اقتراح بالأسفل.',
+    askAiSub: 'اسأل أي شيء عن أحكام الإسلام، مثل العبادات، المعاملات، أو الشريعة اليومية.',
     typeQuestion: 'اكتب سؤالك…',
     aiSummarizing: 'الذكاء الاصطناعي يفكّر…',
     questionLabel: 'السؤال',

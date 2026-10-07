@@ -507,7 +507,7 @@ export const translations = {
 
   rulings: {
     title: 'Hukum Islam',
-    subtitle: 'Jelajahi pandangan para ulama. Ingin bertanya? Anda juga bisa.',
+    subtitle: 'Kesempurnaan Islam dapat anda tanyakan disini.',
     disclaimerImportant: 'Penting:',
     disclaimerBody:
       ' Fitur Tanya AI di sini hanya merangkum berbagai pandangan ulama dan mazhab — ini ',
@@ -515,7 +515,7 @@ export const translations = {
     disclaimerTail:
       '. Selalu konfirmasi dengan ulama atau ustaz yang Anda percaya.',
     askAi: 'Tanya AI',
-    askAiSub: 'Tanyakan apa saja seputar hukum Islam, atau ketuk saran di bawah.',
+    askAiSub: 'Tanyakan apa saja seputar hukum Islam, misalnya tentang ibadah, muamalah, atau syariat sehari-hari.',
     typeQuestion: 'Ketik pertanyaan Anda…',
     aiSummarizing: 'AI sedang berpikir…',
     questionLabel: 'Pertanyaan',
