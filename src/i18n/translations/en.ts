@@ -799,8 +799,10 @@ export const translations: Translation = {
   settings: {
     title: 'Settings',
     appearance: 'Appearance',
-    darkMode: 'Dark mode',
-    darkModeDesc: 'Dark background for night reading',
+    lightMode: 'Light',
+    darkMode: 'Dark',
+    autoMode: 'Auto',
+    autoModeDesc: 'Dark automatically at night (18:00–06:00)',
     languageSection: 'Language',
     languageDesc: 'Choose the app language',
     accountSection: 'Account',

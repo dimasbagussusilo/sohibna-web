@@ -39,7 +39,7 @@ function useTicker(intervalMs = 30_000): number {
 export function Home() {
   const { t, lang } = useI18n()
   const { user } = useAuth()
-  const { darkMode, setDarkMode } = useApp()
+  const { darkMode, toggleDarkMode } = useApp()
   const { coords, loading: locLoading, requestAuto } = useLocation()
   const place = usePlaceName(coords)
   const now = useTicker()
@@ -69,7 +69,7 @@ export function Home() {
           <p className="mt-0.5 text-xs text-ink/50 dark:text-cream/50">{dateLabel}</p>
         </div>
         <button
-          onClick={() => setDarkMode(!darkMode)}
+          onClick={toggleDarkMode}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 text-ink dark:bg-white/10 dark:text-cream"
           aria-label={t('a11y.darkMode')}
         >

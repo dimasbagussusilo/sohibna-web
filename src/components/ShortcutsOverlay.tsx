@@ -14,7 +14,7 @@ import type { Lang } from '@/i18n/types'
 // Reader-local shortcuts (j/k/p/[/]/f/s/Esc) live in the reader.
 export function GlobalHotkeys() {
   const navigate = useNavigate()
-  const { setDarkMode, darkMode } = useApp()
+  const { toggleDarkMode } = useApp()
   const { lang, setLang } = useI18n()
   const [showSheet, setShowSheet] = useState(false)
 
@@ -31,7 +31,7 @@ export function GlobalHotkeys() {
     { keys: 'g r', handler: () => navigate('/rulings') },
     { keys: 'g m', handler: () => navigate('/me') },
     { keys: '?', handler: () => setShowSheet(true) },
-    { keys: 'd', handler: () => setDarkMode(!darkMode) },
+    { keys: 'd', handler: toggleDarkMode },
     { keys: 'l', handler: cycleLang },
     { keys: 'Escape', handler: () => setShowSheet(false) },
   ])

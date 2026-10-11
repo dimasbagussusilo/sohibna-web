@@ -810,8 +810,10 @@ export const translations: Translation = {
   settings: {
     title: 'الإعدادات',
     appearance: 'المظهر',
-    darkMode: 'الوضع الداكن',
-    darkModeDesc: 'خلفية داكنة لقراءة الليل',
+    lightMode: 'فاتح',
+    darkMode: 'داكن',
+    autoMode: 'تلقائي',
+    autoModeDesc: 'داكن تلقائيًا في الليل (18:00–06:00)',
     languageSection: 'اللغة',
     languageDesc: 'اختر لغة الواجهة',
     accountSection: 'الحساب',

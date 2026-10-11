@@ -4,7 +4,9 @@
 //   sohibna.quran.cursor.<uid> / sohibna.quran.pending.<uid> (per-user, 0008;
 //     legacy un-suffixed keys are migrated once) / sohibna.quran.cache.<uid>
 //     (offline snapshot) / sohibna.quran.guestUD / sohibna.quran.backfill.<uid>
-//   sohibna.auth_* / sohibna.device_id / sohibna:lang / sohibna:dark_mode
+//   sohibna.auth_* / sohibna.device_id / sohibna:lang / sohibna:appearance
+//     (pre-appearance builds used the boolean sohibna:dark_mode — migrated
+//     once in AppContext, then removed)
 //   reflection:* / prayed:* / location / place-name / islamic-events caches
 //
 // SECURITY NOTE: the RN app kept tokens in the OS keychain (SecureStore). Web

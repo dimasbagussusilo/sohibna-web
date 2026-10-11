@@ -47,6 +47,7 @@ import {
   type PrayerDay,
   type ReflectionEntryData, type RulingsChatEntryData,
   type AppLang,
+  type Appearance,
 } from '@/lib/quran';
 
 // Persistence keys are PER-USER: two accounts sharing a device must not reuse
@@ -61,6 +62,16 @@ const queueKey = (userId: string) => `sohibna.quran.pending.${userId}`;
 const cacheKey = (userId: string) => `sohibna.quran.cache.${userId}`;
 const LEGACY_CURSOR_KEY = 'sohibna.quran.cursor';
 const LEGACY_QUEUE_KEY = 'sohibna.quran.pending';
+
+// 'app.darkMode' carries the appearance pref ('light' | 'dark' | 'auto').
+// Pre-appearance builds pushed raw booleans — map them to the equivalent fixed
+// mode so an un-upgraded device's toggle still lands sensibly. Unrecognized
+// values → null = "no account value" (the device-local setting stands).
+function parseAppearance(v: unknown): Appearance | null {
+  if (v === true) return 'dark';
+  if (v === false) return 'light';
+  return v === 'light' || v === 'dark' || v === 'auto' ? v : null;
+}
 
 // ── Merge: apply a feed page (or state snapshot) to a UserData draft ─────────
 
@@ -162,7 +173,7 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         if (c.key === 'app.darkMode' || c.key === 'app.lang' || c.key === 'app.alarms') {
           const app = { ...next.appSettings };
           const reset = c.deleted || c.value == null;
-          if (c.key === 'app.darkMode') app.darkMode = reset ? null : c.value === true;
+          if (c.key === 'app.darkMode') app.appearance = reset ? null : parseAppearance(c.value);
           else if (c.key === 'app.lang') app.lang = reset ? null : (c.value as AppLang);
           else app.alarms = reset ? null : c.value;
           next.appSettings = app;

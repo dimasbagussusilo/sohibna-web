@@ -171,12 +171,18 @@ export type ReflectionEntryData = {
 
 export type AppLang = 'id' | 'en' | 'ar';
 
+// Appearance preference: fixed light/dark, or 'auto' = follow the time of day
+// (dark from 18:00 to 06:00, device-local — see AppContext). Synced as a string
+// under the legacy 'app.darkMode' key; pre-appearance builds pushed booleans,
+// which receivers map (true → 'dark', false → 'light').
+export type Appearance = 'light' | 'dark' | 'auto';
+
 // App-level prefs riding the reader-settings KV under 'app.*' keys. Fields are
 // null until the account has a value, so a fresh login never overwrites the
 // device-local setting with a default. `alarms` is opaque (AlarmSettings-shaped
 // on RN, never applied on web) so this shared module stays platform-neutral.
 export type AppSettings = {
-  darkMode: boolean | null;
+  appearance: Appearance | null;
   lang: AppLang | null;
   alarms: unknown | null;
 };
@@ -389,7 +395,7 @@ export const DEFAULT_USER_DATA: UserData = {
   prayerDays: {},
   reflections: {},
   rulingsChats: {},
-  appSettings: { darkMode: null, lang: null, alarms: null },
+  appSettings: { appearance: null, lang: null, alarms: null },
 };
 
 // displayModeTransition — switching verse ↔ reading mode. Shared by the reader's

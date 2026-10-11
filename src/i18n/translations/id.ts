@@ -810,8 +810,10 @@ export const translations = {
   settings: {
     title: 'Pengaturan',
     appearance: 'Tampilan',
-    darkMode: 'Mode gelap',
-    darkModeDesc: 'Latar gelap untuk membaca malam',
+    lightMode: 'Terang',
+    darkMode: 'Gelap',
+    autoMode: 'Otomatis',
+    autoModeDesc: 'Otomatis gelap saat malam (18.00–06.00)',
     languageSection: 'Bahasa',
     languageDesc: 'Pilih bahasa antarmuka',
     accountSection: 'Akun',

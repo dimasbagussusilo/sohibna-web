@@ -13,7 +13,7 @@
 // PUT to scoped per-resource PATCHes.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@/lib/storage';
-import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type RulingsChatEntryData, type AppLang } from '@/lib/quran';
+import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type RulingsChatEntryData, type AppLang, type Appearance } from '@/lib/quran';
 import { clearLegacyGuestData } from '@/lib/quranStorage';
 import {
   mergeRemote,
@@ -157,9 +157,9 @@ async function collectBackfillOps(snapshot: UserData): Promise<Op[]> {
   }
 
   // App prefs the account has no value for yet (null = not set server-side).
-  if (snapshot.appSettings.darkMode === null) {
-    const raw = await AsyncStorage.getItem('sohibna:dark_mode');
-    if (raw === 'true' || raw === 'false') ops.push({ kind: 'setting', key: 'app.darkMode', value: raw === 'true' });
+  if (snapshot.appSettings.appearance === null) {
+    const raw = await AsyncStorage.getItem('sohibna:appearance');
+    if (raw === 'light' || raw === 'dark' || raw === 'auto') ops.push({ kind: 'setting', key: 'app.darkMode', value: raw });
   }
   if (snapshot.appSettings.lang === null) {
     const raw = await AsyncStorage.getItem('sohibna:lang');
@@ -850,15 +850,18 @@ export function useQuranData() {
     [enqueueOp],
   );
 
-  // setAppSetting updates one app pref ('app.darkMode' | 'app.lang' | 'app.alarms')
-  // on UserData.appSettings and enqueues the setting op. No-op for guests beyond
-  // the local state change (their device-local stores own the value).
+  // setAppSetting updates one app pref (appearance | lang | alarms) on
+  // UserData.appSettings and enqueues the setting op. The appearance pref keeps
+  // the legacy 'app.darkMode' server key (already whitelisted — the value is now
+  // the 'light'|'dark'|'auto' string where pre-appearance builds pushed a
+  // boolean). No-op for guests beyond the local state change (their
+  // device-local stores own the value).
   const setAppSetting = useCallback(
-    (key: 'darkMode' | 'lang' | 'alarms', value: boolean | AppLang | unknown) => {
+    (key: 'appearance' | 'lang' | 'alarms', value: Appearance | AppLang | unknown) => {
       const prev = udRef.current;
       const next = { ...prev, appSettings: { ...prev.appSettings, [key]: value } };
       setUdState(next);
-      if (tokenRef.current) enqueueOp({ kind: 'setting', key: `app.${key}`, value });
+      if (tokenRef.current) enqueueOp({ kind: 'setting', key: key === 'appearance' ? 'app.darkMode' : `app.${key}`, value });
     },
     [enqueueOp],
   );

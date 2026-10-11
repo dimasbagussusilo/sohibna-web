@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router'
-import { LogOut, Moon, Sun, Globe, ChevronRight } from 'lucide-react'
+import { LogOut, Globe, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
@@ -12,7 +12,7 @@ import type { Lang } from '@/i18n/types'
 export function Me() {
   const { t, lang, setLang } = useI18n()
   const { user, logout } = useAuth()
-  const { darkMode, setDarkMode } = useApp()
+  const { appearance, setAppearance } = useApp()
   const { setAppSetting } = useQuranData()
   const navigate = useNavigate()
 
@@ -68,28 +68,30 @@ export function Me() {
         </div>
       </Section>
 
-      {/* Dark mode */}
+      {/* Appearance: fixed light/dark, or auto (follows the time of day) */}
       <Section title={t('settings.appearance')}>
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="flex w-full items-center justify-between px-4 pb-4 pt-1"
-        >
-          <span className="flex items-center gap-2 text-sm text-ink dark:text-cream">
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-            {t('settings.darkMode')}
-          </span>
-          <span
-            className={`relative h-6 w-11 rounded-full transition-colors ${
-              darkMode ? 'bg-[#8FBC8F]' : 'bg-gray-300 dark:bg-white/20'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
-                darkMode ? 'start-[22px]' : 'start-0.5'
+        <div className="flex gap-2 px-4 pb-4">
+          {(
+            [
+              { value: 'light' as const, label: t('settings.lightMode') },
+              { value: 'dark' as const, label: t('settings.darkMode') },
+              { value: 'auto' as const, label: t('settings.autoMode') },
+            ]
+          ).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setAppearance(value)}
+              title={value === 'auto' ? t('settings.autoModeDesc') : undefined}
+              className={`flex-1 rounded-xl px-3 py-2.5 text-sm ${
+                appearance === value
+                  ? 'bg-[#8FBC8F] font-semibold text-white'
+                  : 'bg-black/5 text-ink dark:bg-white/10 dark:text-cream'
               }`}
-            />
-          </span>
-        </button>
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </Section>
 
       {/* Placeholder rows for P2 screens */}
