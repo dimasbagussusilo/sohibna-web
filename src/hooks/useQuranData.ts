@@ -67,10 +67,10 @@ const SETTING_KEYS = new Set<string>([
   // True once the user manually picks translations/tafsir in Reader Settings —
   // pauses "content follows app language" (see useQuranContentLang).
   'contentLangOverride',
-  // lastReadSlots is a whole-map setting (named marks → {verseKey, ts}). Synced
-  // as one JSON value via /settings (setSetting assigns it directly). The per-mark
-  // `ts` is what lets "Continue Reading" pick the most-recently-created mark.
-  'lastReadSlots',
+  // NOTE: lastReadSlots (named reading marks) is NOT here anymore — since 0011
+  // it syncs per-slot via PATCH /last-read-slots ops (latest-activity-wins by
+  // client ts). The server still ACCEPTS the legacy whole-map setting key so
+  // un-upgraded builds don't wedge their queues; we never send it.
 ]);
 
 // Guests have no server account, so their UserData is persisted LOCALLY here
@@ -391,8 +391,9 @@ export function useQuranData() {
   useEffect(() => {
     const syncNow = () => {
       if (!tokenRef.current) return;
-      void deltaPull();
-      void flush();
+      // Sequential on purpose — a concurrent flush can push a stale queued op
+      // that races past the pull that would have obsoleted it.
+      void deltaPull().then(() => flush());
     };
     const onVisible = () => {
       if (document.visibilityState === 'visible') syncNow();
@@ -560,28 +561,32 @@ export function useQuranData() {
   );
 
   // Record that the user read up to `vk` in `surah` (drives "Continue Reading").
+  // One `now` stamps BOTH the local entry and the sync op so the server-side
+  // latest-activity-wins comparison matches what the UI shows.
   const recordLastRead = useCallback(
     (surah: number, vk: string) => {
       const prev = udRef.current;
       // Throttle: only record when this verse differs from the last stored one.
       const existing = prev.lastRead[surah];
       if (existing && existing.verseKey === vk) return;
+      const now = Date.now();
       const next = {
         ...prev,
-        lastRead: { ...prev.lastRead, [surah]: { verseKey: vk, timestamp: Date.now() } },
+        lastRead: { ...prev.lastRead, [surah]: { verseKey: vk, timestamp: now } },
       };
       setUdState(next);
-      persist(next, { kind: 'lastRead', surah, verseKey: vk });
+      persist(next, { kind: 'lastRead', surah, verseKey: vk, ts: now });
     },
     [persist],
   );
 
-  // Named "last read" slots: each name → ONE verse (overwritten on re-mark). The
-  // whole map is synced as a single reader setting (last-write-wins per the sync
-  // model). setUD enqueues the {setting} op because 'lastReadSlots' is a SETTING_KEY.
-  // Returns {from, to} when this call moved the slot FORWARD in mushaf order (a
-  // real reading segment) so callers can surface the "summarize what you just
-  // read" banner; null otherwise (new slot, unchanged, or backward move).
+  // Named "last read" slots: each name → ONE verse (overwritten on re-mark).
+  // Since 0011 each slot syncs as its own row (PATCH /last-read-slots) guarded
+  // by the client ts — a stale whole-map push from another device can no longer
+  // clobber every mark at once. Returns {from, to} when this call moved the slot
+  // FORWARD in mushaf order (a real reading segment) so callers can surface the
+  // "summarize what you just read" banner; null otherwise (new slot, unchanged,
+  // or backward move).
   const setLastReadSlot = useCallback(
     (name: string, vk: string): { from: string; to: string } | null => {
       const clean = name.trim();
@@ -591,20 +596,27 @@ export function useQuranData() {
       // so this mark becomes the most-recently-created ("Continue Reading").
       if (markVerseKey(prev.lastReadSlots[clean]) === vk) return null; // unchanged
       const range = forwardRangeForSlot(prev.lastReadSlots, clean, vk);
-      setUD({ lastReadSlots: { ...prev.lastReadSlots, [clean]: { verseKey: vk, ts: Date.now() } } });
+      const now = Date.now();
+      const next = {
+        ...prev,
+        lastReadSlots: { ...prev.lastReadSlots, [clean]: { verseKey: vk, ts: now } },
+      };
+      setUdState(next);
+      persist(next, { kind: 'lastReadSlot', slot: clean, verseKey: vk, ts: now });
       return range;
     },
-    [setUD],
+    [persist],
   );
   const clearLastReadSlot = useCallback(
     (name: string) => {
       const prev = udRef.current;
       if (!(name in prev.lastReadSlots)) return;
-      const next = { ...prev.lastReadSlots };
-      delete next[name];
-      setUD({ lastReadSlots: next });
+      const next = { ...prev, lastReadSlots: { ...prev.lastReadSlots } };
+      delete next.lastReadSlots[name];
+      setUdState(next);
+      persist(next, { kind: 'lastReadSlotDelete', slot: name, ts: Date.now() });
     },
-    [setUD],
+    [persist],
   );
 
   // logReadingSession records a reading session server-side (which recomputes the

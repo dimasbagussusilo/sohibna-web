@@ -172,18 +172,58 @@ export function SurahReader() {
     focusVkRef.current = jumpVk
   }, [verses, jumpVk])
 
-  // Record last-read (throttled to the latest visible verse) + document.title.
-  const recordedRef = useRef<string | null>(null)
+  // Document.title (previously coupled to the on-load last-read record).
   useEffect(() => {
-    if (!chapter || verses.length === 0) return
+    if (!chapter) return
     document.title = `${chapter.translated_name?.name || chapter.name_simple} — Sohibna`
-    const last = verses[verses.length - 1]
-    if (recordedRef.current !== `${surahId}:${last.verse_key}`) {
-      recordedRef.current = `${surahId}:${last.verse_key}`
-      lastReadVkRef.current = last.verse_key
-      recordLastRead(surahId, last.verse_key)
+  }, [chapter])
+
+  // Scroll-driven last-read: record the topmost visible verse as the user
+  // scrolls — NEVER on load. The old on-load record stamped the surah's FINAL
+  // verse with a fresh ts, which under latest-activity-wins (0011) would beat
+  // every legitimate edit made on other devices. recordLastRead self-dedupes
+  // an unchanged verse key; the 200ms throttle (+ trailing call) bounds layout
+  // reads and still captures the final resting position.
+  useEffect(() => {
+    if (verses.length === 0) return
+    const recordTopVerse = () => {
+      // Verse cards are stacked in document order, so their absolute tops are
+      // monotonic — binary search for the last card starting above the line.
+      const line = window.scrollY + 96
+      let lo = 0
+      let hi = verses.length - 1
+      let idx = 0
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1
+        const el = document.getElementById(`verse-${verses[mid].verse_key}`)
+        if (!el) return
+        if (el.getBoundingClientRect().top + window.scrollY <= line) {
+          idx = mid
+          lo = mid + 1
+        } else {
+          hi = mid - 1
+        }
+      }
+      lastReadVkRef.current = verses[idx].verse_key
+      recordLastRead(surahId, verses[idx].verse_key)
     }
-  }, [chapter, verses, surahId, recordLastRead])
+    let lastRun = 0
+    let trailing: number | undefined
+    const onScroll = () => {
+      if (performance.now() - lastRun >= 200) {
+        lastRun = performance.now()
+        recordTopVerse()
+      } else {
+        window.clearTimeout(trailing)
+        trailing = window.setTimeout(recordTopVerse, 200)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.clearTimeout(trailing)
+    }
+  }, [verses, surahId, recordLastRead])
 
   // Log a reading session when leaving the surah (≥15s). Sessions recompute
   // the server-side streak + goal progress.

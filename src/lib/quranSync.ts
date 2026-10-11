@@ -8,14 +8,17 @@
 //
 // Conflict model: last-write-wins per ROW on the server (each row is one
 // resource/field, versioned by a server-assigned sync_seq). Two devices editing
-// different favorites/settings touch different rows and never collide; the only
-// LWW is on the same scalar, which is the only sane rule. The client never sends
-// a timestamp or seq — it only pushes the new value and pulls deltas.
+// different favorites/settings touch different rows and never collide. Reading
+// progress (last_read + last_read_slots, 0011) additionally carries a CLIENT
+// edit timestamp: the server rejects upserts older than the stored row and the
+// merge below compares timestamps, so the latest ACTIVITY wins even when a
+// stale offline op flushes late.
 import AsyncStorage from '@/lib/storage';
 import {
   patchFavorite,
   patchBookmark,
   patchLastRead,
+  patchLastReadSlot,
   patchLabels,
   patchLabelLib,
   patchSetting,
@@ -36,6 +39,7 @@ import {
 } from '@/api';
 import {
   DEFAULT_USER_DATA,
+  markTs,
   type UserData,
   type KhatmGoal,
   type HafalanTarget,
@@ -72,6 +76,9 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
     labels: { ...prev.labels },
     labelLibrary: [...prev.labelLibrary],
     lastRead: { ...prev.lastRead },
+    // lastReadSlots is mutated per-slot in the 'last_read_slot' case — copy it
+    // so the delta pull never mutates the prev snapshot in place.
+    lastReadSlots: { ...prev.lastReadSlots },
     // memorized is a map mutated per-verse in the 'memorized_verse' case; copy it
     // so the delta pull never mutates the prev snapshot in place.
     memorized: { ...prev.memorized },
@@ -117,16 +124,38 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         }
         break;
       }
-      case 'last_read':
+      case 'last_read': {
+        // Latest-activity-wins (0011): the feed row carries the CLIENT edit time
+        // (updated_at). Skip rows older than what we already hold — otherwise a
+        // device that flushes a stale queued op late would regress everyone.
+        const cur = next.lastRead[c.surah];
+        const ts = c.updated_at ?? 0;
         if (c.deleted) {
-          delete next.lastRead[c.surah];
-        } else {
-          // The server stores only verse_key (no timestamp); approximate with
-          // apply time — good enough for "Continue Reading" recency ordering.
-          next.lastRead[c.surah] = { verseKey: c.verse_key, timestamp: Date.now() };
+          if (!cur || ts >= cur.timestamp) delete next.lastRead[c.surah];
+        } else if (!cur || ts >= cur.timestamp) {
+          next.lastRead[c.surah] = { verseKey: c.verse_key, timestamp: ts };
         }
         break;
+      }
+      case 'last_read_slot': {
+        // One named reading-mark slot (0011), same latest-activity-wins rule.
+        // markTs tolerates legacy bare-string slot values (treated as ts 0), so
+        // any row-derived value beats them.
+        const existingTs = next.lastReadSlots[c.key] ? markTs(next.lastReadSlots[c.key]) : 0;
+        const slotTs = c.updated_at ?? 0;
+        if (c.deleted) {
+          if (slotTs >= existingTs) delete next.lastReadSlots[c.key];
+        } else if (slotTs >= existingTs) {
+          next.lastReadSlots[c.key] = { verseKey: c.verse_key, ts: slotTs };
+        }
+        break;
+      }
       case 'setting':
+        // LEGACY whole-map reading marks: since 0011 the marks live in
+        // quran_last_read_slots rows ('last_read_slot' above). Un-upgraded
+        // builds still push the whole map through /settings — a stale map must
+        // never clobber the row-derived state, so skip it entirely.
+        if (c.key === 'lastReadSlots') break;
         // App-level prefs ('app.*') live in next.appSettings, not the UserData
         // scalars — intercept before setSetting (which drops unknown keys).
         // deleted/null → null = "no account value" (device-local stands).
@@ -276,7 +305,12 @@ function setSetting(ud: UserData, key: string, value: unknown) {
 export type Op =
   | { kind: 'favorite'; verseKey: string; deleted: boolean }
   | { kind: 'bookmark'; verseKey: string | null }
-  | { kind: 'lastRead'; surah: number; verseKey: string }
+  // ts = client edit time (epoch ms) driving latest-activity-wins server-side.
+  // Ops queued by pre-0011 builds deserialize without it (undefined → omitted
+  // from JSON) — the server stamps now, preserving the legacy behavior.
+  | { kind: 'lastRead'; surah: number; verseKey: string; ts?: number }
+  | { kind: 'lastReadSlot'; slot: string; verseKey: string; ts: number }
+  | { kind: 'lastReadSlotDelete'; slot: string; ts: number }
   | { kind: 'labels'; verseKey: string; add: string[]; remove: string[] }
   | { kind: 'labelLib'; add: string[]; remove: string[] }
   | { kind: 'setting'; key: string; value: unknown }
@@ -320,7 +354,13 @@ async function applyOp(deviceId: string, op: Op): Promise<void> {
       await patchBookmark(deviceId, op.verseKey);
       break;
     case 'lastRead':
-      await patchLastRead(deviceId, op.surah, op.verseKey);
+      await patchLastRead(deviceId, op.surah, op.verseKey, op.ts ?? Date.now());
+      break;
+    case 'lastReadSlot':
+      await patchLastReadSlot(deviceId, op.slot, op.verseKey, op.ts);
+      break;
+    case 'lastReadSlotDelete':
+      await patchLastReadSlot(deviceId, op.slot, null, op.ts);
       break;
     case 'labels':
       await patchLabels(deviceId, op.verseKey, op.add, op.remove);
@@ -355,7 +395,7 @@ async function applyOp(deviceId: string, op: Op): Promise<void> {
     case 'prayerDays':
       await patchPrayerDays(deviceId, op.items);
       break;
-    case 'reflections':
+        case 'reflections':
       await patchReflections(deviceId, op.items);
       break;
     case 'rulingsChats':

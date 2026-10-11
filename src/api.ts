@@ -233,6 +233,14 @@ export interface LastReadChange extends BaseChange {
   type: 'last_read';
   surah: number;
   verse_key: string;
+  updated_at?: number; // epoch ms, client edit time (latest-activity-wins)
+}
+// Named reading-mark slot (one row per slot, 0011).
+export interface LastReadSlotChange extends BaseChange {
+  type: 'last_read_slot';
+  key: string; // slot name
+  verse_key: string;
+  updated_at?: number; // epoch ms, client edit time
 }
 export interface SettingChange extends BaseChange {
   type: 'setting';
@@ -245,6 +253,7 @@ export type Change =
   | LabelChange
   | LabelLibChange
   | LastReadChange
+  | LastReadSlotChange
   | SettingChange
   | ReadingLogChange
   | KhatmChange
@@ -374,10 +383,18 @@ export const patchBookmark = (deviceId: string, verseKey: string | null) =>
     body: JSON.stringify({ verseKey }),
   });
 
-export const patchLastRead = (deviceId: string, surah: number, verseKey: string) =>
+export const patchLastRead = (deviceId: string, surah: number, verseKey: string, ts: number) =>
   syncFetch<{ ok: boolean }>(deviceId, '/quran/me/last-read', {
     method: 'PATCH',
-    body: JSON.stringify({ surah, verseKey }),
+    body: JSON.stringify({ surah, verseKey, ts }),
+  });
+
+// Set (verseKey) or clear (null) one named reading-mark slot. ts = client edit
+// time (epoch ms) — the server ignores the write when an older-than-stored ts.
+export const patchLastReadSlot = (deviceId: string, slot: string, verseKey: string | null, ts: number) =>
+  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/last-read-slots', {
+    method: 'PATCH',
+    body: JSON.stringify({ slot, verseKey, ts }),
   });
 
 export const patchLabels = (deviceId: string, verseKey: string, add: string[], remove: string[]) =>
