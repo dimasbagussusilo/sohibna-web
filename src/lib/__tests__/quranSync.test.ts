@@ -140,25 +140,32 @@ test('reflection change stores the entry whole; tombstone removes it', () => {
 
 test('app.* settings route to appSettings, not UserData scalars', () => {
   const out = mergeRemote(fresh(), [
-    c({ type: 'setting', key: 'app.darkMode', value: true }),
+    c({ type: 'setting', key: 'app.darkMode', value: 'auto' }),
     c({ type: 'setting', key: 'app.lang', value: 'ar' }),
     c({ type: 'setting', key: 'app.alarms', value: { leadMinutes: 10 } }),
   ])
-  assert.equal(out.appSettings.darkMode, true)
+  assert.equal(out.appSettings.appearance, 'auto')
   assert.equal(out.appSettings.lang, 'ar')
   assert.deepEqual(out.appSettings.alarms, { leadMinutes: 10 })
 })
 
+test('legacy boolean app.darkMode values map to fixed appearance modes', () => {
+  const dark = mergeRemote(fresh(), [c({ type: 'setting', key: 'app.darkMode', value: true })])
+  assert.equal(dark.appSettings.appearance, 'dark')
+  const light = mergeRemote(fresh(), [c({ type: 'setting', key: 'app.darkMode', value: false })])
+  assert.equal(light.appSettings.appearance, 'light')
+})
+
 test('deleted/null app.* setting resets to null (account has no value)', () => {
   const withVals = mergeRemote(fresh(), [
-    c({ type: 'setting', key: 'app.darkMode', value: true }),
+    c({ type: 'setting', key: 'app.darkMode', value: 'dark' }),
     c({ type: 'setting', key: 'app.lang', value: 'en' }),
   ])
   const reset = mergeRemote(withVals, [
     c({ type: 'setting', key: 'app.darkMode', deleted: true }),
     c({ type: 'setting', key: 'app.lang', value: null }),
   ])
-  assert.equal(reset.appSettings.darkMode, null)
+  assert.equal(reset.appSettings.appearance, null)
   assert.equal(reset.appSettings.lang, null)
 })
 
@@ -169,7 +176,7 @@ test('unknown change type is ignored (forward-compat for old clients)', () => {
 })
 
 test('app.* merge never mutates the prev snapshot', () => {
-  const prev = mergeRemote(fresh(), [c({ type: 'setting', key: 'app.darkMode', value: true })])
+  const prev = mergeRemote(fresh(), [c({ type: 'setting', key: 'app.darkMode', value: 'auto' })])
   const before = JSON.stringify(prev.appSettings)
   mergeRemote(prev, [c({ type: 'setting', key: 'app.lang', value: 'id' })])
   assert.equal(JSON.stringify(prev.appSettings), before)
