@@ -6,7 +6,7 @@ import { pickMoodVerse, pickTranslation, type MoodId } from '@/reflection/moods'
 import { useReflectionChat } from '@/reflection/useReflectionChat'
 import { useI18n } from '@/context/I18nContext'
 import { useAuth } from '@/context/AuthContext'
-import { useQuranData } from '@/hooks/useQuranData'
+import { useQuranData } from '@/context/QuranDataContext'
 import { reflectionDateKey, type ReflectionEntry } from '@/reflection/history'
 import { MarkdownText } from '@/components/MarkdownText'
 

@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { askReflection, type ReflectionMessage, type ReflectionVersePayload } from '@/api';
 import { useI18n } from '@/context/I18nContext';
 import { useAuth } from '@/context/AuthContext';
-import { useQuranData } from '@/hooks/useQuranData';
+import { useQuranData } from '@/context/QuranDataContext';
 import { loadReflection, saveReflection, reflectionDateKey, type ReflectionEntry } from './history';
 import { pickMoodVerse, type MoodId } from './moods';
 

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import storage from '@/lib/storage'
 import { useAuth } from '@/context/AuthContext'
-import { useQuranData } from '@/hooks/useQuranData'
+import { useQuranData } from '@/context/QuranDataContext'
 import type { Appearance } from '@/lib/quran'
 
 // App-wide appearance — fixed light/dark or 'auto' (dark from 18:00 to 06:00,

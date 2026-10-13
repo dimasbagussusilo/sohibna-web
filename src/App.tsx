@@ -2,9 +2,8 @@ import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router'
 import { I18nProvider, useI18n } from '@/context/I18nContext'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
-import { QuranDataProvider } from '@/context/QuranDataContext'
+import { QuranDataProvider, useQuranData } from '@/context/QuranDataContext'
 import { AppProvider } from '@/context/AppContext'
-import { useQuranData } from '@/hooks/useQuranData'
 import { AppShell } from '@/components/AppShell'
 import { TabBar } from '@/components/TabBar'
 import { Toast } from '@/components/Toast'
@@ -30,16 +29,22 @@ import { Me } from '@/routes/Me'
 // Applies the account's synced UI language once the store has it (0008). Inner
 // consumer by design — I18nProvider is outermost for pre-paint RTL, so the
 // account apply must live below it. fromSync skips the push-back; the
-// remote !== lang guard makes it idempotent (web applies instantly, no restart).
+// remote !== lang guard makes it idempotent (web applies instantly, no
+// restart). pendingLang holds off the apply while a locally-chosen language is
+// still queued unflushed (e.g. an offline switch) — the stale snapshot value
+// must not revert the user's choice until a pull confirms it (the flush folds
+// the sent value back into appSettings, at which point remote === lang and
+// this no-ops).
 function AccountLangApply() {
   const { user } = useAuth()
-  const { ud, loaded } = useQuranData()
+  const { ud, loaded, pendingLang } = useQuranData()
   const { lang, setLang } = useI18n()
   const remote = user && loaded ? ud.appSettings.lang : null
   useEffect(() => {
     if (!remote || remote === lang) return
+    if (pendingLang) return
     setLang(remote, { fromSync: true })
-  }, [remote, lang, setLang])
+  }, [remote, lang, setLang, pendingLang])
   return null
 }
 

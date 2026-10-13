@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { useQuranData as useQuranDataImpl } from '@/hooks/useQuranData';
+import { useQuranDataSync as useQuranDataImpl } from '@/hooks/useQuranData';
 
 // A SINGLE shared Quran-data instance for the whole app.
 //

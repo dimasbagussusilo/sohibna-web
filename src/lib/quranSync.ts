@@ -47,6 +47,7 @@ import {
   type PrayerDay,
   type ReflectionEntryData, type RulingsChatEntryData,
   type AppLang,
+  type AppSettings,
   type Appearance,
 } from '@/lib/quran';
 
@@ -71,6 +72,19 @@ function parseAppearance(v: unknown): Appearance | null {
   if (v === true) return 'dark';
   if (v === false) return 'light';
   return v === 'light' || v === 'dark' || v === 'auto' ? v : null;
+}
+
+// applyAppSettingOp folds one 'app.*' setting value into an AppSettings
+// snapshot (null → "no account value", the device-local setting stands).
+// Extracted from mergeRemote's 'setting' case so the op-queue reconciliation
+// in useQuranData (folding queued/sent app prefs back over a rebuilt
+// snapshot) maps keys exactly like the remote merge does.
+export function applyAppSettingOp(app: AppSettings, key: string, value: unknown): AppSettings {
+  const next = { ...app };
+  if (key === 'app.darkMode') next.appearance = value == null ? null : parseAppearance(value);
+  else if (key === 'app.lang') next.lang = value == null ? null : (value as AppLang);
+  else if (key === 'app.alarms') next.alarms = value == null ? null : value;
+  return next;
 }
 
 // ── Merge: apply a feed page (or state snapshot) to a UserData draft ─────────
@@ -171,12 +185,11 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         // scalars — intercept before setSetting (which drops unknown keys).
         // deleted/null → null = "no account value" (device-local stands).
         if (c.key === 'app.darkMode' || c.key === 'app.lang' || c.key === 'app.alarms') {
-          const app = { ...next.appSettings };
-          const reset = c.deleted || c.value == null;
-          if (c.key === 'app.darkMode') app.appearance = reset ? null : parseAppearance(c.value);
-          else if (c.key === 'app.lang') app.lang = reset ? null : (c.value as AppLang);
-          else app.alarms = reset ? null : c.value;
-          next.appSettings = app;
+          next.appSettings = applyAppSettingOp(
+            next.appSettings,
+            c.key,
+            c.deleted || c.value == null ? null : c.value,
+          );
           break;
         }
         // Each known setting key maps 1:1 to a UserData scalar. A deleted key
@@ -353,6 +366,43 @@ export type Op =
   | { kind: 'reflections'; items: ReflectionEntryData[] }
   | { kind: 'rulingsChats'; items: RulingsChatEntryData[] }
   | { kind: 'tz'; tz: string };
+
+// reapplyAppSettings folds a run of queued/sent setting ops back over a
+// UserData snapshot. ud is rebuilt from the server (or offline cache) whenever
+// the app relaunches — the RTL language switch relaunches mid-push, so the
+// snapshot ud is rebuilt from can predate the user's just-made app-pref
+// choices; folding the ops back over it keeps those choices standing until a
+// pull confirms them. Only 'app.*' keys fold (reader settings aren't app
+// prefs, and their ops carry no ordering guarantee against the snapshot's
+// rows). Returns the same object when nothing folds (no app ops present).
+export function reapplyAppSettings(ud: UserData, ops: Op[]): UserData {
+  let app: AppSettings | null = null;
+  for (const op of ops) {
+    if (op.kind !== 'setting' || !op.key.startsWith('app.')) continue;
+    app = applyAppSettingOp(app ?? ud.appSettings, op.key, op.value);
+  }
+  return app ? { ...ud, appSettings: app } : ud;
+}
+
+// coalesceOp appends `op` to the queue, REPLACING any still-queued op it
+// strictly obsoletes: a pending 'setting' for the same key (settings are
+// per-key last-write-wins rows server-side, so only the newest value needs to
+// reach the server) or another 'tz'. This collapses rapid UI edits — font
+// slider drags, toggle bursts, repeated taps — into ONE pending op per key
+// instead of one PATCH per tick (a single slider drag used to enqueue dozens
+// of setting ops, stuffing the FIFO queue behind which mark/progress ops then
+// stalled, and hammering the API in bursts). Ops of other kinds keep their
+// relative order; an op already IN FLIGHT (being sent by flushQueue) is
+// untouched — only the unsent tail is coalesced.
+export function coalesceOp(queue: Op[], op: Op): Op[] {
+  const kept = queue.filter((q) => {
+    if (op.kind === 'setting' && q.kind === 'setting') return q.key !== op.key;
+    if (op.kind === 'tz') return q.kind !== 'tz';
+    return true;
+  });
+  kept.push(op);
+  return kept;
+}
 
 // applyOp sends one op as its scoped PATCH. Throws on network/HTTP failure (the
 // caller leaves the op queued for the next flush) or AuthError (caller logs out).

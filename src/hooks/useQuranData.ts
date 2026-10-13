@@ -27,6 +27,8 @@ import {
   loadCache,
   saveCache,
   flushQueue,
+  reapplyAppSettings,
+  coalesceOp,
   type Op,
 } from '@/lib/quranSync';
 import { AuthError, getChanges, getState } from '@/api';
@@ -179,7 +181,14 @@ async function collectBackfillOps(snapshot: UserData): Promise<Op[]> {
   return ops;
 }
 
-export function useQuranData() {
+// ⚠ SINGLE-INSTANCE RULE: this hook owns per-user sync state (queue, cursor,
+// ud). Mount it EXACTLY ONCE — QuranDataContext does that — and consume it via
+// `useQuranData()` from '@/context/QuranDataContext'. Calling useQuranDataSync
+// directly from a component creates a SECOND sync engine with its own in-memory
+// queue and cursor: the instances race on the same disk queue (last save wins,
+// silently erasing the other's pending ops — "my mark didn't save") and each
+// runs its own fullPull on mount (duplicate /state bursts).
+export function useQuranDataSync() {
   const { token, user, loading: authLoading, logout } = useAuth();
   // Sync-scope id: per-user cursor/queue/cache keys ('guest' when logged out)
   // so two accounts on one device never reuse each other's sync state.
@@ -189,6 +198,12 @@ export function useQuranData() {
   // the real saved document has loaded (otherwise the first surah open flashes
   // through the default script/size before the user's settings apply).
   const [loaded, setLoaded] = useState(false);
+  // True while an app.lang op sits unflushed in the queue. The RTL language
+  // switch relaunches the app right after queueing its op, so the snapshot (or
+  // offline cache) the app rebuilds from can briefly carry the PREVIOUS
+  // language — AccountLangApply must not revert the user's choice while their
+  // op is still in flight (it holds off until a pull confirms the value).
+  const [pendingLang, setPendingLang] = useState(false);
 
   // Refs hold the latest values for use inside async callbacks (flush/pull) and
   // let mutations read current state without side-effects-in-a-reducer (which
@@ -198,6 +213,8 @@ export function useQuranData() {
   const cursorRef = useRef<number>(0);
   const queueRef = useRef<Op[]>([]);
   const flushingRef = useRef(false);
+  // Guards against concurrent fullPulls (see fullPull below).
+  const pullingRef = useRef(false);
 
   // Keep the latest token + UserData in refs for use inside async callbacks
   // (flush/pull). Updated in effects (not during render) per the react-hooks
@@ -216,33 +233,66 @@ export function useQuranData() {
   }, [uid]);
   const deviceId = useMemo(() => getDeviceId(), []);
 
+  // Mirror "an app.lang op is queued" into state for AccountLangApply. Called
+  // at every queue mutation (enqueue / flush / load).
+  const syncPendingLang = useCallback((queue: Op[]) => {
+    const pending = queue.some((op) => op.kind === 'setting' && op.key === 'app.lang');
+    setPendingLang((prev) => (prev === pending ? prev : pending));
+  }, []);
+
   // flush sends queued ops FIFO, stopping at the first failure (leaving the rest
   // queued). AuthError → logout.
   const flush = useCallback(async () => {
     if (!tokenRef.current || flushingRef.current || queueRef.current.length === 0) return;
     flushingRef.current = true;
     try {
-      const remaining = await flushQueue(deviceId, queueRef.current);
-      queueRef.current = remaining;
-      await saveQueue(uidRef.current, remaining);
+      // The exact run flushQueue consumes. Ops enqueued DURING the await
+      // (enqueueOp doesn't block on flushingRef) exist only in queueRef — and
+      // coalescing may have REPLACED an inflight op at any position, not just
+      // appended. So rebuild by identity: the un-sent remainder first (stuck
+      // head stays head), then everything currently queued this flush never
+      // saw. Reference equality is safe — Op objects are never cloned between
+      // enqueue and flush.
+      const inflight = queueRef.current;
+      const remaining = await flushQueue(deviceId, inflight);
+      const survivors = queueRef.current.filter(
+        (q) => !inflight.includes(q) && !remaining.includes(q),
+      );
+      queueRef.current = [...remaining, ...survivors];
+      await saveQueue(uidRef.current, queueRef.current);
+      syncPendingLang(queueRef.current);
+      // App prefs were applied optimistically at enqueue time, but a relaunch
+      // (the RTL language switch) rebuilds ud from the server/cache BEFORE
+      // this flush lands them — fold the pre-flush app ops back over the
+      // rebuilt state so the stale snapshot value can't revert the user's
+      // choice before a pull confirms it. (Last op wins, matching the queue's
+      // own ordering; any pull-newer value re-lands on the next merge.)
+      const reapplied = reapplyAppSettings(udRef.current, [...inflight, ...survivors]);
+      if (reapplied !== udRef.current) setUdState(reapplied);
     } catch (e) {
       if (e instanceof AuthError) void logout();
       // network/5xx: leave the queue intact for the next foreground/mutation
     } finally {
       flushingRef.current = false;
     }
-  }, [deviceId, logout]);
+  }, [deviceId, logout, syncPendingLang]);
 
-  // enqueueOp appends a server op and tries to flush. No-op for guests — they
-  // don't persist (their state is in-memory only).
+  // enqueueOp appends a server op (coalescing same-key setting/tz ops — see
+  // coalesceOp), persists the queue, and tries to flush. Returns a promise
+  // that resolves once the queue is DURABLY saved — callers that relaunch the
+  // app (the RTL language switch in setAppSetting's callers) await it so the
+  // restart can't outrun the disk write; the flush stays fire-and-forget.
+  // No-op for guests — they don't persist (their state is in-memory only).
   const enqueueOp = useCallback(
     (op: Op) => {
-      if (!tokenRef.current) return;
-      queueRef.current = [...queueRef.current, op];
-      void saveQueue(uidRef.current, queueRef.current);
+      if (!tokenRef.current) return Promise.resolve();
+      queueRef.current = coalesceOp(queueRef.current, op);
+      syncPendingLang(queueRef.current);
+      const saved = saveQueue(uidRef.current, queueRef.current);
       void flush();
+      return saved;
     },
-    [flush],
+    [flush, syncPendingLang],
   );
 
   // backfillLocalProgress uploads local-only progress ONCE per user (gated by
@@ -297,40 +347,66 @@ export function useQuranData() {
   // fullPull loads the complete live snapshot (fresh login / cursor reset),
   // seeds the cursor, backfills local-only progress once, and flushes queued
   // ops. On network failure it renders the cached snapshot (or defaults) so
-  // progress is never "missing" on an offline cold start.
+  // progress is never "missing" on an offline cold start. Guarded against
+  // concurrent invocations (StrictMode double-mount, rapid effect re-runs) —
+  // a second pull while one is in flight is skipped, not queued.
   const fullPull = useCallback(async () => {
-    if (!tokenRef.current) return;
+    if (!tokenRef.current || pullingRef.current) return;
+    pullingRef.current = true;
     try {
-      const st = await getState(deviceId);
-      cursorRef.current = st.cursor;
-      await saveCursor(uidRef.current, st.cursor);
-      const merged = mergeRemote(DEFAULT_USER_DATA, st.changes);
-      setUdState(merged);
-      void saveCache(uidRef.current, merged);
-      setLoaded(true);
-      // One-time: upload local-only prayer/reflection history + app prefs the
-      // account doesn't have yet (server wins conflicts). Must run here — the
-      // snapshot is the only way to know which keys the server already has.
-      await backfillLocalProgress(merged);
-      // Best-effort: tell the server our timezone so streak day boundaries are
-      // computed in the reader's local day, not UTC.
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz) enqueueOp({ kind: 'tz', tz });
-      void flush();
-    } catch (e) {
-      if (e instanceof AuthError) {
-        void logout();
-        return;
+      // The queue as it was BEFORE this pull's flush: if the pull below falls
+      // back to the offline cache, that cache can predate these ops (they were
+      // queued last session — or right before the RTL language relaunch), so
+      // they're folded back over it below.
+      const queuedAtStart = [...queueRef.current];
+      try {
+        // Push-then-pull: land the queued ops BEFORE reading the snapshot so
+        // the snapshot already reflects them. The RTL language switch queues
+        // its app.lang op and relaunches; pulling first would hand
+        // AccountLangApply the stale server value, reverting the user's
+        // just-made choice. flush never throws (it keeps the queue on
+        // failure), so a failed flush just falls through to the possibly-stale
+        // pull, where pendingLang holds the line until the op lands.
+        await flush();
+        const st = await getState(deviceId);
+        cursorRef.current = st.cursor;
+        await saveCursor(uidRef.current, st.cursor);
+        const merged = mergeRemote(DEFAULT_USER_DATA, st.changes);
+        setUdState(merged);
+        void saveCache(uidRef.current, merged);
+        setLoaded(true);
+        // One-time: upload local-only prayer/reflection history + app prefs
+        // the account doesn't have yet (server wins conflicts). Must run here —
+        // the snapshot is the only way to know which keys the server already
+        // has.
+        await backfillLocalProgress(merged);
+        // Best-effort: tell the server our timezone so streak day boundaries
+        // are computed in the reader's local day, not UTC.
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz) enqueueOp({ kind: 'tz', tz });
+        void flush();
+      } catch (e) {
+        if (e instanceof AuthError) {
+          void logout();
+          return;
+        }
+        // offline at login: render the last cached snapshot (defaults when
+        // none) so the reader is usable with the user's data, and reset the
+        // cursor so the next foreground delta pull (once online) reconstructs
+        // the full account state from seq 0 over the cached base (merges are
+        // idempotent).
+        cursorRef.current = 0;
+        await saveCursor(uidRef.current, 0);
+        const cached = await loadCache(uidRef.current);
+        // Fold the queued app prefs over the cache — it can predate them
+        // (e.g. it was last written before a language switch made offline),
+        // and the stale value would otherwise revert the user's choice.
+        const base = reapplyAppSettings(cached ?? { ...DEFAULT_USER_DATA }, queuedAtStart);
+        setUdState(base);
+        setLoaded(true);
       }
-      // offline at login: render the last cached snapshot (defaults when none)
-      // so the reader is usable with the user's data, and reset the cursor so
-      // the next foreground delta pull (once online) reconstructs the full
-      // account state from seq 0 over the cached base (merges are idempotent).
-      cursorRef.current = 0;
-      await saveCursor(uidRef.current, 0);
-      const cached = await loadCache(uidRef.current);
-      setUdState(cached ?? { ...DEFAULT_USER_DATA });
-      setLoaded(true);
+    } finally {
+      pullingRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId, enqueueOp, flush, logout]);
@@ -348,6 +424,7 @@ export function useQuranData() {
         await migrateLegacySyncKeys(uid);
         cursorRef.current = await loadCursor(uid);
         queueRef.current = await loadQueue(uid);
+        syncPendingLang(queueRef.current);
         if (!cancelled) void fullPull();
       } else {
         // Guest: no account to sync to, but persist UserData LOCALLY so a
@@ -357,6 +434,7 @@ export function useQuranData() {
         // cleared — other accounts' cursors/queues/caches stay untouched.
         cursorRef.current = 0;
         queueRef.current = [];
+        syncPendingLang([]);
         await clearCursor('guest');
         await clearQueue('guest');
         await clearLegacyGuestData();
@@ -851,17 +929,23 @@ export function useQuranData() {
   );
 
   // setAppSetting updates one app pref (appearance | lang | alarms) on
-  // UserData.appSettings and enqueues the setting op. The appearance pref keeps
-  // the legacy 'app.darkMode' server key (already whitelisted — the value is now
-  // the 'light'|'dark'|'auto' string where pre-appearance builds pushed a
-  // boolean). No-op for guests beyond the local state change (their
-  // device-local stores own the value).
+  // UserData.appSettings and enqueues the setting op. Resolves once the op is
+  // DURABLY queued (the flush stays fire-and-forget, and a failed queue write
+  // still resolves — the op lives on in the session queue): the RTL language
+  // switch awaits this so its app relaunch can't race the account push off
+  // disk. The appearance pref keeps the legacy 'app.darkMode' server key
+  // (already whitelisted — the value is now the 'light'|'dark'|'auto' string
+  // where pre-appearance builds pushed a boolean). No-op for guests beyond
+  // the local state change (their device-local stores own the value).
   const setAppSetting = useCallback(
     (key: 'appearance' | 'lang' | 'alarms', value: Appearance | AppLang | unknown) => {
       const prev = udRef.current;
       const next = { ...prev, appSettings: { ...prev.appSettings, [key]: value } };
       setUdState(next);
-      if (tokenRef.current) enqueueOp({ kind: 'setting', key: key === 'appearance' ? 'app.darkMode' : `app.${key}`, value });
+      if (!tokenRef.current) return Promise.resolve();
+      return enqueueOp({ kind: 'setting', key: key === 'appearance' ? 'app.darkMode' : `app.${key}`, value }).catch(() => {
+        /* queue write failed — the op still lives in the session queue */
+      });
     },
     [enqueueOp],
   );
@@ -869,6 +953,7 @@ export function useQuranData() {
   return {
     ud,
     loaded,
+    pendingLang,
     reload,
     setUD,
     setDisplayMode,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { askRulingsChat, type RulingsChatMessage } from '@/api';
 import { useI18n } from '@/context/I18nContext';
 import { useAuth } from '@/context/AuthContext';
-import { useQuranData } from '@/hooks/useQuranData';
+import { useQuranData } from '@/context/QuranDataContext';
 import { loadRulingsChat, saveRulingsChatLocal, type RulingsChatEntry } from './history';
 
 const MAX_HISTORY = 10;

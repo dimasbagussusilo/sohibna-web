@@ -3,7 +3,7 @@
 // feed page is a no-op, and soft-deletes remove their targets.
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { mergeRemote, type Op } from '../quranSync'
+import { mergeRemote, reapplyAppSettings, applyAppSettingOp, coalesceOp, type Op } from '../quranSync'
 import { DEFAULT_USER_DATA, type UserData } from '../quran'
 import type { Change } from '@/api'
 
@@ -290,4 +290,96 @@ test('op queue round-trips the 0011 kinds; legacy lastRead op keeps ts optional'
   assert.equal((revived[0] as { ts?: number }).ts, 2000)
   assert.equal(revived[1].kind, 'lastReadSlot')
   assert.equal((revived[3] as { ts?: number }).ts, undefined)
+})
+
+// ── Op-queue reconciliation for app prefs (RTL language relaunch) ───────────
+//
+// The RTL language switch relaunches the app right after queueing its app.lang
+// op, so the snapshot (or offline cache) ud is rebuilt from can predate the
+// user's choice. reapplyAppSettings folds the queued/sent ops back over the
+// rebuilt snapshot; applyAppSettingOp must map keys exactly like mergeRemote.
+
+test('applyAppSettingOp maps the three app.* keys like mergeRemote does', () => {
+  const base = { appearance: null, lang: null, alarms: null } as const
+  assert.equal(applyAppSettingOp(base, 'app.darkMode', 'auto').appearance, 'auto')
+  assert.equal(applyAppSettingOp(base, 'app.darkMode', true).appearance, 'dark')
+  assert.equal(applyAppSettingOp(base, 'app.lang', 'ar').lang, 'ar')
+  assert.deepEqual(applyAppSettingOp(base, 'app.alarms', { leadMinutes: 10 }).alarms, { leadMinutes: 10 })
+  // null = "no account value"
+  assert.equal(applyAppSettingOp({ ...base, lang: 'en' }, 'app.lang', null).lang, null)
+  // Unknown keys leave the snapshot untouched (value-wise).
+  assert.deepEqual(applyAppSettingOp(base, 'app.future', 'x'), base)
+})
+
+test('reapplyAppSettings folds queued app prefs over a stale snapshot (offline cache path)', () => {
+  const stale = fresh() // cache written before the switch: lang id
+  const out = reapplyAppSettings(stale, [
+    { kind: 'setting', key: 'app.lang', value: 'ar' },
+    { kind: 'setting', key: 'fontSize', value: 4 }, // reader setting: not folded
+  ])
+  assert.equal(out.appSettings.lang, 'ar')
+  assert.equal(out.fontSize, stale.fontSize)
+})
+
+test('reapplyAppSettings applies the LAST op per key (queue order wins)', () => {
+  const out = reapplyAppSettings(fresh(), [
+    { kind: 'setting', key: 'app.lang', value: 'en' },
+    { kind: 'setting', key: 'app.lang', value: 'ar' },
+  ])
+  assert.equal(out.appSettings.lang, 'ar')
+})
+
+test('reapplyAppSettings returns the same object when no app ops fold', () => {
+  const ud = fresh()
+  const out = reapplyAppSettings(ud, [
+    { kind: 'setting', key: 'fontSize', value: 4 },
+    { kind: 'favorite', verseKey: '1:1', deleted: false },
+  ])
+  assert.equal(out, ud)
+})
+
+test('reapplyAppSettings never mutates the snapshot it folds over', () => {
+  const ud = fresh()
+  const before = JSON.stringify(ud.appSettings)
+  reapplyAppSettings(ud, [{ kind: 'setting', key: 'app.lang', value: 'ar' }])
+  assert.equal(JSON.stringify(ud.appSettings), before)
+})
+
+// ── Queue coalescing (write amplification fix) ──────────────────────────────
+//
+// Rapid UI edits (font slider drags, toggle bursts) used to enqueue one
+// setting op PER TICK — a single drag stuffed the FIFO queue with dozens of
+// PATCHes, stalling the mark/progress ops queued behind them. coalesceOp keeps
+// ONE pending op per setting key (server rows are per-key last-write-wins, so
+// only the newest value needs to arrive).
+
+test('coalesceOp replaces a pending same-key setting op (slider drag = 1 op)', () => {
+  let q: Op[] = []
+  for (const size of [3, 3.2, 3.5, 3.8, 4]) q = coalesceOp(q, { kind: 'setting', key: 'fontSize', value: size })
+  assert.equal(q.length, 1)
+  assert.deepEqual(q[0], { kind: 'setting', key: 'fontSize', value: 4 })
+})
+
+test('coalesceOp keeps ops for different setting keys', () => {
+  let q: Op[] = coalesceOp([], { kind: 'setting', key: 'fontSize', value: 4 })
+  q = coalesceOp(q, { kind: 'setting', key: 'app.lang', value: 'ar' })
+  q = coalesceOp(q, { kind: 'setting', key: 'app.darkMode', value: 'dark' })
+  assert.equal(q.length, 3)
+  // A later fontSize edit only replaces the fontSize op.
+  q = coalesceOp(q, { kind: 'setting', key: 'fontSize', value: 5 })
+  assert.equal(q.length, 3)
+  assert.deepEqual(q.find((o) => o.kind === 'setting' && o.key === 'fontSize'), { kind: 'setting', key: 'fontSize', value: 5 })
+})
+
+test('coalesceOp never touches non-setting ops', () => {
+  let q: Op[] = [{ kind: 'lastReadSlot', slot: 'an-nahl', verseKey: '16:50', ts: 1 }]
+  q = coalesceOp(q, { kind: 'setting', key: 'fontSize', value: 4 })
+  q = coalesceOp(q, { kind: 'favorite', verseKey: '1:1', deleted: false })
+  assert.equal(q.length, 3)
+})
+
+test('coalesceOp replaces a pending tz op (one tz per queue)', () => {
+  let q: Op[] = coalesceOp([], { kind: 'tz', tz: 'Asia/Jakarta' })
+  q = coalesceOp(q, { kind: 'tz', tz: 'Asia/Makassar' })
+  assert.deepEqual(q, [{ kind: 'tz', tz: 'Asia/Makassar' }])
 })

@@ -3,7 +3,7 @@ import { LogOut, Globe, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
-import { useQuranData } from '@/hooks/useQuranData'
+import { useQuranData } from '@/context/QuranDataContext'
 import { langName } from '@/i18n/langName'
 import type { Lang } from '@/i18n/types'
 
