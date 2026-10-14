@@ -60,6 +60,11 @@ export function Login() {
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-[#8FBC8F] dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
           />
           {error ? <p className="text-center text-xs text-red-500">{error}</p> : null}
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-xs font-bold text-[#8FBC8F]">
+              {t('auth.login.forgot')}
+            </Link>
+          </div>
           <button
             type="submit"
             disabled={busy}
@@ -113,7 +118,9 @@ export function Register() {
     setError(null)
     try {
       await register(name.trim(), email.trim(), password)
-      navigate('/home', { replace: true })
+      // The session is already live; land on the OTP entry nudge (the Me
+      // banner covers anyone who skips it).
+      navigate(`/verify-code?email=${encodeURIComponent(email.trim())}`, { replace: true })
     } catch {
       setError(t('auth.register.couldNotRegister'))
     } finally {

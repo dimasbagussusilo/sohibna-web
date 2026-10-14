@@ -34,6 +34,7 @@ type AuthState = {
   register: (name: string, email: string, password: string) => Promise<void>
   loginGoogle: () => Promise<void>
   logout: () => Promise<void>
+  updateUser: (u: User) => void
 }
 
 const AuthContext = createContext<AuthState>({
@@ -44,6 +45,7 @@ const AuthContext = createContext<AuthState>({
   register: async () => {},
   loginGoogle: async () => {},
   logout: async () => {},
+  updateUser: () => {},
 })
 
 // AuthProvider holds the PASETO session (access + refresh token, user) in
@@ -139,6 +141,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void signOutGoogleWeb() // best-effort: clear Google sign-in state
   }, [])
 
+  // updateUser swaps the cached profile in-place (e.g. after email
+  // verification from a /verify-email tab while the Me page is mounted).
+  const updateUser = useCallback((u: User) => {
+    userRef.current = u
+    setUser(u)
+    localStorage.setItem(USER_KEY, JSON.stringify(u))
+  }, [])
+
   // Hydrate once on mount. Seed the singleton from storage, then ask it for a
   // valid access token — if the stored one is already stale, it transparently
   // refreshes. If the refresh token is dead (long inactivity), the session is
@@ -186,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, loginGoogle, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, loginGoogle, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

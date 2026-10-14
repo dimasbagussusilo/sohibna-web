@@ -111,6 +111,8 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  // Absent on pre-0012 API builds → treat undefined as "no banner".
+  email_verified?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -145,6 +147,27 @@ export const login = (email: string, password: string) =>
 // (backend find-or-creates the user).
 export const loginWithGoogle = (idToken: string) =>
   postJSON<AuthResponse>('/auth/google', { id_token: idToken });
+
+// ── EMAIL VERIFICATION + PASSWORD RESET (OTP) ───────────────────────────────
+// verify-email is authed (the post-register code page runs inside the new
+// session); forgot/reset are public — the emailed 6-digit code is the
+// credential. resend-verification lives next to getMe below.
+
+// verifyEmail checks the 6-digit code → the freshly verified user.
+export const verifyEmail = (code: string) =>
+  authedFetch<{ ok: boolean; user: User }>('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+
+// forgotPassword always succeeds (204) — unknown/unverified emails are
+// indistinguishable by design, so the page always shows "check your inbox".
+export const forgotPassword = (email: string) =>
+  postJSON<{ ok: boolean }>('/auth/forgot-password', { email });
+
+// resetPassword checks the emailed code + sets the new password (min 8).
+export const resetPassword = (email: string, code: string, password: string) =>
+  postJSON<{ ok: boolean }>('/auth/reset-password', { email, code, password });
 
 // revokeSession invalidates the refresh token server-side (POST /auth/logout).
 // Best-effort: callers ignore network errors so local logout always proceeds.
@@ -189,6 +212,13 @@ export async function authedFetch<T>(path: string, init?: RequestInit): Promise<
 }
 
 export const getMe = () => authedFetch<User>('/auth/me', { method: 'GET' });
+
+// resendVerification re-mails the verification link (authed); 429 = cooldown.
+export const resendVerification = () =>
+  authedFetch<{ ok: boolean }>('/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
 
 // ── QURAN USER DATA (multi-device sync) ─────────────────────────────────────
 //

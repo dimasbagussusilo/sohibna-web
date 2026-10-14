@@ -24,6 +24,7 @@ import { QuranGoals } from '@/routes/QuranGoals'
 import { Hafalan } from '@/routes/Hafalan'
 import { SurahReader } from '@/routes/SurahReader'
 import { Login, Register } from '@/routes/Login'
+import { VerifyCode, ForgotPassword, ResetPassword } from '@/routes/AuthRecovery'
 import { Me } from '@/routes/Me'
 
 // Applies the account's synced UI language once the store has it (0008). Inner
@@ -63,6 +64,12 @@ export function App() {
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              {/* OTP pages: /verify-code runs inside the fresh register
+                  session (authed API); forgot/reset are public — the emailed
+                  6-digit code is the credential. */}
+              <Route path="/verify-code" element={<VerifyCode />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 element={
                   <AppShell>

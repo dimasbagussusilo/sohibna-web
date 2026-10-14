@@ -6,6 +6,7 @@ import { useApp } from '@/context/AppContext'
 import { useQuranData } from '@/context/QuranDataContext'
 import { langName } from '@/i18n/langName'
 import type { Lang } from '@/i18n/types'
+import { VerifyEmailBanner } from '@/components/VerifyEmailBanner'
 
 // Me tab (web, P0): profile, language, dark mode, logout. Alarms/qibla/etc.
 // entry points land with their P2 screens.
@@ -43,6 +44,10 @@ export function Me() {
           {t('quranHome.guestLogin')}
         </Link>
       ) : null}
+
+      {/* Verification nudge — unverified password accounts only (Google
+          accounts are created verified; undefined = pre-0012 API). */}
+      {user && user.email_verified === false ? <VerifyEmailBanner /> : null}
 
       {/* Language */}
       <Section title={t('settings.languageSection')}>
