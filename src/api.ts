@@ -174,6 +174,19 @@ export const resetPassword = (email: string, code: string, password: string) =>
 export const revokeSession = (refreshToken: string) =>
   postJSON<{ ok: boolean }>('/auth/logout', { refresh_token: refreshToken }).catch(() => undefined);
 
+// ApiError = the server RESPONDED with a non-ok HTTP status (as opposed to a
+// network failure, which rejects fetch with a TypeError). The sync queue uses
+// the distinction to deadletter ops the server keeps rejecting while still
+// retrying offline/network failures forever.
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 // authedRequest is the single authenticated transport: it pulls a valid access
 // token from the session singleton (refreshing proactively if near expiry) and,
 // on a 401, refreshes once and retries. A 401 after refresh throws AuthError so
@@ -201,7 +214,7 @@ async function authedRequest<T>(
   const data = await res.json().catch(() => ({}));
   if (res.status === 401) throw new AuthError();
   if (!res.ok) {
-    throw new Error((data as { error?: string })?.error || `Request failed: ${res.status}`);
+    throw new ApiError(res.status, (data as { error?: string })?.error || `Request failed: ${res.status}`);
   }
   return data as T;
 }
@@ -413,8 +426,11 @@ export const patchBookmark = (deviceId: string, verseKey: string | null) =>
     body: JSON.stringify({ verseKey }),
   });
 
+// applied=false → the server's latest-activity-wins guard REJECTED the write
+// (a newer row exists) — the caller should re-pull instead of trusting its
+// optimistic local state. Older servers return {ok} without `applied`.
 export const patchLastRead = (deviceId: string, surah: number, verseKey: string, ts: number) =>
-  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/last-read', {
+  syncFetch<{ ok: boolean; applied?: boolean }>(deviceId, '/quran/me/last-read', {
     method: 'PATCH',
     body: JSON.stringify({ surah, verseKey, ts }),
   });
@@ -422,7 +438,7 @@ export const patchLastRead = (deviceId: string, surah: number, verseKey: string,
 // Set (verseKey) or clear (null) one named reading-mark slot. ts = client edit
 // time (epoch ms) — the server ignores the write when an older-than-stored ts.
 export const patchLastReadSlot = (deviceId: string, slot: string, verseKey: string | null, ts: number) =>
-  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/last-read-slots', {
+  syncFetch<{ ok: boolean; applied?: boolean }>(deviceId, '/quran/me/last-read-slots', {
     method: 'PATCH',
     body: JSON.stringify({ slot, verseKey, ts }),
   });

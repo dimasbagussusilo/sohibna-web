@@ -14,7 +14,9 @@
 // merge below compares timestamps, so the latest ACTIVITY wins even when a
 // stale offline op flushes late.
 import AsyncStorage from '@/lib/storage';
+import { AuthError } from '@/lib/authSession';
 import {
+  ApiError,
   patchFavorite,
   patchBookmark,
   patchLastRead,
@@ -332,6 +334,25 @@ function setSetting(ud: UserData, key: string, value: unknown) {
 
 // ── Op queue: one queued PATCH per local mutation ───────────────────────────
 
+// lwwStamp is the edit timestamp for reading-progress writes (0011): the max of
+// the local clock and every progress ts we know about, +1. A device whose clock
+// runs behind (offline tablets drift badly; rows written by other devices or
+// server-stamped legacy writes carry later ts) would otherwise emit "fresh"
+// marks that the server's latest-activity-wins guard silently rejects — the
+// mark shows optimistically, then reverts on the next launch. Bumping past the
+// newest known ts makes every local write win regardless of clock skew.
+export function lwwStamp(ud: UserData): number {
+  let max = Date.now();
+  for (const e of Object.values(ud.lastRead)) {
+    if (e.timestamp > max) max = e.timestamp;
+  }
+  for (const m of Object.values(ud.lastReadSlots)) {
+    const t = markTs(m);
+    if (t > max) max = t;
+  }
+  return max + 1;
+}
+
 export type Op =
   | { kind: 'favorite'; verseKey: string; deleted: boolean }
   | { kind: 'bookmark'; verseKey: string | null }
@@ -411,8 +432,10 @@ export function coalesceOp(queue: Op[], op: Op): Op[] {
 }
 
 // applyOp sends one op as its scoped PATCH. Throws on network/HTTP failure (the
-// caller leaves the op queued for the next flush) or AuthError (caller logs out).
-async function applyOp(deviceId: string, op: Op): Promise<void> {
+// caller leaves the op queued for the next flush) or AuthError (caller logs
+// out). Returns stale=true when a reading-progress write was REJECTED by the
+// server's latest-activity-wins guard (a newer row exists — pull to converge).
+async function applyOp(deviceId: string, op: Op): Promise<{ stale: boolean }> {
   switch (op.kind) {
     case 'favorite':
       await patchFavorite(deviceId, op.verseKey, op.deleted);
@@ -421,14 +444,11 @@ async function applyOp(deviceId: string, op: Op): Promise<void> {
       await patchBookmark(deviceId, op.verseKey);
       break;
     case 'lastRead':
-      await patchLastRead(deviceId, op.surah, op.verseKey, op.ts ?? Date.now());
-      break;
+      return markStale(await patchLastRead(deviceId, op.surah, op.verseKey, op.ts ?? Date.now()));
     case 'lastReadSlot':
-      await patchLastReadSlot(deviceId, op.slot, op.verseKey, op.ts);
-      break;
+      return markStale(await patchLastReadSlot(deviceId, op.slot, op.verseKey, op.ts));
     case 'lastReadSlotDelete':
-      await patchLastReadSlot(deviceId, op.slot, null, op.ts);
-      break;
+      return markStale(await patchLastReadSlot(deviceId, op.slot, null, op.ts));
     case 'labels':
       await patchLabels(deviceId, op.verseKey, op.add, op.remove);
       break;
@@ -472,18 +492,75 @@ async function applyOp(deviceId: string, op: Op): Promise<void> {
       await patchTZ(deviceId, op.tz);
       break;
   }
+  return NOT_STALE;
 }
 
-// flushQueue sends queued ops FIFO, stopping at the first failure. Returns the
-// remaining (un-sent) ops — empty on full success. The caller persists whatever
-// is returned so offline edits survive a reload.
-export async function flushQueue(deviceId: string, queue: Op[]): Promise<Op[]> {
+const NOT_STALE = { stale: false };
+// markStale folds a PATCH response into applyOp's stale signal (a rejected
+// latest-activity-wins write — see applyOp).
+async function markStale(res: { ok: boolean; applied?: boolean }): Promise<{ stale: boolean }> {
+  return res && res.applied === false ? { stale: true } : NOT_STALE;
+}
+
+// Deadletter bookkeeping: consecutive server rejections per op (by object
+// identity — ops are never cloned between enqueue and flush). Network failures
+// don't count (offline flapping must never drop an op); only the server saying
+// 4xx/5xx repeatedly does.
+const opAttempts = new WeakMap<Op, number>();
+export const MAX_OP_ATTEMPTS = 5;
+
+// flushQueue sends queued ops FIFO, stopping at the first failure. It does NOT
+// throw for op failures (only AuthError propagates, for logout): the caller
+// must persist `remaining` even after a failure, because deadlettered ops (see
+// below) are already shifted out of it — throwing would resurrect them in the
+// caller's queue and thrash forever. Returns:
+//   remaining   — the un-sent ops (empty on full success), for the caller to
+//                 persist so offline edits survive a reload
+//   staleWrites — set when any reading-progress write was rejected by the
+//                 server's ts-guard (pull so the UI converges to server truth
+//                 instead of trusting its optimistic state)
+//   error       — the failure that stopped the flush (null when it drained);
+//                 network failures (fetch rejects with TypeError) and unknown
+//                 error shapes stay retriable forever
+//
+// An op the server keeps REJECTING (ApiError) is deadlettered after
+// MAX_OP_ATTEMPTS consecutive attempts — keeping it queued forever would wedge
+// every later op behind it (the flush stops at the first failure), which is
+// how a single bad settings value once froze all reading-progress sync.
+export type FlushResult = { remaining: Op[]; staleWrites: boolean; error: unknown | null };
+
+export async function flushQueue(deviceId: string, queue: Op[]): Promise<FlushResult> {
   const remaining = [...queue];
+  let staleWrites = false;
+  let error: unknown | null = null;
   while (remaining.length) {
-    await applyOp(deviceId, remaining[0]); // throws to abort on failure
-    remaining.shift();
+    const head = remaining[0];
+    try {
+      const r = await applyOp(deviceId, head);
+      if (r.stale) staleWrites = true;
+      opAttempts.delete(head);
+      remaining.shift();
+    } catch (e) {
+      if (e instanceof AuthError) throw e; // session dead — logout, queue irrelevant
+      if (!(e instanceof ApiError)) {
+        error = e; // network/unknown — stop, keep everything queued
+        break;
+      }
+      const n = (opAttempts.get(head) ?? 0) + 1;
+      opAttempts.set(head, n);
+      if (n < MAX_OP_ATTEMPTS) {
+        error = e; // server rejected; retried on the next flush
+        break;
+      }
+      console.warn(
+        `[sync] deadlettering ${head.kind} op after ${n} rejected attempts`,
+        (head as { key?: string; slot?: string }).key ?? (head as { slot?: string }).slot ?? '',
+      );
+      opAttempts.delete(head);
+      remaining.shift(); // drop it and keep the queue flowing
+    }
   }
-  return remaining;
+  return { remaining, staleWrites, error };
 }
 
 // ── Cursor + queue + snapshot-cache persistence (per-user) ─────────────────
@@ -517,12 +594,29 @@ export async function clearCursor(userId: string): Promise<void> {
   await AsyncStorage.removeItem(cursorKey(userId));
 }
 
+// sanitizeQueue drops queued ops that predate the 0011 latest-activity-wins
+// model and can only do harm if flushed by an upgraded client:
+//   • {lastRead} ops with NO ts — applyOp would stamp Date.now() at flush time,
+//     letting a pre-upgrade offline edit (possibly stale) beat a newer server
+//     row. Dropping one auto-progress write is harmless — the next genuine read
+//     re-records it.
+//   • {setting, key:'lastReadSlots'} — the legacy whole-map push. New clients
+//     ignore it on merge; sending it only risks clobbering OLD builds' state.
+// Exported for tests.
+export function sanitizeQueue(ops: Op[]): Op[] {
+  return ops.filter(
+    (op) =>
+      !(op.kind === 'lastRead' && (op.ts == null || op.ts <= 0)) &&
+      !(op.kind === 'setting' && op.key === 'lastReadSlots'),
+  );
+}
+
 export async function loadQueue(userId: string): Promise<Op[]> {
   const raw = await AsyncStorage.getItem(queueKey(userId));
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Op[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? sanitizeQueue(parsed) : [];
   } catch {
     return [];
   }

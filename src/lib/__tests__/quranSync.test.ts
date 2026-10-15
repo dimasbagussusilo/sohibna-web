@@ -3,7 +3,7 @@
 // feed page is a no-op, and soft-deletes remove their targets.
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { mergeRemote, reapplyAppSettings, applyAppSettingOp, coalesceOp, type Op } from '../quranSync'
+import { mergeRemote, reapplyAppSettings, applyAppSettingOp, coalesceOp, sanitizeQueue, lwwStamp, flushQueue, MAX_OP_ATTEMPTS, type Op } from '../quranSync'
 import { DEFAULT_USER_DATA, type UserData } from '../quran'
 import type { Change } from '@/api'
 
@@ -282,14 +282,31 @@ test('op queue round-trips the 0011 kinds; legacy lastRead op keeps ts optional'
     { kind: 'lastRead', surah: 16, verseKey: '16:50', ts: 2000 },
     { kind: 'lastReadSlot', slot: 'an-nahl', verseKey: '16:50', ts: 2000 },
     { kind: 'lastReadSlotDelete', slot: 'an-nahl', ts: 3000 },
-    // Pre-0011 persisted queue entry (no ts) must still deserialize.
-    { kind: 'lastRead', surah: 16, verseKey: '16:9' },
+    // Pre-0011 persisted queue entry (no ts) must still deserialize...
   ]
   const revived = JSON.parse(JSON.stringify(ops)) as Op[]
   assert.equal(revived[0].kind, 'lastRead')
   assert.equal((revived[0] as { ts?: number }).ts, 2000)
   assert.equal(revived[1].kind, 'lastReadSlot')
-  assert.equal((revived[3] as { ts?: number }).ts, undefined)
+})
+
+// A pre-0011 queued op carries no edit timestamp — flushing it would stamp
+// Date.now() server-side and let a stale offline edit beat a newer row (the
+// exact regression this feature fixes). loadQueue prunes those via sanitizeQueue.
+test('sanitizeQueue drops ts-less lastRead ops + legacy lastReadSlots setting ops', () => {
+  const ops: Op[] = [
+    { kind: 'lastRead', surah: 16, verseKey: '16:9' }, // legacy, no ts → DROP
+    { kind: 'lastRead', surah: 16, verseKey: '16:9', ts: 0 }, // ts 0 → DROP
+    { kind: 'setting', key: 'lastReadSlots', value: {} }, // legacy whole-map → DROP
+    { kind: 'lastRead', surah: 16, verseKey: '16:50', ts: 2000 }, // keep
+    { kind: 'lastReadSlot', slot: 'an-nahl', verseKey: '16:50', ts: 2000 }, // keep
+    { kind: 'setting', key: 'fontSize', value: 3 }, // keep (unrelated setting)
+    { kind: 'favorite', verseKey: '1:1', deleted: false }, // keep
+  ]
+  const kept = sanitizeQueue(ops)
+  assert.equal(kept.length, 4)
+  assert.ok(kept.every((op) => !(op.kind === 'lastRead' && (op.ts == null || op.ts <= 0))))
+  assert.ok(kept.every((op) => !(op.kind === 'setting' && op.key === 'lastReadSlots')))
 })
 
 // ── Op-queue reconciliation for app prefs (RTL language relaunch) ───────────
@@ -382,4 +399,82 @@ test('coalesceOp replaces a pending tz op (one tz per queue)', () => {
   let q: Op[] = coalesceOp([], { kind: 'tz', tz: 'Asia/Jakarta' })
   q = coalesceOp(q, { kind: 'tz', tz: 'Asia/Makassar' })
   assert.deepEqual(q, [{ kind: 'tz', tz: 'Asia/Makassar' }])
+})
+
+// ── Queue resilience: deadletter + LWW stamping ─────────────────────────────
+
+test('lwwStamp beats a future server ts (clock-skew hardening)', () => {
+  const ud = fresh()
+  // A row pulled from the server carries a later ts than our clock (another
+  // device's correct clock / a server-stamped legacy write; our clock is behind).
+  const future = Date.now() + 86_400_000
+  ud.lastRead[16] = { verseKey: '16:50', timestamp: future }
+  ud.lastReadSlots['an-nahl'] = { verseKey: '16:50', ts: future + 5 }
+  const stamp = lwwStamp(ud)
+  assert.ok(stamp > future + 5, `stamp ${stamp} must beat the newest known ts ${future + 5}`)
+  // With no skew it is just ~now.
+  assert.ok(lwwStamp(fresh()) >= Date.now())
+})
+
+// flushQueue deadletters an op the server keeps rejecting (ApiError) after
+// MAX_OP_ATTEMPTS attempts, instead of wedging every later op behind it; a
+// network failure (fetch rejects) never counts toward deadlettering.
+test('flushQueue deadletters permanently-rejected ops, keeps queue flowing', async () => {
+  const { setSession } = await import('@/lib/authSession')
+  setSession({ accessToken: 't', refreshToken: 'r', expiresAt: Date.now() + 3_600_000 })
+  const realFetch = globalThis.fetch
+  let rejections = 0
+  globalThis.fetch = (async () => {
+    rejections++
+    return new Response(JSON.stringify({ error: 'boom' }), { status: 500 })
+  }) as typeof fetch
+  try {
+    const queue: Op[] = [
+      { kind: 'setting', key: 'fontSize', value: 3 }, // the poison op
+      { kind: 'lastReadSlot', slot: 's', verseKey: '17:1', ts: 1 },
+    ]
+    // Without deadlettering these rejections wedge the queue forever (every
+    // flush stops at the poison head). With it, each op gets at most
+    // MAX_OP_ATTEMPTS tries and the queue drains. Feed `remaining` back each
+    // round exactly like useQuranData's flush() persists it — a deadlettered op
+    // must never resurrect.
+    let q = queue
+    let r = await flushQueue('dev', q)
+    let flushes = 1
+    while (r.remaining.length && flushes < 50) {
+      assert.ok(r.error, 'a non-draining flush must report its failure')
+      q = r.remaining
+      r = await flushQueue('dev', q)
+      flushes++
+    }
+    assert.deepEqual(r.remaining, [], 'queue never drained — deadlettering not working')
+    assert.equal(r.error, null)
+    assert.equal(r.staleWrites, false)
+    // Both ops got exactly MAX_OP_ATTEMPTS server rejections (5 each) — no
+    // resurrection thrash (which would show up as 3× the fetches).
+    assert.equal(rejections, MAX_OP_ATTEMPTS * 2)
+  } finally {
+    globalThis.fetch = realFetch
+    setSession(null)
+  }
+})
+
+// A rejected latest-activity-wins write (applied:false) surfaces as
+// staleWrites so the caller can pull to converge.
+test('flushQueue reports staleWrites when the ts-guard rejects a mark', async () => {
+  const { setSession } = await import('@/lib/authSession')
+  setSession({ accessToken: 't', refreshToken: 'r', expiresAt: Date.now() + 3_600_000 })
+  const realFetch = globalThis.fetch
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ ok: true, applied: false }), { status: 200 })) as typeof fetch
+  try {
+    const r = await flushQueue('dev', [
+      { kind: 'lastReadSlot', slot: 's', verseKey: '17:1', ts: 1 },
+    ])
+    assert.deepEqual(r.remaining, [])
+    assert.equal(r.staleWrites, true)
+  } finally {
+    globalThis.fetch = realFetch
+    setSession(null)
+  }
 })

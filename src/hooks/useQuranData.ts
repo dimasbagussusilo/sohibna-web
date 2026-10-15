@@ -30,6 +30,7 @@ import {
   reapplyAppSettings,
   coalesceOp,
   type Op,
+  lwwStamp,
 } from '@/lib/quranSync';
 import { AuthError, getChanges, getState } from '@/api';
 import { getDeviceId } from '@/lib/deviceId';
@@ -228,6 +229,10 @@ export function useQuranDataSync() {
   const flushingRef = useRef(false);
   // Guards against concurrent fullPulls (see fullPull below).
   const pullingRef = useRef(false);
+  // Late-bound handle to deltaPull (defined below flush): a flush that learns
+  // its write lost the server's latest-activity-wins guard triggers an
+  // immediate pull so the UI converges instead of lying optimistically.
+  const deltaPullRef = useRef<() => Promise<void>>(async () => {});
 
   // Keep the latest token + UserData in refs for use inside async callbacks
   // (flush/pull). Updated in effects (not during render) per the react-hooks
@@ -254,10 +259,14 @@ export function useQuranDataSync() {
   }, []);
 
   // flush sends queued ops FIFO, stopping at the first failure (leaving the rest
-  // queued). AuthError → logout.
+  // queued). AuthError → logout. When the server reports a reading-progress
+  // write was rejected by its latest-activity-wins guard (a newer row exists),
+  // pull immediately so the UI converges to server truth instead of showing an
+  // optimistic mark that will silently vanish on the next launch.
   const flush = useCallback(async () => {
     if (!tokenRef.current || flushingRef.current || queueRef.current.length === 0) return;
     flushingRef.current = true;
+    let staleWrites = false;
     try {
       // The exact run flushQueue consumes. Ops enqueued DURING the await
       // (enqueueOp doesn't block on flushingRef) exist only in queueRef — and
@@ -267,7 +276,9 @@ export function useQuranDataSync() {
       // saw. Reference equality is safe — Op objects are never cloned between
       // enqueue and flush.
       const inflight = queueRef.current;
-      const remaining = await flushQueue(deviceId, inflight);
+      const result = await flushQueue(deviceId, inflight);
+      staleWrites = result.staleWrites;
+      const { remaining } = result;
       const survivors = queueRef.current.filter(
         (q) => !inflight.includes(q) && !remaining.includes(q),
       );
@@ -287,6 +298,7 @@ export function useQuranDataSync() {
       // network/5xx: leave the queue intact for the next foreground/mutation
     } finally {
       flushingRef.current = false;
+      if (staleWrites) void deltaPullRef.current();
     }
   }, [deviceId, logout, syncPendingLang]);
 
@@ -356,6 +368,10 @@ export function useQuranDataSync() {
       // else: silent — the next foreground/mutation retries
     }
   }, [deviceId, logout]);
+  // Keep the late-bound flush→pull handle current (see deltaPullRef above).
+  useEffect(() => {
+    deltaPullRef.current = deltaPull;
+  }, [deltaPull]);
 
   // fullPull loads the complete live snapshot (fresh login / cursor reset),
   // seeds the cursor, backfills local-only progress once, and flushes queued
@@ -660,7 +676,7 @@ export function useQuranDataSync() {
       // Throttle: only record when this verse differs from the last stored one.
       const existing = prev.lastRead[surah];
       if (existing && existing.verseKey === vk) return;
-      const now = Date.now();
+      const now = lwwStamp(prev);
       const next = {
         ...prev,
         lastRead: { ...prev.lastRead, [surah]: { verseKey: vk, timestamp: now } },
@@ -687,7 +703,7 @@ export function useQuranDataSync() {
       // so this mark becomes the most-recently-created ("Continue Reading").
       if (markVerseKey(prev.lastReadSlots[clean]) === vk) return null; // unchanged
       const range = forwardRangeForSlot(prev.lastReadSlots, clean, vk);
-      const now = Date.now();
+      const now = lwwStamp(prev);
       const next = {
         ...prev,
         lastReadSlots: { ...prev.lastReadSlots, [clean]: { verseKey: vk, ts: now } },
@@ -705,7 +721,7 @@ export function useQuranDataSync() {
       const next = { ...prev, lastReadSlots: { ...prev.lastReadSlots } };
       delete next.lastReadSlots[name];
       setUdState(next);
-      persist(next, { kind: 'lastReadSlotDelete', slot: name, ts: Date.now() });
+      persist(next, { kind: 'lastReadSlotDelete', slot: name, ts: lwwStamp(prev) });
     },
     [persist],
   );
