@@ -84,6 +84,7 @@ export function applyAppSettingOp(app: AppSettings, key: string, value: unknown)
   if (key === 'app.darkMode') next.appearance = value == null ? null : parseAppearance(value);
   else if (key === 'app.lang') next.lang = value == null ? null : (value as AppLang);
   else if (key === 'app.alarms') next.alarms = value == null ? null : value;
+  else if (key === 'app.reminders') next.reminders = value == null ? null : value;
   return next;
 }
 
@@ -184,7 +185,12 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         // App-level prefs ('app.*') live in next.appSettings, not the UserData
         // scalars — intercept before setSetting (which drops unknown keys).
         // deleted/null → null = "no account value" (device-local stands).
-        if (c.key === 'app.darkMode' || c.key === 'app.lang' || c.key === 'app.alarms') {
+        if (
+          c.key === 'app.darkMode' ||
+          c.key === 'app.lang' ||
+          c.key === 'app.alarms' ||
+          c.key === 'app.reminders'
+        ) {
           next.appSettings = applyAppSettingOp(
             next.appSettings,
             c.key,

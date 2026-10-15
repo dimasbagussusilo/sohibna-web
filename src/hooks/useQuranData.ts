@@ -178,6 +178,19 @@ async function collectBackfillOps(snapshot: UserData): Promise<Op[]> {
       }
     }
   }
+  if (snapshot.appSettings.reminders === null) {
+    // Web never writes this storage key, so this no-ops — kept verbatim to
+    // mirror the RN hook (the sync files are copied between platforms).
+    const raw = await AsyncStorage.getItem('sohibna:reminder_settings');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        ops.push({ kind: 'setting', key: 'app.reminders', value: parsed });
+      } catch {
+        /* skip malformed settings */
+      }
+    }
+  }
   return ops;
 }
 
@@ -928,7 +941,8 @@ export function useQuranDataSync() {
     [enqueueOp],
   );
 
-  // setAppSetting updates one app pref (appearance | lang | alarms) on
+  // setAppSetting updates one app pref (appearance | lang | alarms |
+  // reminders) on
   // UserData.appSettings and enqueues the setting op. Resolves once the op is
   // DURABLY queued (the flush stays fire-and-forget, and a failed queue write
   // still resolves — the op lives on in the session queue): the RTL language
@@ -938,7 +952,7 @@ export function useQuranDataSync() {
   // where pre-appearance builds pushed a boolean). No-op for guests beyond
   // the local state change (their device-local stores own the value).
   const setAppSetting = useCallback(
-    (key: 'appearance' | 'lang' | 'alarms', value: Appearance | AppLang | unknown) => {
+    (key: 'appearance' | 'lang' | 'alarms' | 'reminders', value: Appearance | AppLang | unknown) => {
       const prev = udRef.current;
       const next = { ...prev, appSettings: { ...prev.appSettings, [key]: value } };
       setUdState(next);

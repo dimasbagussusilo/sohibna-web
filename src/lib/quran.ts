@@ -179,12 +179,14 @@ export type Appearance = 'light' | 'dark' | 'auto';
 
 // App-level prefs riding the reader-settings KV under 'app.*' keys. Fields are
 // null until the account has a value, so a fresh login never overwrites the
-// device-local setting with a default. `alarms` is opaque (AlarmSettings-shaped
-// on RN, never applied on web) so this shared module stays platform-neutral.
+// device-local setting with a default. `alarms` and `reminders` are opaque
+// (AlarmSettings / ReminderSettings-shaped on RN, never applied on web) so this
+// shared module stays platform-neutral.
 export type AppSettings = {
   appearance: Appearance | null;
   lang: AppLang | null;
   alarms: unknown | null;
+  reminders: unknown | null;
 };
 
 export interface UserData {
@@ -395,7 +397,7 @@ export const DEFAULT_USER_DATA: UserData = {
   prayerDays: {},
   reflections: {},
   rulingsChats: {},
-  appSettings: { appearance: null, lang: null, alarms: null },
+  appSettings: { appearance: null, lang: null, alarms: null, reminders: null },
 };
 
 // displayModeTransition — switching verse ↔ reading mode. Shared by the reader's
