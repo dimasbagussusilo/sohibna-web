@@ -28,10 +28,12 @@ server {
         application/javascript   js mjs;
         application/manifest+json webmanifest;
         application/json         json;
+        image/jpeg               jpg jpeg;
         image/png                png;
         image/svg+xml            svg;
         image/x-icon             ico;
         image/webp               webp;
+        video/mp4                mp4;
         font/woff2               woff2;
         font/ttf                 ttf;
         text/plain               txt;
@@ -87,6 +89,23 @@ server {
         add_header X-Content-Type-Options "nosniff" always;
     }
     location = /og-image.png {
+        expires off;
+        add_header Cache-Control "public, max-age=86400" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+    # Hero promo video (AV1 primary + H.264 fallback) + poster frame
+    # (1-day cache; re-exported by hand).
+    location = /promo.av1.mp4 {
+        expires off;
+        add_header Cache-Control "public, max-age=86400" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+    location = /promo.mp4 {
+        expires off;
+        add_header Cache-Control "public, max-age=86400" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+    location = /promo-poster.jpg {
         expires off;
         add_header Cache-Control "public, max-age=86400" always;
         add_header X-Content-Type-Options "nosniff" always;

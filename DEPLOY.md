@@ -72,13 +72,10 @@ auto-rollback of both on failure.
 ## Local development
 
 ```sh
-npm run dev                                    # app tree on :5173 (default)
-
-# Landing tree on a second server (:5174); its "Buka Aplikasi" CTA then
-# points at the :5173 app dev server:
-VITE_LANDING_HOSTS=localhost \
-VITE_APP_ORIGIN=http://localhost:5173 \
-npm run dev -- --port 5174
+npm run dev:app        # app tree on :5173 (same as `npm run dev`)
+npm run dev:landing    # landing tree on :5174; its "Buka Aplikasi" CTA
+                       # points at the :5173 app dev server
+npm run dev:both       # both servers side by side
 ```
 
 Origin detection is hostname-based (`src/origins.ts`, `VITE_LANDING_HOSTS`,

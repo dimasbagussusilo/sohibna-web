@@ -1,10 +1,13 @@
 import { Check } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { appUrl } from '@/origins'
-import { PhoneMockup } from './PhoneMockup'
 
-// Hero: badge, headline with the <em> accent, trust pills, dual CTA, and a
-// pure-CSS phone mockup standing in for a screenshot.
+// Hero: badge, headline with the <em> accent, trust pills, dual CTA, and the
+// portrait promo video framed as a phone. Muted+playsInline lets it autoplay
+// everywhere; the poster (19KB frame) paints first so the hero never waits
+// on the video. Browsers pick the AV1 source (2.1MB, 480px/30fps — plenty
+// for a 280px frame); the H.264 source only downloads on devices without
+// AV1 decode (older iPhones).
 
 export function Hero() {
   const { t } = useI18n()
@@ -60,7 +63,21 @@ export function Hero() {
         </div>
 
         <div className="flex justify-center lg:justify-end">
-          <PhoneMockup />
+          <div className="w-[280px] rounded-[2.2rem] border-[10px] border-night bg-night shadow-2xl shadow-night/40">
+            <video
+              className="aspect-[9/16] w-full rounded-[1.6rem] object-cover"
+              poster="/promo-poster.jpg"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Sohibna app promo"
+            >
+              <source src="/promo.av1.mp4" type='video/mp4; codecs="av01.0.05M.08"' />
+              <source src="/promo.mp4" type="video/mp4" />
+            </video>
+          </div>
         </div>
       </div>
     </section>

@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:app": "vite",
+    "dev:landing": "VITE_LANDING_HOSTS=localhost VITE_APP_ORIGIN=http://localhost:5173 vite --port 5174",
+    "dev:both": "npm run dev:app & npm run dev:landing & wait",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",

@@ -45,9 +45,9 @@ picture:
 Local dev — two servers side by side:
 
 ```sh
-npm run dev                                              # app, :5173
-VITE_LANDING_HOSTS=localhost VITE_APP_ORIGIN=http://localhost:5173 \
-  npm run dev -- --port 5174                             # landing, :5174
+npm run dev:app        # app tree,     http://localhost:5173
+npm run dev:landing    # landing tree, http://localhost:5174 (CTA → :5173)
+npm run dev:both       # both, side by side
 ```
 
 Landing source: `src/routes/landing/`; origin detection: `src/origins.ts`;
