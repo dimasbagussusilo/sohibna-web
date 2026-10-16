@@ -242,7 +242,7 @@ export function ResetPassword() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const fromForgot = params.get('email') ?? '' !== ''
+  const fromForgot = params.get('email') !== null
 
   const [email, setEmail] = useState(params.get('email') ?? '')
   const [code, setCode] = useState('')

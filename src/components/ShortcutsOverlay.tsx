@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useI18n } from '@/context/I18nContext'
+import type { TranslationKey } from '@/i18n/types'
 import { useApp } from '@/context/AppContext'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import type { Lang } from '@/i18n/types'
@@ -43,7 +44,7 @@ export function GlobalHotkeys() {
 }
 
 // Row labels are i18n keys (shortcuts.*); the kbd combinations are literal.
-const GROUP_KEYS: [kbd: string, labelKey: string][][] = [
+const GROUP_KEYS: [kbd: string, labelKey: TranslationKey][][] = [
   [
     ['/', 'shortcuts.searchQuran'],
     ['g h / c / q / r / m', 'shortcuts.goNav'],

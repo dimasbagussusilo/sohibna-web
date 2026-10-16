@@ -1,4 +1,6 @@
-# Sohibna web (SPA + PWA) — served by nginx-unprivileged on :8080.
+# Sohibna web — APP mode (SPA + PWA), served by nginx-unprivileged on :8080.
+# Rendered to /etc/nginx/conf.d/default.conf at container start by
+# docker-entrypoint.d/05-select-nginx-mode.sh (APP_MODE=app, the default).
 #
 # nginx add_header gotcha: a location-level add_header REPLACES everything
 # inherited from the server level. So cache policy uses the `expires`
@@ -44,11 +46,18 @@ server {
     location = /sw.js {
         expires -1;
     }
+    # No longer emitted: registration is manual (src/pwa.ts) since the
+    # landing split, which stops vite-plugin-pwa from emitting registerSW.js.
+    # 404 (not the SPA fallback) so stale shells fail fast on it instead of
+    # parsing HTML as JavaScript.
     location = /registerSW.js {
-        expires -1;
+        return 404;
     }
     location = /manifest.webmanifest {
         expires -1;
+        # Stock nginx mime.types lacks webmanifest — without this, strict
+        # browsers (and Lighthouse) refuse the install prompt.
+        default_type application/manifest+json;
     }
     location = /offline.html {
         expires -1;

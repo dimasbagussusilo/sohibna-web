@@ -1,4 +1,4 @@
-import type { ArabicItem, SunnahPrayer } from '../types';
+import type { ArabicItem, SunnahPrayer } from './types';
 import { QUNUT_DOA } from './recitations';
 
 // Specific duas associated with some sunnah prayers. Verify Arabic/transliteration

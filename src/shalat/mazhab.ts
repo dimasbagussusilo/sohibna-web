@@ -1,4 +1,4 @@
-import type { Bi, Mazhab, MazhabTopic } from '../types';
+import type { Bi, Mazhab, MazhabTopic } from './types';
 
 // ============================================================================
 // Where each school is popular — shown as a subtitle in the Mazhab dropdown.

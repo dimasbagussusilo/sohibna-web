@@ -583,6 +583,7 @@ export function SurahReader() {
 
 function ScrollTopFab({ topRef }: { topRef: React.RefObject<HTMLDivElement | null> }) {
   const [show, setShow] = useState(false)
+  const { t } = useI18n()
   useEffect(() => {
     const onScroll = () => setShow(window.scrollY > 600)
     window.addEventListener('scroll', onScroll, { passive: true })

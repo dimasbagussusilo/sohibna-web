@@ -10,6 +10,10 @@ env:
   DOCKER_IMAGE: dimasbagussusilo/sohibna-web
   K8S_DEPLOYMENT: sohibna-web-deployment
   K8S_CONTAINER: sohibna-web
+  # Same image, APP_MODE=landing (sohibna.com apex). Both deployments must
+  # exist before this workflow runs — apply k8s/*.yaml once, manually.
+  K8S_LANDING_DEPLOYMENT: sohibna-landing-deployment
+  K8S_LANDING_CONTAINER: sohibna-landing
   K8S_NAMESPACE: cendekita
 
 jobs:
@@ -83,6 +87,25 @@ jobs:
         with:
           config: ${{ secrets.KUBE_CONFIG }}
           command: rollout status deployment/${{ env.K8S_DEPLOYMENT }} -n ${{ env.K8S_NAMESPACE }} --timeout=120s
+
+      - name: Deploy landing to Kubernetes
+        uses: steebchen/kubectl@v2.1.1
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: set image deployment/${{ env.K8S_LANDING_DEPLOYMENT }} ${{ env.K8S_LANDING_CONTAINER }}=${{ env.DOCKER_IMAGE }}:${{ steps.meta.outputs.sha }} -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Wait for landing rollout
+        uses: steebchen/kubectl@v2.1.1
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: rollout status deployment/${{ env.K8S_LANDING_DEPLOYMENT }} -n ${{ env.K8S_NAMESPACE }} --timeout=120s
+
+      - name: Rollback landing on failure
+        if: failure()
+        uses: steebchen/kubectl@v2.1.1
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: rollout undo deployment/${{ env.K8S_LANDING_DEPLOYMENT }} -n ${{ env.K8S_NAMESPACE }}
 
       - name: Rollback on failure
         if: failure()

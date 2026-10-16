@@ -317,7 +317,7 @@ test('sanitizeQueue drops ts-less lastRead ops + legacy lastReadSlots setting op
 // rebuilt snapshot; applyAppSettingOp must map keys exactly like mergeRemote.
 
 test('applyAppSettingOp maps the three app.* keys like mergeRemote does', () => {
-  const base = { appearance: null, lang: null, alarms: null } as const
+  const base = { appearance: null, lang: null, alarms: null, reminders: null } as const
   assert.equal(applyAppSettingOp(base, 'app.darkMode', 'auto').appearance, 'auto')
   assert.equal(applyAppSettingOp(base, 'app.darkMode', true).appearance, 'dark')
   assert.equal(applyAppSettingOp(base, 'app.lang', 'ar').lang, 'ar')

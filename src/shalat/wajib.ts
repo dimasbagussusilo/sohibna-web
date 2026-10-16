@@ -1,4 +1,4 @@
-import type { Body, FardPrayer, Mazhab, Step } from '../types';
+import type { Body, FardPrayer, Mazhab, Step } from './types';
 import {
   DOA_ANTARA_SUJUD,
   DOA_IFTITAH,

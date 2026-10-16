@@ -14,6 +14,7 @@ export function MarkMenuTrigger({
   hasAnyMark: boolean
   onToggle: () => void
 }) {
+  const { t } = useI18n()
   return (
     <button onClick={onToggle} className="relative p-1.5" aria-label={t('a11y.marks')}>
       <MoreHorizontal color={open ? '#8FBC8F' : '#9ca3af'} size={18} />

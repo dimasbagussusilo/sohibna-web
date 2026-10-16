@@ -1,0 +1,112 @@
+# Sohibna landing — the apex origin (sohibna.com + www) serving the marketing
+# landing from the SAME image as the app (APP_MODE=landing selects the nginx
+# landing config; everything outside /, /en, /ar 301s to the app origin).
+# Applied ONCE with `kubectl apply -f k8s/landing.yaml`; after that the
+# GitHub Actions workflow only does `kubectl set image`.
+#
+# TLS: same Traefik + Let's Encrypt setup the cluster's other cendekita
+# ingresses use (verified against midwifery-web-ingress / dbs-profile-ingress).
+#
+# BEFORE applying (one-time, manual):
+#   1. DNS: A records for sohibna.com and www.sohibna.com → 84.247.146.71
+#      (the cluster's traefik LoadBalancer IP — same one founder.sohibna.com
+#      uses, so the zone is already known to point here).
+#   2. Apply this file; Traefik's letsencrypt certresolver issues the cert on
+#      first HTTPS hit (watch: kubectl describe ingress -n cendekita
+#      sohibna-landing-ingress).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sohibna-landing-deployment
+  namespace: cendekita
+  labels:
+    app: sohibna-landing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sohibna-landing
+  template:
+    metadata:
+      labels:
+        app: sohibna-landing
+    spec:
+      containers:
+        - name: sohibna-landing
+          image: dimasbagussusilo/sohibna-web:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: APP_MODE
+              value: landing
+            - name: APP_ORIGIN
+              value: https://app.sohibna.com
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            # /en serves 200 in landing mode; /index.html would be caught by
+            # the /en|/ar regex location instead of the exact-match location.
+            httpGet:
+              path: /en
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /en
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sohibna-landing-service
+  namespace: cendekita
+spec:
+  selector:
+    app: sohibna-landing
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sohibna-landing-ingress
+  namespace: cendekita
+  annotations:
+    # Traefik + Let's Encrypt — identical to midwifery-web-ingress (the
+    # catatanbidan.id apex landing) on this cluster.
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: sohibna.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sohibna-landing-service
+                port:
+                  number: 8080
+    - host: www.sohibna.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sohibna-landing-service
+                port:
+                  number: 8080

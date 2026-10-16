@@ -1,4 +1,4 @@
-import type { ArabicItem, Item } from '../types';
+import type { ArabicItem, Item } from './types';
 
 // ============================================================================
 // Section 1 — Thoharoh (Purification): Wudhu, Tayamum, what nullifies wudhu.

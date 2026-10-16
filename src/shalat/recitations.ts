@@ -1,4 +1,4 @@
-import type { ArabicItem } from '../types';
+import type { ArabicItem } from './types';
 
 // ============================================================================
 // Shared Arabic recitations used across the Wajib rukun flow and the Witir

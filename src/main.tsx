@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import './index.css'
 import { App } from './App'
+import { registerServiceWorker } from './pwa'
 
 // BrowserRouter + declarative <Routes> in App.tsx (route table mirrors the
 // RN app's expo-router file tree: / → home; (tabs) under the shell; stack
@@ -14,3 +15,7 @@ createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// App origin only — the landing origin must never own a service worker.
+registerServiceWorker()
+

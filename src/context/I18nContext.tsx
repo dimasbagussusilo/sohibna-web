@@ -8,7 +8,9 @@ import {
   type ReactNode,
 } from 'react'
 import storage from '@/lib/storage'
+import { isLandingOrigin } from '@/origins'
 import type { Lang, Translation, TranslationKey } from '@/i18n/types'
+import { resolvePath, interpolate } from '@/i18n/translate'
 import { translations as idTranslations } from '@/i18n/translations/id'
 import { translations as enTranslations } from '@/i18n/translations/en'
 import { translations as arTranslations } from '@/i18n/translations/ar'
@@ -21,7 +23,10 @@ import { translations as arTranslations } from '@/i18n/translations/ar'
 
 const LANG_KEY = 'sohibna:lang'
 const DEFAULT_LANG: Lang = 'id'
-const DICTS: Record<Lang, Translation> = {
+// Exported for the landing's route-scoped language override (LandingI18n),
+// which translates with a per-route dictionary without persisting a choice.
+// eslint-disable-next-line react-refresh/only-export-components
+export const DICTS: Record<Lang, Translation> = {
   id: idTranslations,
   en: enTranslations,
   ar: arTranslations,
@@ -51,7 +56,10 @@ type I18nState = {
   dict: Translation
 }
 
-const I18nContext = createContext<I18nState>({
+// Exported raw for the landing's route-scoped override (LandingI18n mounts
+// its own provider value over this context).
+// eslint-disable-next-line react-refresh/only-export-components
+export const I18nContext = createContext<I18nState>({
   lang: DEFAULT_LANG,
   setLang: () => {},
   isRTL: false,
@@ -63,11 +71,19 @@ const I18nContext = createContext<I18nState>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(DEFAULT_LANG)
-  const [hydrated, setHydrated] = useState(false)
+  const [hydrated, setHydrate] = useState(false)
+  // On the landing origin this provider is just a shell: the landing's
+  // language comes from the URL path via LandingI18n, and reading the saved
+  // preference here would race LandingI18n's <html> apply and flip it back.
+  const landing = isLandingOrigin()
 
   // Read the saved language once on mount; apply dir BEFORE marking hydration,
   // so the first render already has the correct (possibly RTL) layout.
   useEffect(() => {
+    if (landing) {
+      setHydrate(true)
+      return
+    }
     let cancelled = false
     ;(async () => {
       try {
@@ -80,37 +96,37 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       } catch {
         applyDocumentLang(DEFAULT_LANG)
       } finally {
-        if (!cancelled) setHydrated(true)
+        if (!cancelled) setHydrate(true)
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [landing])
 
   // Switch language. The DOM reflows under the new dir immediately — no
   // restart needed (web advantage over the RN app's RNRestart approach).
   // `opts.fromSync` marks an account-driven apply: the value came FROM the
   // server, so the caller skips pushing it back (the Me page's user-initiated
   // path still pushes via setAppSetting).
-  const setLang = useCallback((next: Lang, opts?: { fromSync?: boolean }) => {
-    setLangState(next)
-    applyDocumentLang(next)
-    storage.setItem(LANG_KEY, next).catch(() => {})
-    void opts
-  }, [])
+  const setLang = useCallback(
+    (next: Lang, opts?: { fromSync?: boolean }) => {
+      setLangState(next)
+      if (!landing) {
+        applyDocumentLang(next)
+        storage.setItem(LANG_KEY, next).catch(() => {})
+      }
+      void opts
+    },
+    [landing],
+  )
 
   const isRTL = isRTLFor(lang)
   const dir = isRTL ? 'rtl' : 'ltr'
 
   const t = useCallback(
-    (key: TranslationKey, vars?: Record<string, string | number>) => {
-      const raw = resolvePath(DICTS[lang], key)
-      if (!vars || !raw) return raw
-      return raw.replace(/\{\{(\w+)\}\}/g, (_, k) =>
-        vars[k] !== undefined ? String(vars[k]) : `{{${k}}}`,
-      )
-    },
+    (key: TranslationKey, vars?: Record<string, string | number>) =>
+      interpolate(resolvePath(DICTS[lang], key), vars),
     [lang],
   )
 
@@ -123,20 +139,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
-// Walk a dotted path to a string leaf. Returns '' if the path doesn't resolve
-// to a string (shouldn't happen for typed keys, but keeps runtime safe).
-function resolvePath(dict: Translation, key: string): string {
-  const parts = key.split('.')
-  let cur: unknown = dict
-  for (const p of parts) {
-    if (cur && typeof cur === 'object' && p in cur) {
-      cur = (cur as Record<string, unknown>)[p]
-    } else {
-      return ''
-    }
-  }
-  return typeof cur === 'string' ? cur : ''
-}
+// Walk a dotted path + interpolate — now shared in src/i18n/translate.ts
+// (also used by the landing's route-scoped override).
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useI18n = () => useContext(I18nContext)

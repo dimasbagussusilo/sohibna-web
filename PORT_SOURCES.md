@@ -23,7 +23,7 @@ before each phase so upstream fixes aren't missed. Source commit at port time:
 | `src/i18n/types.ts` | `sohibna/src/i18n/types.ts` |
 | `src/i18n/contentLang.ts` | `sohibna/src/i18n/contentLang.ts` |
 | `src/i18n/langName.ts` | `sohibna/src/i18n/langName.ts` |
-| `src/i18n/translations/{id,en,ar}.ts` | `sohibna/src/i18n/translations/` |
+| `src/i18n/translations/{id,en,ar}.ts` | `sohibna/src/i18n/translations/` (incl. the web-only `landing.*` keys, mirrored into the RN dictionaries to keep the verbatim invariant — landing routes are web-only UI) |
 | `src/hafalan/spacedRepetition.ts` | `sohibna/src/hafalan/spacedRepetition.ts` |
 | `src/hafalan/hafalanScope.ts` | `sohibna/src/hafalan/hafalanScope.ts` |
 | `src/reflection/moods.ts` | `sohibna/src/reflection/moods.ts` |

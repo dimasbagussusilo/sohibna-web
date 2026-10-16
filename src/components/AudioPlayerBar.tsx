@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Play, Pause, SkipForward, SkipBack, X, Settings, Gauge } from 'lucide-react'
+import { useI18n } from '@/context/I18nContext'
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
@@ -39,6 +40,7 @@ export function AudioPlayerBar({
   banner?: ReactNode
 }) {
   const [barEl, setBarEl] = useState<HTMLDivElement | null>(null)
+  const { t } = useI18n()
   if (!title) return null
 
   const showScrubber = dur > 0

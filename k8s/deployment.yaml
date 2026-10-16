@@ -2,10 +2,12 @@
 # sohibna-api. Applied ONCE with `kubectl apply -f k8s/deployment.yaml`;
 # after that the GitHub Actions workflow only does `kubectl set image`.
 #
-# BEFORE applying:
-#   kubectl get ingress -n cendekita -o yaml   → copy the ingress class +
-#   TLS annotations the existing sohibna-api ingress uses into the Ingress
-#   below, and point DNS (sohibna.cendekita.id) at the ingress load balancer.
+# BEFORE applying (one-time, manual):
+#   1. DNS: A record for app.sohibna.com → 84.247.146.71 (the cluster's
+#      traefik LoadBalancer IP).
+#   2. Apply this file; TLS annotations below are the cluster's real setup
+#      (Traefik + Let's Encrypt, copied from the live midwifery-web-ingress /
+#      dbs-profile-ingress) — the cert is issued on first HTTPS hit.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -67,14 +69,15 @@ metadata:
   name: sohibna-web-ingress
   namespace: cendekita
   annotations:
-    # TODO: copy the real class + cert annotations from the sohibna-api
-    # ingress before applying (`kubectl get ingress -n cendekita -o yaml`).
-    # Example (nginx + cert-manager):
-    # kubernetes.io/ingress.class: nginx
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Traefik + Let's Encrypt — the cluster's actual setup (verified against
+    # the live ingresses; there is no cert-manager on this cluster).
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 spec:
+  ingressClassName: traefik
   rules:
-    - host: sohibna.cendekita.id
+    - host: app.sohibna.com
       http:
         paths:
           - path: /

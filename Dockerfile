@@ -25,11 +25,23 @@ RUN npm run build
 
 # ---- Stage 2: Serve ----
 # nginx-unprivileged: runs as the bundled uid (101), listens on 8080 — no
-# root anywhere in the runtime image.
+# root anywhere in the runtime image. ONE image serves two origins:
+#   APP_MODE=app      → SPA + PWA at app.sohibna.com (default)
+#   APP_MODE=landing  → marketing landing at sohibna.com, everything else
+#                       301s to ${APP_ORIGIN}
+# The mode is applied at container start by docker-entrypoint.d/
+# 05-select-nginx-mode.sh, which renders /etc/nginx/conf.d/default.conf from
+# /etc/nginx/modes/ (the files deliberately do NOT end in .template, so the
+# image's own 20-envsubst-on-templates.sh never touches them). The Vite
+# build is identical for both — only nginx behavior differs.
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf.app nginx/default.conf.landing /etc/nginx/modes/
+COPY docker-entrypoint.d/05-select-nginx-mode.sh /docker-entrypoint.d/05-select-nginx-mode.sh
 COPY --from=builder /src/dist /usr/share/nginx/html
+
+ENV APP_MODE=app \
+    APP_ORIGIN=https://app.sohibna.com
 
 EXPOSE 8080
 USER 101

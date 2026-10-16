@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router'
 import { I18nProvider, useI18n } from '@/context/I18nContext'
+import { isLandingOrigin, appUrl } from '@/origins'
+import { Landing } from '@/routes/landing/Landing'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { QuranDataProvider, useQuranData } from '@/context/QuranDataContext'
 import { AppProvider } from '@/context/AppContext'
@@ -53,10 +55,41 @@ function AccountLangApply() {
 // I18n → Auth → QuranData → App → shell + toast. Route table mirrors the
 // expo-router file tree: / → home; (tabs) under the shell; stack screens
 // (reader, auth) render without the tab bar.
+//
+// Split-origin build: the apex domain (sohibna.com) serves the marketing
+// landing at /, /en, /ar — no Auth/QuranData/App providers, no tab bar, no
+// offline banner (no API calls, never installable). Every other origin runs
+// the app tree below, byte-identical to the pre-landing behavior.
 export function App() {
   return (
-    <I18nProvider>
-      <AuthProvider>
+    <I18nProvider>{isLandingOrigin() ? <LandingRoutes /> : <MainAppRoutes />}</I18nProvider>
+  )
+}
+
+function LandingRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing lang="id" />} />
+      <Route path="/en" element={<Landing lang="en" />} />
+      <Route path="/ar" element={<Landing lang="ar" />} />
+      {/* Deep apex links never reach the SPA in prod (nginx landing mode 301s
+          them to the app origin first) — this is the dev safety net. */}
+      <Route path="*" element={<GoToAppOrigin />} />
+    </Routes>
+  )
+}
+
+function GoToAppOrigin() {
+  useEffect(() => {
+    const { pathname, search, hash } = window.location
+    window.location.replace(appUrl(`${pathname}${search}${hash}`))
+  }, [])
+  return null
+}
+
+function MainAppRoutes() {
+  return (
+    <AuthProvider>
         <QuranDataProvider>
           <AppProvider>
             <AccountLangApply />
@@ -105,6 +138,5 @@ export function App() {
           </AppProvider>
         </QuranDataProvider>
       </AuthProvider>
-    </I18nProvider>
   )
 }
