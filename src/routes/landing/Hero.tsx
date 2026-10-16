@@ -1,71 +1,78 @@
-import { Check } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { appUrl } from '@/origins'
+import { StoreBadge } from './StoreBadge'
 
-// Hero: badge, headline with the <em> accent, trust pills, dual CTA, and the
-// portrait promo video framed as a phone. Muted+playsInline lets it autoplay
-// everywhere; the poster (19KB frame) paints first so the hero never waits
-// on the video. Browsers pick the AV1 source (2.1MB, 480px/30fps — plenty
-// for a 280px frame); the H.264 source only downloads on devices without
-// AV1 decode (older iPhones).
+// Dark hero: layered sage glows + the khatam pattern, oversized display
+// type, gradient CTA, the promo video in a phone frame — fading into the
+// cream sections below. Kept deliberately lean: the badge carries the
+// gratis/offline message, the store badges carry the "coming soon" story.
 
 export function Hero() {
   const { t } = useI18n()
 
   return (
-    <section className="relative overflow-hidden">
-      {/* soft radial glow behind the mockup */}
+    <section className="relative overflow-hidden bg-night text-cream">
+      {/* ambient glows + geometric pattern */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 end-0 hidden w-1/2 lg:block"
-        style={{
-          background:
-            'radial-gradient(closest-side at 70% 40%, rgba(122,157,122,0.18), transparent)',
-        }}
+        className="pointer-events-none absolute -top-32 start-1/4 h-[28rem] w-[28rem] rounded-full bg-sage/20 blur-[110px]"
       />
-      <div className="mx-auto grid max-w-5xl items-center gap-10 px-4 py-14 md:py-20 lg:grid-cols-2">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-24 end-0 h-96 w-96 rounded-full bg-[#8FBC8F]/15 blur-[100px]"
+      />
+      <div aria-hidden className="pattern-islamic absolute inset-0 opacity-[0.07]" />
+
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-24 md:pb-24 md:pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
         <div>
-          <span className="inline-block rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-[#4d6b4d]">
+          <span className="glass fade-up inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-cream/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#8FBC8F]" />
             {t('landing.hero.badge')}
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
+
+          <h1 className="font-display fade-up fade-up-1 mt-6 text-4xl leading-[1.15] tracking-tight sm:text-5xl xl:text-6xl">
             {t('landing.hero.titleA')}{' '}
-            <em className="text-[#4d6b4d]">{t('landing.hero.titleEm')}</em>
+            <em className="bg-gradient-to-r from-[#8FBC8F] to-sage bg-clip-text not-italic text-transparent">
+              {t('landing.hero.titleEm')}
+            </em>
           </h1>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-ink/70">
+
+          <p className="fade-up fade-up-2 mt-5 max-w-lg text-base leading-relaxed text-cream/70 md:text-lg">
             {t('landing.hero.sub')}
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="fade-up fade-up-3 mt-8 flex flex-wrap items-center gap-3">
             <a
               href={appUrl('/home')}
-              className="rounded-full bg-night px-6 py-3 text-sm font-semibold text-cream shadow-lg shadow-night/20 transition-colors hover:bg-[#163024]"
+              className="rounded-full bg-gradient-to-r from-[#7a9d7a] to-[#8FBC8F] px-7 py-3.5 text-sm font-bold text-night shadow-lg shadow-[#8FBC8F]/25 transition-transform hover:scale-[1.03]"
             >
               {t('landing.hero.cta')}
             </a>
             <a
               href="#fitur"
-              className="rounded-full border border-ink/15 px-6 py-3 text-sm font-semibold text-ink transition-colors hover:border-ink/30"
+              className="glass rounded-full px-6 py-3 text-sm font-semibold text-cream/85 transition-colors hover:text-cream"
             >
               {t('landing.hero.ctaSecondary')}
             </a>
           </div>
 
-          <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink/70">
-            {(['trust1', 'trust2', 'trust3'] as const).map((k) => (
-              <li key={k} className="flex items-center gap-1.5">
-                <Check size={15} className="text-[#4d6b4d]" />
-                {t(`landing.hero.${k}`)}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-ink/45">{t('landing.hero.note')}</p>
+          {/* Store badges — both "coming soon" until their listings are live;
+              the CTA above is the install path today. */}
+          <div className="fade-up fade-up-4 mt-5 flex flex-wrap items-center gap-3">
+            <StoreBadge kind="play" />
+            <StoreBadge kind="ios" />
+          </div>
         </div>
 
-        <div className="flex justify-center lg:justify-end">
-          <div className="w-[280px] rounded-[2.2rem] border-[10px] border-night bg-night shadow-2xl shadow-night/40">
+        {/* Phone with the promo video */}
+        <div className="relative mx-auto w-fit">
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 scale-110 rounded-full bg-sage/15 blur-3xl"
+          />
+          <div className="w-[300px] rounded-[2.4rem] border-[10px] border-[#122A1F] bg-[#122A1F] shadow-2xl shadow-black/35 ring-1 ring-white/10 lg:w-[330px]">
             <video
-              className="aspect-[9/16] w-full rounded-[1.6rem] object-cover"
+              className="aspect-[9/16] w-full rounded-[1.8rem] object-cover"
               poster="/promo-poster.jpg"
               autoPlay
               muted
@@ -80,6 +87,12 @@ export function Hero() {
           </div>
         </div>
       </div>
+
+      {/* fade into the cream sections */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-cream"
+      />
     </section>
   )
 }

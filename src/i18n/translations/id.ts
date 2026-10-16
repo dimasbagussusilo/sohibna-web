@@ -1037,25 +1037,29 @@ export const translations = {
 
   // Marketing landing page — rendered by the split-origin landing routes
   // (/, /en, /ar on the apex domain; see src/routes/landing/). Mirrored
+  // Marketing landing page — rendered by the split-origin landing routes
+  // (/, /en, /ar on the apex domain; see src/routes/landing/). Mirrored
   // verbatim into the RN repo's dictionaries to keep the port invariant
-  // (PORT_SOURCES.md). The Quran ayah stays literal in every language.
+  // (PORT_SOURCES.md). The Quran ayah and hadith text stay literal in id/en
+  // (terms of art); the hadith is the same one the in-app donation page uses.
   landing: {
     meta: {
       title: 'Sohibna — Al-Qur’an, Jadwal Shalat & Hafalan',
       description:
-        'Teman ibadah harian: jadwal shalat & pengingat adzan, Al-Qur’an dengan tafsir, hafalan dengan murajaah cerdas, kiblat, dan kalender Hijriah — gratis dan bisa offline.',
+        'Teman ibadah harian: jadwal shalat & pengingat adzan, Al-Qur’an dengan tafsir, hafalan dengan murajaah cerdas, kiblat, dan kalender Hijriah — gratis, tanpa iklan, bisa offline.',
       ogTitle: 'Sohibna — Teman Ibadah Harian',
       ogDescription:
         'Jadwal shalat, Al-Qur’an, dan hafalan dalam satu aplikasi. Gratis, bisa offline, bisa dipasang di layar utama.',
     },
     nav: {
       features: 'Fitur',
-      install: 'Cara Pasang',
+      download: 'Unduh',
+      support: 'Dukung Kami',
       faq: 'FAQ',
-      openApp: 'Buka Aplikasi',
+      tryNow: 'Coba Sekarang',
     },
     hero: {
-      badge: 'Gratis · Bisa Offline · Indonesia / English / العربية',
+      badge: 'Gratis · Tanpa Iklan · Bisa Offline',
       titleA: 'Teman ibadah harian,',
       titleEm: 'yang selalu bersama Anda.',
       sub: 'Jadwal shalat, Al-Qur’an, dan hafalan dalam satu aplikasi yang ringan — dirancang untuk rutinitas ibadah yang konsisten.',
@@ -1064,21 +1068,18 @@ export const translations = {
       trust3: 'Sinkron antar perangkat',
       cta: 'Buka Aplikasi',
       ctaSecondary: 'Lihat Fitur',
-      note: 'Tanpa iklan · Tanpa kartu kredit · Bisa dipasang di layar utama',
-      nextPrayerLabel: 'Shalat berikutnya',
-      ayahText: 'فَاذْكُرُونِي أَذْكُرْكُمْ',
-      ayahSource: 'QS Al-Baqarah: 152',
-      ayahTranslation: '“Maka ingatlah kepada-Ku, Aku pun ingat kepadamu.”',
+      soon: 'Segera',
+      note: 'Berjalan langsung di browser — Google Play & App Store menyusul segera.',
     },
     steps: {
       eyebrow: 'Mulai',
       title: 'Mulai dalam 3 langkah',
-      s1t: 'Buka aplikasi',
+      s1t: 'Buka aplikasinya',
       s1p: 'Tekan “Buka Aplikasi” — Sohibna berjalan langsung di browser, tanpa unduh.',
       s2t: 'Atur lokasi & akun',
       s2p: 'Izinkan lokasi untuk jadwal shalat; buat akun bila ingin sinkron bacaan dan hafalan.',
-      s3t: 'Pasang di HP Anda',
-      s3p: 'Ikuti panduan singkat di bawah agar Sohibna hadir seperti aplikasi biasa.',
+      s3t: 'Pasang di layar utama',
+      s3p: 'Satu ketukan agar Sohibna hadir seperti aplikasi biasa — panduannya di bagian Unduh.',
     },
     features: {
       eyebrow: 'Fitur',
@@ -1098,20 +1099,48 @@ export const translations = {
       f7t: 'Dzikir & Doa',
       f7p: 'Kumpulan dzikir pagi/petang dan doa pilihan dengan teks Arab dan terjemahan.',
     },
-    install: {
-      eyebrow: 'Cara Pasang',
-      title: 'Pasang Sohibna di layar utama',
+    download: {
+      eyebrow: 'Unduh',
+      title: 'Dapatkan Sohibna',
+      soon: 'Segera',
+      availableNow: 'Tersedia sekarang',
+      playT: 'Google Play',
+      playD: 'Aplikasi Android native — sedang dalam proses rilis.',
+      iosT: 'App Store',
+      iosD: 'Versi iOS sedang dikembangkan.',
+      pwaT: 'Web App (PWA)',
+      pwaD: 'Tanpa unduh, tanpa toko aplikasi — buka dan pasang langsung dari browser.',
       androidT: 'Android — Chrome',
       androidS1: 'Buka {{appOrigin}} di Chrome.',
       androidS2: 'Ketuk menu ⋮ di pojok kanan atas.',
       androidS3: 'Pilih “Pasang aplikasi”, lalu konfirmasi.',
-      iosT: 'iPhone/iPad — Safari',
+      iosStepsT: 'iPhone/iPad — Safari',
       iosS1: 'Buka {{appOrigin}} di Safari.',
       iosS2: 'Ketuk tombol Bagikan (persegi dengan panah ke atas).',
       iosS3: 'Pilih “Tambahkan ke Layar Utama”.',
       desktopT: 'Komputer',
       desktopP: 'Di Chrome/Edge, klik ikon pasang di ujung kanan bilah alamat, lalu “Pasang”.',
       note: 'Terpasang sebagai aplikasi, Sohibna terbuka layar penuh dan tetap bisa dipakai tanpa koneksi untuk bacaan yang telah diunduh.',
+    },
+    support: {
+      eyebrow: 'Dukung Kami',
+      title: 'Bantu kami menemani lebih banyak ibadah',
+      mission:
+        'Sohibna gratis dan tanpa iklan. Kami mengembangkannya sebagai amal jariyah — dukungan Anda menjaga server tetap hidup dan fitur terus bertambah.',
+      hadith:
+        '“Jika seseorang meninggal dunia, maka terputuslah amalannya kecuali tiga perkara: sedekah jariyah, ilmu yang dimanfaatkan, atau doa anak yang shalih.”',
+      hadithSource: '(HR. Muslim no. 1631)',
+      bmcT: 'Dukungan Internasional',
+      bmcCta: 'Buy Me a Coffee',
+      bankT: 'Transfer Bank',
+      bankName: 'BSI',
+      accountLabel: 'Nomor rekening',
+      accountName: 'a.n. Dimas Bagus Susilo',
+      copy: 'Salin',
+      copied: 'Tersalin!',
+      waConfirm: 'Konfirmasi via WhatsApp',
+      inAppNote:
+        'Di dalam aplikasi: menu Saya → Dukung Kami (transfer, QRIS, dukungan internasional).',
     },
     faq: {
       eyebrow: 'FAQ',
@@ -1125,11 +1154,13 @@ export const translations = {
       q4: 'Apakah tersedia dalam bahasa Arab?',
       a4: 'Ya. Antarmuka tersedia dalam Bahasa Indonesia, English, dan العربية dengan tata letak kanan-ke-kiri.',
       q5: 'Bagaimana cara memasangnya di HP?',
-      a5: 'Ikuti tiga langkah pada bagian “Cara Pasang” di atas — hanya butuh satu menit.',
+      a5: 'Ikuti langkah singkat pada bagian “Unduh” di atas — hanya butuh satu menit.',
+      q6: 'Kapan tersedia di Google Play dan App Store?',
+      a6: 'Google Play menyusul dalam waktu dekat dan versi iOS sedang dikembangkan. Saat ini Sohibna sudah bisa dipakai dan dipasang penuh sebagai web app (PWA).',
     },
     finalCta: {
       title: 'Mulai rutinitas ibadah Anda hari ini.',
-      sub: 'Buka Sohibna sekarang — gratis, tanpa unduh.',
+      sub: 'Buka Sohibna sekarang — gratis, tanpa unduh. Google Play & App Store: segera.',
       cta: 'Buka Aplikasi',
     },
     footer: {

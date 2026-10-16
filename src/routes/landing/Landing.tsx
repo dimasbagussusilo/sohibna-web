@@ -5,12 +5,12 @@ import { LANDING_ORIGIN } from '@/origins'
 import { LandingI18n } from './LandingI18n'
 import { Nav } from './Nav'
 import { Hero } from './Hero'
-import { Steps } from './Steps'
 import { Features } from './Features'
-import { InstallPWA } from './InstallPWA'
+import { Download } from './Download'
+import { Support } from './Support'
 import { FAQ } from './FAQ'
-import { FinalCTA } from './FinalCTA'
 import { Footer } from './Footer'
+import './landing.css'
 
 // The marketing landing — served on the apex origin (sohibna.com) at /, /en,
 // /ar by the same SPA build (nginx landing mode 301s every other path to the
@@ -28,11 +28,10 @@ export function Landing({ lang }: { lang: Lang }) {
         <Nav />
         <main>
           <Hero />
-          <Steps />
           <Features />
-          <InstallPWA />
+          <Download />
+          <Support />
           <FAQ />
-          <FinalCTA />
         </main>
         <Footer />
       </div>

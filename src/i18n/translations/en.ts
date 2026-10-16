@@ -1023,23 +1023,29 @@ export const translations: Translation = {
   },
 
   // Marketing landing page (mirrors id.ts — see the note there).
+  // Marketing landing page — rendered by the split-origin landing routes
+  // (/, /en, /ar on the apex domain; see src/routes/landing/). Mirrored
+  // verbatim into the RN repo's dictionaries to keep the port invariant
+  // (PORT_SOURCES.md). The Quran ayah and hadith text stay literal in id/en
+  // (terms of art); the hadith is the same one the in-app donation page uses.
   landing: {
     meta: {
       title: 'Sohibna — Qur’an, Prayer Times & Memorization',
       description:
-        'Your daily worship companion: prayer times & adhan reminders, the Qur’an with tafsir, smart memorization review, qibla, and the Hijri calendar — free and works offline.',
+        'Your daily worship companion: prayer times & adhan reminders, the Qur’an with tafsir, smart memorization review, qibla, and the Hijri calendar — free, ad-free, works offline.',
       ogTitle: 'Sohibna — Your Daily Worship Companion',
       ogDescription:
         'Prayer times, the Qur’an, and memorization in one app. Free, offline-capable, installable to your home screen.',
     },
     nav: {
       features: 'Features',
-      install: 'How to Install',
+      download: 'Download',
+      support: 'Support Us',
       faq: 'FAQ',
-      openApp: 'Open App',
+      tryNow: 'Try Now',
     },
     hero: {
-      badge: 'Free · Works Offline · Indonesia / English / العربية',
+      badge: 'Free · No Ads · Works Offline',
       titleA: 'Your daily worship companion,',
       titleEm: 'always with you.',
       sub: 'Prayer times, the Qur’an, and memorization in one light app — designed for a consistent worship routine.',
@@ -1048,11 +1054,8 @@ export const translations: Translation = {
       trust3: 'Syncs across devices',
       cta: 'Open App',
       ctaSecondary: 'See Features',
-      note: 'No ads · No credit card · Installable to your home screen',
-      nextPrayerLabel: 'Next prayer',
-      ayahText: 'فَاذْكُرُونِي أَذْكُرْكُمْ',
-      ayahSource: 'QS Al-Baqarah: 152',
-      ayahTranslation: '“So remember Me; I will remember you.”',
+      soon: 'Coming soon',
+      note: 'Runs right in your browser — Google Play & App Store coming soon.',
     },
     steps: {
       eyebrow: 'Start',
@@ -1061,8 +1064,8 @@ export const translations: Translation = {
       s1p: 'Tap “Open App” — Sohibna runs right in your browser, no download needed.',
       s2t: 'Set location & account',
       s2p: 'Allow location for accurate prayer times; create an account to sync your reading and memorization.',
-      s3t: 'Add it to your phone',
-      s3p: 'Follow the short guide below to make Sohibna feel like a regular app.',
+      s3t: 'Add it to your home screen',
+      s3p: 'One tap to make Sohibna feel like a regular app — see the Download section.',
     },
     features: {
       eyebrow: 'Features',
@@ -1082,20 +1085,48 @@ export const translations: Translation = {
       f7t: 'Dhikr & Dua',
       f7p: 'Morning/evening dhikr and selected duas with Arabic text and translation.',
     },
-    install: {
-      eyebrow: 'How to Install',
-      title: 'Add Sohibna to your home screen',
+    download: {
+      eyebrow: 'Download',
+      title: 'Get Sohibna',
+      soon: 'Coming soon',
+      availableNow: 'Available now',
+      playT: 'Google Play',
+      playD: 'Native Android app — release in progress.',
+      iosT: 'App Store',
+      iosD: 'The iOS version is in development.',
+      pwaT: 'Web App (PWA)',
+      pwaD: 'No download, no app store — open and install straight from your browser.',
       androidT: 'Android — Chrome',
       androidS1: 'Open {{appOrigin}} in Chrome.',
       androidS2: 'Tap the ⋮ menu in the top-right corner.',
       androidS3: 'Choose “Install app”, then confirm.',
-      iosT: 'iPhone/iPad — Safari',
+      iosStepsT: 'iPhone/iPad — Safari',
       iosS1: 'Open {{appOrigin}} in Safari.',
       iosS2: 'Tap the Share button (a square with an arrow).',
       iosS3: 'Choose “Add to Home Screen”.',
       desktopT: 'Desktop',
       desktopP: 'In Chrome/Edge, click the install icon at the right end of the address bar, then “Install”.',
       note: 'Once installed, Sohibna opens full screen and keeps working offline for content you’ve downloaded.',
+    },
+    support: {
+      eyebrow: 'Support Us',
+      title: 'Help us accompany more worship',
+      mission:
+        'Sohibna is free and ad-free. We build it as an ongoing charity (sadaqah jariyah) — your support keeps the servers running and the features coming.',
+      hadith:
+        '“When a person dies, his deeds come to an end except for three: a continuing charity, beneficial knowledge, or a righteous child who prays for him.”',
+      hadithSource: '(Sahih Muslim 1631)',
+      bmcT: 'International Support',
+      bmcCta: 'Buy Me a Coffee',
+      bankT: 'Bank Transfer',
+      bankName: 'BSI',
+      accountLabel: 'Account number',
+      accountName: 'a.n. Dimas Bagus Susilo',
+      copy: 'Copy',
+      copied: 'Copied!',
+      waConfirm: 'Confirm via WhatsApp',
+      inAppNote:
+        'Inside the app: Me menu → Support Us (transfer, QRIS, international support).',
     },
     faq: {
       eyebrow: 'FAQ',
@@ -1109,11 +1140,13 @@ export const translations: Translation = {
       q4: 'Is Arabic available?',
       a4: 'Yes. The interface is available in Indonesian, English, and العربية with a right-to-left layout.',
       q5: 'How do I install it on my phone?',
-      a5: 'Follow the three steps in the “How to Install” section above — it takes about a minute.',
+      a5: 'Follow the quick steps in the “Download” section above — it takes about a minute.',
+      q6: 'When will it be on Google Play and the App Store?',
+      a6: 'Google Play is coming soon and the iOS version is in development. Meanwhile Sohibna is fully usable and installable as a web app (PWA).',
     },
     finalCta: {
       title: 'Start your worship routine today.',
-      sub: 'Open Sohibna now — free, no download.',
+      sub: 'Open Sohibna now — free, no download. Google Play & App Store: coming soon.',
       cta: 'Open App',
     },
     footer: {
