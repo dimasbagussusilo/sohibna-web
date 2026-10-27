@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Sparkles, ChevronRight, MessageCircle, BookOpen } from 'lucide-react'
+import { Sparkles, ChevronRight, MessageCircle, BookOpen, Info } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/context/QuranDataContext'
@@ -118,6 +118,16 @@ export function KitabAI() {
         {t('home.kitabAi')}
       </div>
       <p className="mb-4 text-xs text-ink/50 dark:text-cream/50">{t('home.kitabAiDesc')}</p>
+
+      {/* Feature explainer — this catalog is a grounded-chat picker
+          (NotebookLM-style); make the "answered from the kitab itself"
+          context explicit before the first tap. */}
+      <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-[#8FBC8F]/30 bg-[#8FBC8F]/10 px-4 py-3">
+        <Info size={15} className="mt-0.5 shrink-0 text-[#8FBC8F]" />
+        <p className="flex-1 text-[11px] leading-relaxed text-ink/70 dark:text-cream/70">
+          {t('rulings.kitabAiIntro')}
+        </p>
+      </div>
 
       {/* Guest notice — saving chats requires an account */}
       {!user ? (
