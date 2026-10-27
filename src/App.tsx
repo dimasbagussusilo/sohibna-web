@@ -24,6 +24,7 @@ import { Iqro } from '@/routes/Iqro'
 import { Qibla, NearbyMasjid, AlarmsUnavailable } from '@/routes/QiblaMasjid'
 import { QuranGoals } from '@/routes/QuranGoals'
 import { Hafalan } from '@/routes/Hafalan'
+import { KitabAI } from '@/routes/KitabAI'
 import { SurahReader } from '@/routes/SurahReader'
 import { Login, Register } from '@/routes/Login'
 import { VerifyCode, ForgotPassword, ResetPassword } from '@/routes/AuthRecovery'
@@ -120,6 +121,7 @@ function MainAppRoutes() {
               <Route path="/quran-search" element={<QuranSearch />} />
               <Route path="/quran-goals" element={<QuranGoals />} />
               <Route path="/hafalan" element={<Hafalan />} />
+              <Route path="/kitab-ai" element={<KitabAI />} />
               <Route path="/dzikir" element={<Dzikir />} />
               <Route path="/daily-reflection" element={<DailyReflection />} />
               <Route path="/reflection-history" element={<ReflectionHistory />} />

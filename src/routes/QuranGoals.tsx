@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { ChevronLeft, Plus, X } from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
+import { ChevronLeft, LogIn, Plus, X } from 'lucide-react'
 import { fetchGoalsProgress, type GoalType, type GoalUnit } from '@/api'
 import { fetchChapters, type Chapter } from '@/lib/quran'
 import { useQuranData } from '@/context/QuranDataContext'
+import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
 import { getDeviceId } from '@/lib/deviceId'
@@ -26,6 +27,7 @@ export function QuranGoals() {
   const { t } = useI18n()
   const { toast } = useApp()
   const navigate = useNavigate()
+  const { user, token } = useAuth()
   const { ud, upsertKhatmGoal, removeKhatmGoal } = useQuranData()
   const [progress, setProgress] = useState<Progress[] | null>(null)
   const [showEditor, setShowEditor] = useState(false)
@@ -33,10 +35,11 @@ export function QuranGoals() {
   void chapters
 
   const refresh = useCallback(() => {
+    if (!token) return
     fetchGoalsProgress(getDeviceId())
       .then(setProgress)
       .catch(() => setProgress([]))
-  }, [])
+  }, [token])
 
   useEffect(() => {
     refresh()
@@ -44,6 +47,38 @@ export function QuranGoals() {
       .then(setChapters)
       .catch(() => {})
   }, [refresh, ud.khatmGoals.length])
+
+  // Reading goals are account-synced — the feature requires login; a guest
+  // sees a login prompt (full-screen gate, hafalan-style). Placed after all
+  // hooks so hook order stays unconditional.
+  if (!user) {
+    return (
+      <div className="min-h-dvh bg-cream pb-10 dark:bg-night lg:ps-20">
+        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-black/5 bg-cream/90 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-night/90">
+          <button
+            onClick={() => (history.length > 1 ? navigate(-1) : navigate('/quran'))}
+            className="rtl-flip flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
+            aria-label={t('a11y.back')}
+          >
+            <ChevronLeft size={22} />
+          </button>
+          <div className="flex-1 text-center text-sm font-bold text-ink dark:text-cream">
+            {t('goals.title')}
+          </div>
+          {/* No add button for guests — goals require an account. */}
+        </header>
+        <div className="mx-auto flex max-w-md flex-col items-center px-6 pt-16 text-center">
+          <div className="flex items-center gap-3 rounded-2xl border border-[#8FBC8F]/30 bg-[#8FBC8F]/10 px-4 py-4">
+            <LogIn size={18} className="shrink-0 text-[#8FBC8F]" />
+            <span className="text-xs text-ink/70 dark:text-cream/70">{t('goals.guestNotice')}</span>
+          </div>
+          <Link to="/login" className="mt-3 text-sm font-bold text-[#8FBC8F]">
+            {t('quranHome.guestLogin')} →
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-dvh bg-cream pb-10 dark:bg-night lg:ps-20">

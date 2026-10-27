@@ -48,8 +48,36 @@ async function getJSON<T>(path: string): Promise<T> {
 
 export type RulingsChatMessage = { role: 'user' | 'assistant'; content: string };
 export type RulingsChatResult = { reply: string };
-export const askRulingsChat = (messages: RulingsChatMessage[], lang: string) =>
-  postJSON<RulingsChatResult>('/rulings/chat', { messages, lang });
+
+// Reference scope for the chat-with-reference mode: retrieval runs only over
+// the chosen kitab volumes (source_names) and/or the whole Qur'an. Omitted on
+// general chats. Mirrors the server's rulingsChatScope.
+export type RulingsChatScope = { sources: string[]; quran: boolean; title?: string };
+
+export const askRulingsChat = (messages: RulingsChatMessage[], lang: string, scope?: RulingsChatScope) =>
+  postJSON<RulingsChatResult>('/rulings/chat', {
+    messages,
+    lang,
+    ...(scope ? { scope } : {}),
+  });
+
+// Chat-with-reference pick-list: GET /ai/sources. Kitab series grouped from
+// the corpus's source_names ("Series" + its Jilid/Bagian parts) plus the
+// Qur'an as one group. Static-ish content (changes only on reseed).
+export type RulingsSourcePart = { name: string; label: string; chunks: number };
+export type RulingsSourceGroup = {
+  title: string;
+  category?: string; // category slug (see groupByCategory); absent on old servers
+  parts: RulingsSourcePart[];
+  chunks: number;
+};
+export type RulingsSourceCatalog = {
+  series: RulingsSourceGroup[];
+  quran: RulingsSourceGroup;
+  categories?: string[]; // canonical display order of the slugs present
+};
+
+export const fetchRulingsSources = () => getJSON<RulingsSourceCatalog>('/ai/sources');
 
 
 // Daily Reflection companion: POST /reflection/chat. One multi-turn reply from a
@@ -396,6 +424,10 @@ export interface RulingsChatChange extends BaseChange {
   key: string;
   payload: RulingsChatEntryData['payload'];
   updated_at?: number; // epoch ms, server-stamped (last write)
+  // Reference scope (chat-with-reference); absent on general chats.
+  sources?: string[];
+  quran?: boolean;
+  ref_title?: string;
 }
 
 export interface FeedResponse {

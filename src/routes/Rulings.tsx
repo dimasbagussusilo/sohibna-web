@@ -1,31 +1,70 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { Sparkles, ChevronRight, ArrowLeft, Send, MessageCircle, Trash2 } from 'lucide-react'
+import { Link } from 'react-router'
+import { Sparkles, ChevronRight, ChevronDown, ArrowLeft, Send, MessageCircle, Trash2, X, BookOpen, CheckCircle2 } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
+import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useRulingsChat } from '@/rulings/useRulingsChat'
-import { mergeRulingsChatLists, deleteRulingsChatLocal } from '@/rulings/history'
+import {
+  mergeRulingsChatLists,
+  mergeRulingsThreads,
+  deleteRulingsChatLocal,
+  deleteRulingsDraft,
+  listRulingsChats,
+  listRulingsDrafts,
+  type RulingsChatEntry,
+} from '@/rulings/history'
+import { scopeFromEntry, type RulingsRefScope } from '@/rulings/scope'
 import { MarkdownText } from '@/components/MarkdownText'
 
 // The static curated "Rulings Collection" was retired — the RAG chat answers all
-// of it from the kitab library. The page is now chat-first: the Ask-AI portal
-// and the saved sessions.
+// of it from the kitab library. The page is chat-first: the general Ask-AI
+// portal, the Kitab AI entry card (the reference list lives on /kitab-ai), and
+// the message history below — saved (account-attached) + temporary
+// (device-local) threads. ChatScreen is exported for /kitab-ai, which renders
+// it scoped.
 
 export function Rulings() {
   const { t } = useI18n()
+  const { user } = useAuth()
   const { ud, deleteRulingsChat: deleteRemoteChat } = useQuranData()
   const { askConfirm } = useApp()
 
-  // UUID for the current chat session
+  // Current chat session + its reference scope (null = general chat)
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [activeScope, setActiveScope] = useState<RulingsRefScope | null>(null)
+
+  const [sessionsOpen, setSessionsOpen] = useState(true)
+
+  // Device-local sessions (saved by logged-in users and, on older builds, by
+  // guests). Merged with the synced copies — mirrors the RN screens.
+  const [localChats, setLocalChats] = useState<RulingsChatEntry[]>([])
+  const [drafts, setDrafts] = useState<RulingsChatEntry[]>([])
+  useEffect(() => {
+    listRulingsChats().then(setLocalChats).catch(() => {})
+    listRulingsDrafts().then(setDrafts).catch(() => {})
+  }, [])
 
   const chatSessions = useMemo(() => {
     // merge() also applies the deterministic most-recent-first ordering.
-    return mergeRulingsChatLists([], Object.values(ud.rulingsChats || {}))
-  }, [ud.rulingsChats])
+    return mergeRulingsChatLists(localChats, Object.values(ud.rulingsChats || {}))
+  }, [localChats, ud.rulingsChats])
+
+  // Message history = saved (account-attached) + temporary (device-local).
+  const threads = useMemo(() => mergeRulingsThreads(drafts, chatSessions), [drafts, chatSessions])
 
   if (activeChatId) {
-    return <ChatScreen chatId={activeChatId} onClose={() => setActiveChatId(null)} />
+    return (
+      <ChatScreen
+        chatId={activeChatId}
+        scope={activeScope}
+        onClose={() => {
+          setActiveChatId(null)
+          setActiveScope(null)
+        }}
+      />
+    )
   }
 
   return (
@@ -33,9 +72,22 @@ export function Rulings() {
       <div className="mb-1 text-lg font-bold text-ink dark:text-cream">{t('rulings.title')}</div>
       <p className="mb-4 text-xs text-ink/50 dark:text-cream/50">{t('rulings.subtitle')}</p>
 
-      {/* Ask AI / New Chat */}
+      {/* Guest notice — saving chats requires an account */}
+      {!user ? (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#8FBC8F]/30 bg-[#8FBC8F]/10 px-4 py-3">
+          <span className="flex-1 text-xs text-ink/70 dark:text-cream/70">{t('rulings.guestSaveHint')}</span>
+          <Link to="/login" className="shrink-0 text-xs font-bold text-[#8FBC8F]">
+            {t('quranHome.guestLogin')}
+          </Link>
+        </div>
+      ) : null}
+
+      {/* Ask AI / New Chat (general — whole corpus) */}
       <button
-        onClick={() => setActiveChatId(crypto.randomUUID())}
+        onClick={() => {
+          setActiveScope(null)
+          setActiveChatId(crypto.randomUUID())
+        }}
         className="mb-5 flex w-full items-center gap-3 rounded-2xl bg-night px-4 py-4 text-cream dark:bg-[#163024]"
       >
         <Sparkles size={20} className="text-[#8FBC8F]" />
@@ -46,57 +98,110 @@ export function Rulings() {
         <ChevronRight size={16} className="rtl-flip text-cream/50" />
       </button>
 
-      {/* Chat History */}
-      {chatSessions.length > 0 && (
+      {/* Kitab AI — chat with one chosen reference (list lives on /kitab-ai) */}
+      <Link
+        to="/kitab-ai"
+        className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-black/5 bg-white px-4 py-4 shadow-sm dark:border-white/10 dark:bg-[#122A1F]"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8FBC8F]/15">
+          <BookOpen size={18} className="text-[#8FBC8F]" />
+        </span>
+        <span className="min-w-0 flex-1 text-start">
+          <span className="block text-sm font-bold text-ink dark:text-cream">{t('home.kitabAi')}</span>
+          <span className="block text-[11px] text-ink/50 dark:text-cream/50">{t('home.kitabAiDesc')}</span>
+        </span>
+        <ChevronRight size={16} className="rtl-flip text-ink/30 dark:text-cream/30" />
+      </Link>
+
+      {/* Message history — saved (account-attached) + temporary
+          (device-local) threads, most recent first. */}
+      {threads.length > 0 && (
         <div className="mb-6">
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-ink/50 dark:text-cream/50">
-            {t('rulings.savedSessions')}
-          </h3>
-          <div className="space-y-2">
-            {chatSessions.map((chat) => {
-              const preview = chat.payload[0]?.content || 'Empty Chat'
-              return (
-                <div
-                  key={chat.id}
-                  onClick={() => setActiveChatId(chat.id)}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 text-start shadow-sm dark:bg-[#122A1F]"
-                >
-                  <MessageCircle size={16} className="text-[#8FBC8F]" />
-                  <span className="truncate text-sm text-ink dark:text-cream flex-1">{preview}</span>
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation()
-                      const ok = await askConfirm({
-                        title: t('rulings.deleteChatTitle'),
-                        message: t('rulings.deleteChatMsg'),
-                        confirmText: t('rulings.deleteChatConfirm'),
-                        cancelText: t('common.cancel'),
-                        destructive: true,
-                      })
-                      if (!ok) return
-                      deleteRulingsChatLocal(chat.id).catch(() => {})
-                      deleteRemoteChat(chat.id)
+          <button
+            onClick={() => setSessionsOpen((v) => !v)}
+            className="mb-3 flex w-full items-center gap-1 text-xs font-bold uppercase tracking-widest text-ink/50 dark:text-cream/50"
+          >
+            <ChevronDown size={14} className={`transition-transform ${sessionsOpen ? '' : '-rotate-90 rtl-flip'}`} />
+            {t('rulings.messageHistory')} ({threads.length})
+          </button>
+          {sessionsOpen && (
+            <div className="space-y-2">
+              {threads.map((thread) => {
+                const preview = thread.payload[0]?.content || 'Empty Chat'
+                const scope = scopeFromEntry(thread)
+                return (
+                  <div
+                    key={thread.id}
+                    onClick={() => {
+                      setActiveScope(scope)
+                      setActiveChatId(thread.id)
                     }}
-                    aria-label={t('rulings.deleteChatTitle')}
-                    className="shrink-0 rounded-full p-1.5 text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 text-start shadow-sm dark:bg-[#122A1F]"
                   >
-                    <Trash2 size={15} />
-                  </button>
-                  <ChevronRight size={14} className="text-ink/30 dark:text-cream/30" />
-                </div>
-              )
-            })}
-          </div>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#8FBC8F]/15">
+                      {thread.temporary ? (
+                        <MessageCircle size={15} className="text-ink/30 dark:text-cream/30" />
+                      ) : (
+                        <CheckCircle2 size={15} className="text-[#8FBC8F]" />
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-ink dark:text-cream">{preview}</span>
+                      <span className="mt-0.5 flex items-center gap-1">
+                        {scope && (
+                          <span className="truncate text-[10px] text-[#8FBC8F]">
+                            {scope.quran ? t('rulings.quranEntry') : scope.refTitle} ·{' '}
+                          </span>
+                        )}
+                        <span
+                          className={`text-[10px] ${thread.temporary ? 'text-ink/40 dark:text-cream/40' : 'font-semibold text-[#8FBC8F]'}`}
+                        >
+                          {thread.temporary ? t('rulings.temporaryChat') : t('rulings.savedSessions')}
+                        </span>
+                      </span>
+                    </span>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        const ok = await askConfirm({
+                          title: t('rulings.deleteChatTitle'),
+                          message: t('rulings.deleteChatMsg'),
+                          confirmText: t('rulings.deleteChatConfirm'),
+                          cancelText: t('common.cancel'),
+                          destructive: true,
+                        })
+                        if (!ok) return
+                        await deleteRulingsChatLocal(thread.id).catch(() => {})
+                        await deleteRulingsDraft(thread.id).catch(() => {})
+                        deleteRemoteChat(thread.id)
+                        // Refresh both device-local lists so rows disappear
+                        // immediately.
+                        listRulingsChats().then(setLocalChats).catch(() => {})
+                        listRulingsDrafts().then(setDrafts).catch(() => {})
+                      }}
+                      aria-label={t('rulings.deleteChatTitle')}
+                      className="shrink-0 rounded-full p-1.5 text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                    <ChevronRight size={14} className="text-ink/30 dark:text-cream/30" />
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }) {
+export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: RulingsRefScope | null, onClose: () => void }) {
   const { t } = useI18n()
-  const { messages, send, loading, error } = useRulingsChat({ chatId })
+  const { user } = useAuth()
+  const { messages, send, loading, error } = useRulingsChat({ chatId, scope })
   const [draft, setDraft] = useState('')
+  const [hintHidden, setHintHidden] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -123,9 +228,19 @@ function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }
           <span className="flex items-center gap-2 text-sm font-bold text-ink dark:text-cream">
             <Sparkles size={14} className="text-[#8FBC8F]" /> AI Assistant
           </span>
-          <span className="truncate text-[11px] text-ink/50 dark:text-cream/50">
-            {t('rulings.title')}
-          </span>
+          {scope ? (
+            // Reference badge — this chat is scoped to one chosen reference.
+            <span className="mt-0.5 flex w-fit max-w-full items-center gap-1 rounded-full bg-[#8FBC8F]/15 px-2 py-0.5">
+              <BookOpen size={10} className="shrink-0 text-[#8FBC8F]" />
+              <span className="truncate text-[10px] font-medium text-[#8FBC8F]">
+                {scope.quran ? t('rulings.quranEntry') : scope.refTitle}
+              </span>
+            </span>
+          ) : (
+            <span className="truncate text-[11px] text-ink/50 dark:text-cream/50">
+              {t('rulings.title')}
+            </span>
+          )}
         </div>
       </header>
 
@@ -144,6 +259,9 @@ function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }
           {messages.length === 0 && !loading && (
             <div className="py-10 text-center text-sm text-ink/40 dark:text-cream/40">
               {t('rulings.typeQuestion')}
+              {scope && (
+                <div className="mt-1 text-xs font-medium text-[#8FBC8F]">{t('rulings.scopedNotice')}</div>
+              )}
             </div>
           )}
 
@@ -184,6 +302,24 @@ function ChatScreen({ chatId, onClose }: { chatId: string, onClose: () => void }
       </div>
 
       <div className="border-t border-black/5 bg-cream px-4 py-3 pb-safe dark:border-white/10 dark:bg-night lg:bg-transparent lg:dark:bg-transparent">
+        {/* Guest notice — this conversation won't be saved (per-mount dismiss) */}
+        {!user && !hintHidden ? (
+          <div className="mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl bg-black/5 px-3 py-2 dark:bg-white/10">
+            <span className="flex-1 text-[11px] text-ink/60 dark:text-cream/60">
+              {t('rulings.guestSaveHint')}
+            </span>
+            <Link to="/login" className="text-[11px] font-bold text-[#8FBC8F]">
+              {t('quranHome.guestLogin')}
+            </Link>
+            <button
+              onClick={() => setHintHidden(true)}
+              aria-label={t('common.close')}
+              className="p-1 text-ink/40 transition-colors hover:text-ink/70 dark:text-cream/40 dark:hover:text-cream/70"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ) : null}
         <form onSubmit={onSend} className="mx-auto flex max-w-2xl items-end gap-2">
           <textarea
             rows={1}

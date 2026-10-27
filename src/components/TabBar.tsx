@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router'
-import { House, CalendarDays, Scale, UserCircle } from 'lucide-react'
+import { House, CalendarDays, Sparkles, UserCircle } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
 import { QuranLogo, IqraLogo } from '@/components/QuranLogo'
@@ -24,7 +24,7 @@ const TABS = [
   { path: '/home', icon: House, key: 'tabs.home' },
   { path: '/calendar', icon: CalendarDays, key: 'tabs.calendar' },
   // centre FAB slot (/quran)
-  { path: '/rulings', icon: Scale, key: 'tabs.rulings' },
+  { path: '/rulings', icon: Sparkles, key: 'tabs.rulings' },
   { path: '/me', icon: UserCircle, key: 'tabs.me' },
 ] as const
 

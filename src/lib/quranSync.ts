@@ -316,7 +316,17 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         // silently dropped, so saved sessions never synced DOWN to other devices.
         const chats = { ...next.rulingsChats };
         if (c.deleted) delete chats[c.key];
-        else chats[c.key] = { id: c.key, payload: c.payload, updatedAt: c.updated_at };
+        else
+          chats[c.key] = {
+            id: c.key,
+            payload: c.payload,
+            updatedAt: c.updated_at,
+            // Reference scope (chat-with-reference): undefined on old-server
+            // rows, which then apply as general chats.
+            sources: c.sources,
+            quran: c.quran,
+            refTitle: c.ref_title,
+          };
         next.rulingsChats = chats;
         break;
       }

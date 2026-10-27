@@ -261,6 +261,12 @@ export interface RulingsChatEntryData {
   // Epoch ms of the last activity — stamped by the client on save and by the
   // server (rulings_chats.updated_at) in the sync feed; sorts the saved list.
   updatedAt?: number;
+  // Reference scope (chat-with-reference): the chosen kitab volumes and/or the
+  // whole Qur'an. Absent on general chats. refTitle is the display name;
+  // scope equality ignores it (see src/rulings/scope.ts).
+  sources?: string[];
+  quran?: boolean;
+  refTitle?: string;
 }
 
 
