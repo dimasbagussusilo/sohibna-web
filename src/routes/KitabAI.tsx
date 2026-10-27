@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Sparkles, ChevronRight, ChevronDown, MessageCircle, BookOpen } from 'lucide-react'
+import { Sparkles, ChevronRight, MessageCircle, BookOpen } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/context/QuranDataContext'
@@ -14,6 +14,9 @@ import {
 import { sameScope, scopeFromEntry, quranScope, type RulingsRefScope } from '@/rulings/scope'
 import { useRulingsSources, groupByCategory } from '@/rulings/sources'
 import { ChatScreen } from '@/routes/Rulings'
+import type { RulingsSourceGroup } from '@/api'
+import { accentColor } from '@/components/kitab/palette'
+import { KitabDetailSheet } from '@/components/kitab/KitabDetailSheet'
 
 // Kitab AI — chat with ONE chosen reference (NotebookLM-style). Holds the kitab
 // catalog list (search + category shelves, "Referensi Terkenal" first) that
@@ -31,7 +34,9 @@ export function KitabAI() {
   const [activeScope, setActiveScope] = useState<RulingsRefScope | null>(null)
 
   const [query, setQuery] = useState('')
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  // Catalogue detail sheet: the tapped series (null = closed). Chat actions
+  // inside the sheet route back through openReference.
+  const [selected, setSelected] = useState<RulingsSourceGroup | null>(null)
 
   // Saved sessions power the continue-thread behavior: tapping a reference
   // reopens the most recent chat with the same scope.
@@ -78,11 +83,14 @@ export function KitabAI() {
   const sections = (catalog ? groupByCategory(catalog) : []).map(({ key, series }) => ({
     key,
     items: series
-      .map((s) => ({
-        group: s,
-        titleMatch: s.title.toLowerCase().includes(q),
-        parts: s.parts.filter((p) => s.title.toLowerCase().includes(q) || p.label.toLowerCase().includes(q)),
-      }))
+      .map((s) => {
+        const hay = `${s.title} ${s.author ?? ''}`.toLowerCase()
+        return {
+          group: s,
+          titleMatch: hay.includes(q),
+          parts: s.parts.filter((p) => hay.includes(q) || p.label.toLowerCase().includes(q)),
+        }
+      })
       .filter((s) => s.titleMatch || s.parts.length > 0),
   })).filter((sec) => sec.items.length > 0)
 
@@ -176,83 +184,38 @@ export function KitabAI() {
           )}
 
           {sections.map((sec) => (
-            <div key={sec.key || 'all'} className="mb-4">
+            <div key={sec.key || 'all'} className="mb-5">
               {sec.key !== '' && (
                 <h4 className="mb-2 text-[11px] font-bold uppercase tracking-widest text-ink/40 dark:text-cream/40">
                   {catLabels[sec.key] ?? sec.key}
                 </h4>
               )}
+              {/* Compact text list: one grouped card per shelf, one row per
+                  kitab (title + author · wafat), stable color spine; tap →
+                  detail sheet */}
               <div className="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-[#122A1F]">
-                {sec.items.map(({ group, titleMatch, parts }, idx) => {
-                  const multiPart = group.parts.length > 1
-                  const isOpen = searching || !!expanded[group.title]
-                  const shownParts = searching && !titleMatch ? parts : group.parts
-                  const last = idx === sec.items.length - 1
-                  return (
-                    <div
-                      key={group.title}
-                      className={!last || (multiPart && isOpen) ? 'border-b border-black/5 dark:border-white/10' : ''}
-                    >
-                      <div
-                        onClick={() =>
-                          openReference({ sources: group.parts.map((p) => p.name), quran: false, refTitle: group.title })
-                        }
-                        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3"
-                      >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#8FBC8F]/15">
-                          <BookOpen size={16} className="text-[#8FBC8F]" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-ink dark:text-cream">
-                            {group.title}
-                          </span>
-                          <span className="block text-[11px] text-ink/50 dark:text-cream/50">
-                            {t('rulings.partsCount', { count: group.parts.length })}
-                          </span>
-                        </span>
-                        {multiPart && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setExpanded((prev) => ({ ...prev, [group.title]: !prev[group.title] }))
-                            }}
-                            aria-label={group.title}
-                            className="shrink-0 rounded-full p-1.5 text-ink/40 transition-colors hover:bg-black/5 dark:text-cream/40 dark:hover:bg-white/10"
-                          >
-                            <ChevronDown
-                              size={16}
-                              className={`transition-transform rtl-flip ${isOpen ? '' : '-rotate-90'}`}
-                            />
-                          </button>
-                        )}
-                        <MessageCircle size={16} className="shrink-0 text-[#8FBC8F]" />
-                      </div>
-
-                      {multiPart && isOpen && (
-                        <div className="bg-black/[0.02] dark:bg-white/[0.02]">
-                          {shownParts.map((part) => (
-                            <div
-                              key={part.name}
-                              onClick={() =>
-                                openReference({
-                                  sources: [part.name],
-                                  quran: false,
-                                  refTitle: `${group.title} · ${part.label}`,
-                                })
-                              }
-                              className="flex cursor-pointer items-center gap-3 px-4 py-2 ps-12"
-                            >
-                              <span className="min-w-0 flex-1 truncate text-xs text-ink dark:text-cream">
-                                {part.label}
-                              </span>
-                              <MessageCircle size={13} className="shrink-0 text-[#8FBC8F]" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+                {sec.items.map(({ group }) => (
+                  <button
+                    key={group.title}
+                    onClick={() => setSelected(group)}
+                    className="flex w-full items-center gap-3 border-b border-black/5 px-4 py-3 text-start transition-colors last:border-b-0 hover:bg-black/[0.02] dark:border-white/10 dark:hover:bg-white/[0.03]"
+                  >
+                    <span
+                      className="h-9 w-1 shrink-0 rounded-full"
+                      style={{ backgroundColor: accentColor(group.title, group.category) }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-ink dark:text-cream">
+                        {group.title}
+                      </span>
+                      <span className="block truncate text-[11px] text-ink/50 dark:text-cream/50">
+                        {group.author ?? '—'}
+                        {group.author && group.died ? ` · ${group.died}` : ''}
+                      </span>
+                    </span>
+                    <ChevronRight size={16} className="shrink-0 text-ink/30 rtl-flip dark:text-cream/30" />
+                  </button>
+                ))}
               </div>
             </div>
           ))}
@@ -266,6 +229,18 @@ export function KitabAI() {
         <ChevronRight size={14} className="rotate-180 rtl-flip" />
         {t('rulings.title')}
       </Link>
+
+      {selected && (
+        <KitabDetailSheet
+          group={selected}
+          categoryLabel={catLabels[selected.category ?? ''] ?? ''}
+          onClose={() => setSelected(null)}
+          onChat={(scope) => {
+            setSelected(null)
+            openReference(scope)
+          }}
+        />
+      )}
     </div>
   )
 }

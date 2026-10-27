@@ -70,6 +70,15 @@ export type RulingsSourceGroup = {
   category?: string; // category slug (see groupByCategory); absent on old servers
   parts: RulingsSourcePart[];
   chunks: number;
+  // Kitab catalogue metadata (kitab_metadata, migration 0015) — absent on old
+  // servers / unbackfilled rows; verified = hand-curated (cmd/kitab_meta).
+  author?: string;
+  authorAr?: string;
+  died?: string;
+  synopsisId?: string;
+  synopsisEn?: string;
+  synopsisAr?: string;
+  verified?: boolean;
 };
 export type RulingsSourceCatalog = {
   series: RulingsSourceGroup[];

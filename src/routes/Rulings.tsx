@@ -16,6 +16,8 @@ import {
   type RulingsChatEntry,
 } from '@/rulings/history'
 import { scopeFromEntry, type RulingsRefScope } from '@/rulings/scope'
+import { useRulingsSources } from '@/rulings/sources'
+import { accentColor } from '@/components/kitab/palette'
 import { MarkdownText } from '@/components/MarkdownText'
 
 // The static curated "Rulings Collection" was retired — the RAG chat answers all
@@ -204,6 +206,24 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
   const [hintHidden, setHintHidden] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  // Catalog lookup for the scoped reference: the banner explains WHAT the
+  // chosen kitab is (title, author, shelf color), not just its name.
+  const { catalog } = useRulingsSources()
+  const scopedGroup = useMemo(() => {
+    if (!scope || scope.quran || !catalog) return null
+    let best: (typeof catalog.series)[number] | null = null
+    let bestOverlap = 0
+    for (const g of catalog.series) {
+      const names = new Set(g.parts.map((p) => p.name))
+      const overlap = scope.sources.filter((s) => names.has(s)).length
+      if (overlap > bestOverlap) {
+        bestOverlap = overlap
+        best = g
+      }
+    }
+    return bestOverlap === scope.sources.length ? best : null
+  }, [scope, catalog])
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
@@ -233,7 +253,7 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
             <span className="mt-0.5 flex w-fit max-w-full items-center gap-1 rounded-full bg-[#8FBC8F]/15 px-2 py-0.5">
               <BookOpen size={10} className="shrink-0 text-[#8FBC8F]" />
               <span className="truncate text-[10px] font-medium text-[#8FBC8F]">
-                {scope.quran ? t('rulings.quranEntry') : scope.refTitle}
+                {t('rulings.reference')}: {scope.quran ? t('rulings.quranEntry') : scope.refTitle}
               </span>
             </span>
           ) : (
@@ -246,6 +266,34 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
 
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
+          {/* Reference context banner — stays visible above the messages for
+              the whole conversation, so the scope is never ambiguous. */}
+          {scope && (
+            <div className="mb-2 flex gap-3 rounded-2xl border border-black/5 bg-white px-4 py-3.5 shadow-sm dark:border-white/10 dark:bg-[#122A1F]">
+              <span
+                className="w-1 shrink-0 rounded-full"
+                style={{ backgroundColor: accentColor(scopedGroup?.title ?? scope.refTitle, scopedGroup?.category) }}
+              />
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-[#8FBC8F]">
+                  {t('rulings.reference')}
+                </span>
+                <div className="text-sm font-bold leading-snug text-ink dark:text-cream">
+                  {scope.quran ? t('rulings.quranEntry') : (scopedGroup?.title ?? scope.refTitle)}
+                </div>
+                {scopedGroup?.author && (
+                  <div className="mt-0.5 text-[11px] text-ink/50 dark:text-cream/50">
+                    {scopedGroup.author}
+                    {scopedGroup.died ? ` · ${scopedGroup.died}` : ''}
+                  </div>
+                )}
+                <p className="mt-1.5 text-[11px] leading-relaxed text-ink/60 dark:text-cream/60">
+                  {t('rulings.scopedContextNotice')}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Disclaimer at the top */}
           <div className="rounded-2xl border border-orange-200/50 bg-orange-50/50 px-4 py-3 dark:border-orange-900/30 dark:bg-orange-900/10 mb-2">
             <p className="text-[11px] leading-relaxed text-orange-900/80 dark:text-orange-200/80">
@@ -259,9 +307,6 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
           {messages.length === 0 && !loading && (
             <div className="py-10 text-center text-sm text-ink/40 dark:text-cream/40">
               {t('rulings.typeQuestion')}
-              {scope && (
-                <div className="mt-1 text-xs font-medium text-[#8FBC8F]">{t('rulings.scopedNotice')}</div>
-              )}
             </div>
           )}
 
