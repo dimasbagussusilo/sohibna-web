@@ -414,8 +414,10 @@ export const translations: Translation = {
     preview: 'Preview',
     readingMode: 'Reading Mode',
     readingModeVerse: 'Verse by Verse',
-    readingModeReading: 'Continuous',
-    readingModeHint: 'Continuous mode hides translations for focused Arabic reading.',
+    readingModeReading: 'Tadarus',
+    readingModeMushaf: 'Mushaf',
+    readingModeHint: 'Tadarus mode hides translations for focused Arabic reading.',
+    readingModeHintMushaf: 'Mushaf mode shows the 15-line Madinah Mushaf; swipe sideways to turn pages.',
     arabicScript: 'Arabic Script',
     scriptDesc: {
       tajweed: 'Tajweed — colour-coded rules rendered in a WebView.',

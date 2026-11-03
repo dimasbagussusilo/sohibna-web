@@ -423,8 +423,10 @@ export const translations: Translation = {
     preview: 'معاينة',
     readingMode: 'وضع القراءة',
     readingModeVerse: 'آية بآية',
-    readingModeReading: 'متصلة',
-    readingModeHint: 'الوضع المتصل يُخفي الترجمات للتركيز على قراءة النص العربي.',
+    readingModeReading: 'تَدَارُس',
+    readingModeMushaf: 'مصحف',
+    readingModeHint: 'وضع التَّدَارُس يُخفي الترجمات للتركيز على قراءة النص العربي.',
+    readingModeHintMushaf: 'وضع المصحف يعرض مصحف المدينة بخمسة عشر سطرًا؛ اسحب أفقيًا لتقليب الصفحات.',
     arabicScript: 'الخط العربي',
     scriptDesc: {
       tajweed: 'التجويد — قواعد ملوّنة تُعرض داخل WebView.',

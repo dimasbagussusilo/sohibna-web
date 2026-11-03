@@ -421,8 +421,10 @@ export const translations = {
     preview: 'Pratinjau',
     readingMode: 'Mode Baca',
     readingModeVerse: 'Ayat per Ayat',
-    readingModeReading: 'Mode Baca',
-    readingModeHint: 'Mode baca menyembunyikan terjemahan untuk fokus membaca Arab.',
+    readingModeReading: 'Tadarus',
+    readingModeMushaf: 'Mushaf',
+    readingModeHint: 'Mode tadarus menyembunyikan terjemahan untuk fokus membaca Arab.',
+    readingModeHintMushaf: 'Mode mushaf menampilkan Mushaf Madinah 15 baris; geser horizontal untuk berpindah halaman.',
     arabicScript: 'Skrip Arab',
     scriptDesc: {
       tajweed: 'Tajweed — aturan berkode warna yang dirender di WebView.',

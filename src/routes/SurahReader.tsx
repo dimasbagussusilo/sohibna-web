@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
-import { ChevronLeft, Download, Search, Settings, Star, Tag } from 'lucide-react'
+import { BookOpenText, ChevronLeft, Download, List, Search, Settings, Star, Tag } from 'lucide-react'
 import {
   ensureSegments,
   fetchChapters,
   fetchReciters,
   loadVerses,
   markVerseKey,
+  resolveVersePage,
   type Chapter,
   type Reciter,
   type Script,
   type Verse,
   type VerseSegments,
 } from '@/lib/quran'
+import { surahStartPage } from '@/lib/mushafLayout'
 import { useQuranFonts } from '@/lib/qcfFonts'
+import { MushafPager } from '@/components/quran/mushaf/MushafPager'
+import type { MushafPageModel } from '@/lib/mushafPage'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
@@ -68,6 +72,63 @@ export function SurahReader() {
   const lastReadVkRef = useRef<string | null>(null)
 
   const topRef = useRef<HTMLDivElement>(null)
+
+  // ── Mushaf mode ─────────────────────────────────────────────────────────────
+  // Web's second display mode: the traditional Madinah 15-line mushaf with
+  // horizontal page-swipe (see components/quran/mushaf/). `displayMode` is a
+  // synced setting (cross-device with the app). URL params are ONE-TIME seeds:
+  // ?mode=mushaf switches mode, ?page=N / ?v=2:255 pick the opening page —
+  // mode changes in the UI never rewrite the URL (no history churn).
+  const mushafMode = ud.displayMode === 'mushaf'
+  const [mushafPage, setMushafPage] = useState(() => surahStartPage(surahId) || 1)
+  const seedDoneRef = useRef(false)
+  useEffect(() => {
+    if (seedDoneRef.current) return
+    seedDoneRef.current = true
+    const mode = searchParams.get('mode')
+    const pageParam = parseInt(searchParams.get('page') || '', 10)
+    if (mode === 'mushaf' && ud.displayMode !== 'mushaf') setUD({ displayMode: 'mushaf' })
+    if (Number.isInteger(pageParam) && pageParam >= 1 && pageParam <= 604) {
+      setMushafPage(pageParam)
+      return
+    }
+    if (jumpVk) {
+      resolveVersePage(jumpVk).then((p) => {
+        if (p) setMushafPage(p)
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Mushaf settle: record lastRead at the page's last verse + feed the session
+  // tracker (mirrors the scroll-driven recording of verse mode).
+  const onMushafSettle = useCallback(
+    (_page: number, model: MushafPageModel | null) => {
+      if (!model?.lastVk) return
+      lastReadVkRef.current = model.lastVk
+      recordLastRead(parseInt(model.lastVk.split(':')[0], 10), model.lastVk)
+    },
+    [recordLastRead],
+  )
+
+  const chaptersById = useMemo(() => {
+    const m: Record<number, Chapter> = {}
+    for (const c of chapters) m[c.id] = c
+    return m
+  }, [chapters])
+
+  const webMarks = useMemo(() => {
+    const m: Record<string, 'fav' | 'bk' | 'label'> = {}
+    for (const vk of ud.favorites) m[vk] = 'fav'
+    for (const slot of Object.values(ud.lastReadSlots)) {
+      const vk = markVerseKey(slot)
+      if (vk && !m[vk]) m[vk] = 'bk'
+    }
+    for (const vk of Object.keys(ud.labels)) {
+      if (ud.labels[vk]?.length && !m[vk]) m[vk] = 'label'
+    }
+    return m
+  }, [ud.favorites, ud.lastReadSlots, ud.labels])
 
   const audio = useQuranAudio(verses, ud.reciterId, ud.audioRate, {
     mode: ud.repeatMode,
@@ -352,6 +413,17 @@ export function SurahReader() {
         >
           <Download size={18} />
         </button>
+        {/* Verse ↔ Mushaf quick toggle (web's two display modes). */}
+        <button
+          onClick={() => setUD({ displayMode: mushafMode ? 'verse' : 'mushaf' })}
+          className={`flex h-9 w-9 items-center justify-center rounded-full ${
+            mushafMode ? 'bg-[#8FBC8F]/15 text-[#8FBC8F]' : 'text-ink dark:text-cream'
+          }`}
+          aria-label={t('readerSettings.readingMode')}
+          aria-pressed={mushafMode}
+        >
+          {mushafMode ? <List size={18} /> : <BookOpenText size={18} />}
+        </button>
         <button
           onClick={() => setShowSettings(true)}
           className="flex h-9 w-9 items-center justify-center rounded-full text-ink dark:text-cream"
@@ -361,8 +433,20 @@ export function SurahReader() {
         </button>
       </header>
 
-      {/* Loading / error */}
-      {loading ? (
+      {/* Mushaf mode: the horizontal page pager replaces the verse list (and
+          the desktop sidebar — the pages want the full width). */}
+      {mushafMode ? (
+        <div className="h-[calc(100dvh-53px)]">
+          <MushafPager
+            initialPage={mushafPage}
+            dark={darkMode}
+            script={ud.script}
+            chapters={chaptersById}
+            marks={webMarks}
+            onSettle={onMushafSettle}
+          />
+        </div>
+      ) : loading ? (
         <div className="flex justify-center py-24">
           <div className="h-8 w-8 animate-pulse rounded-full bg-sage/40" />
         </div>
@@ -473,6 +557,8 @@ export function SurahReader() {
           onScript={(s) => setUD({ script: s })}
           fontSize={ud.fontSize}
           onFontSize={(n) => setUD({ fontSize: n })}
+          displayMode={ud.displayMode}
+          onDisplayMode={(m) => setUD({ displayMode: m })}
           showEnglish={ud.showEnglish}
           showIndonesian={ud.showIndonesian}
           showEnglishTafsir={ud.showEnglishTafsir}
@@ -609,6 +695,8 @@ function ReaderSettings({
   onScript,
   fontSize,
   onFontSize,
+  displayMode,
+  onDisplayMode,
   showEnglish,
   showIndonesian,
   showEnglishTafsir,
@@ -620,6 +708,8 @@ function ReaderSettings({
   onScript: (s: Script) => void
   fontSize: number
   onFontSize: (n: number) => void
+  displayMode: 'verse' | 'reading' | 'mushaf'
+  onDisplayMode: (m: 'verse' | 'reading' | 'mushaf') => void
   showEnglish: boolean
   showIndonesian: boolean
   showEnglishTafsir: boolean
@@ -645,6 +735,33 @@ function ReaderSettings({
           <button onClick={onClose} className="text-xs text-ink/50 dark:text-cream/50">
             {t('common.close')}
           </button>
+        </div>
+
+        {/* Reading mode — web offers verse + the traditional mushaf view. */}
+        <div className="mb-4">
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            {t('readerSettings.readingMode')}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {(['verse', 'mushaf'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => onDisplayMode(m)}
+                className={`rounded-xl px-3 py-2.5 text-sm ${
+                  displayMode === m
+                    ? 'bg-[#8FBC8F] font-semibold text-white'
+                    : 'bg-black/5 text-ink dark:bg-white/10 dark:text-cream'
+                }`}
+              >
+                {m === 'verse' ? t('readerSettings.readingModeVerse') : t('readerSettings.readingModeMushaf')}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 text-xs leading-relaxed text-gray-400">
+            {displayMode === 'mushaf'
+              ? t('readerSettings.readingModeHintMushaf')
+              : t('readerSettings.readingModeHint')}
+          </div>
         </div>
 
         {/* Script */}

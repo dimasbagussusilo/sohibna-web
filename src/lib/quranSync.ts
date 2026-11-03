@@ -96,7 +96,22 @@ export function applyAppSettingOp(app: AppSettings, key: string, value: unknown)
 // pure and idempotent: re-applying the same page is a no-op, so delta pulls and
 // full snapshots share one code path. Soft-deleted rows (deleted=true) remove
 // their target; the bookmark's cleared state is encoded as an empty verse_key.
-export function mergeRemote(prev: UserData, changes: Change[]): UserData {
+// Setting keys with a PENDING local op (queued or in-flight PATCH) must not be
+// overwritten by a remote change: a /changes response fetched BEFORE the local
+// edit can land AFTER it and stomp the user's just-made choice (e.g. toggling
+// displayMode snapping back to the server's old value). Once the op lands, its
+// own echo arrives and re-applies the same value — no drift.
+export function pendingSettingKeys(ops: Array<{ kind: string; key?: string }>): Set<string> {
+  const keys = new Set<string>();
+  for (const op of ops) if (op.kind === 'setting' && op.key) keys.add(op.key);
+  return keys;
+}
+
+export function mergeRemote(
+  prev: UserData,
+  changes: Change[],
+  pendingKeys?: Set<string>,
+): UserData {
   const next: UserData = {
     ...prev,
     favorites: [...prev.favorites],
@@ -179,6 +194,9 @@ export function mergeRemote(prev: UserData, changes: Change[]): UserData {
         break;
       }
       case 'setting':
+        // A local edit for this key is still queued/in-flight — the remote
+        // value predates it. Skip; the op's own echo re-applies the new value.
+        if (pendingKeys?.has(c.key)) break;
         // LEGACY whole-map reading marks: since 0011 the marks live in
         // quran_last_read_slots rows ('last_read_slot' above). Un-upgraded
         // builds still push the whole map through /settings — a stale map must

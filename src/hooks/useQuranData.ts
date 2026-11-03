@@ -17,6 +17,7 @@ import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVers
 import { clearLegacyGuestData } from '@/lib/quranStorage';
 import {
   mergeRemote,
+  pendingSettingKeys,
   migrateLegacySyncKeys,
   loadCursor,
   saveCursor,
@@ -350,8 +351,11 @@ export function useQuranDataSync() {
       while (hasMore) {
         const feed = await getChanges(deviceId, since, 200);
         if (feed.changes.length) {
+          // Guard against reverting keys with queued/in-flight ops (this feed
+          // may have been fetched before those edits happened).
+          const pending = pendingSettingKeys(queueRef.current);
           setUdState((prev) => {
-            const merged = mergeRemote(prev, feed.changes);
+            const merged = mergeRemote(prev, feed.changes, pending);
             void saveCache(uidRef.current, merged);
             return merged;
           });
@@ -400,7 +404,7 @@ export function useQuranDataSync() {
         const st = await getState(deviceId);
         cursorRef.current = st.cursor;
         await saveCursor(uidRef.current, st.cursor);
-        const merged = mergeRemote(DEFAULT_USER_DATA, st.changes);
+        const merged = mergeRemote(DEFAULT_USER_DATA, st.changes, pendingSettingKeys(queuedAtStart));
         setUdState(merged);
         void saveCache(uidRef.current, merged);
         setLoaded(true);

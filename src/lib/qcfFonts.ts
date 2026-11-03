@@ -22,6 +22,13 @@ const INDO_PAK_URL = `${QCF_CDN}/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-
 export const pageFontFamily = (page: number) => `QCF_V2_P${page}`
 const pageFontUrl = (page: number) => `${QCF_CDN}/v2/ttf/p${page}.ttf`
 
+// Ensure a specific mushaf page's QCF V2 font is registered — the mushaf view
+// loads fonts page-by-page as pages mount (vs useQuranFonts, which derives the
+// set from a verse list). App twin: sohibna/src/lib/qcfFonts.ts.
+export function loadPageFont(page: number): Promise<void> {
+  return loadFont(pageFontFamily(page), pageFontUrl(page))
+}
+
 // In-flight loads (dedupe concurrent requests for the same family).
 const inflight = new Map<string, Promise<void>>()
 const loaded = new Set<string>()

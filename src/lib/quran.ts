@@ -23,7 +23,10 @@ export const AUDIO_BASE = 'https://audio.qurancdn.com/';
 // ── TYPES ───────────────────────────────────────────────────────────────────
 
 export type Script = 'tajweed' | 'uthmani' | 'indopak' | 'indonesian';
-export type DisplayMode = 'reading' | 'verse';
+// 'mushaf' = the traditional Madinah 15-line page view (horizontal swipe; see
+// components/quran/mushaf/). Rendering is page-shaped for ANY script: tajweed
+// renders QCF V4 colour glyphs, the other scripts render plain QCF V2 glyphs.
+export type DisplayMode = 'reading' | 'verse' | 'mushaf';
 // A navigation source. 'surah'/'juz'/'page' map 1:1 to Quran.com endpoints.
 // 'lembar' is the Indonesian Mushaf-Pojok reading unit — ONE lembar = TWO
 // consecutive mushaf pages (a physical sheet, front + back). 604 pages → 302
@@ -89,6 +92,13 @@ export interface Verse {
   // Requested via `fields=ruku_number`; drives the ع markers between ruku
   // sections. A ruku never crosses a surah boundary.
   ruku_number?: number;
+  // Structural metadata requested via `fields=` for the mushaf page view's
+  // margin ornaments (juz/hizb/rub start marks + sajdah) and juz filters.
+  // sajda_number: 1 = recommended prostration, 2 = obligatory.
+  juz_number?: number;
+  hizb_number?: number;
+  rub_el_hizb_number?: number;
+  sajda_number?: number;
 }
 
 export interface Reciter {
@@ -474,6 +484,35 @@ export const versesToPages = (verses: { words: { page_number?: number }[] }[]): 
 export const pageCount = (verses: { words: { page_number?: number }[] }[]): number =>
   versesToPages(verses).length;
 
+// The mushaf page a verse "is on" — the page of its LAST word (a verse can
+// straddle a boundary; its end medallion sits on the last word's page). Same
+// derivation as the reader's current-page readout. Null when words lack pages.
+export function versePageNumber(v: { words: { page_number?: number }[] } | undefined): number | null {
+  if (!v) return null;
+  for (let i = v.words.length - 1; i >= 0; i--) {
+    const p = v.words[i].page_number;
+    if (p) return p;
+  }
+  return null;
+}
+
+// Resolve "surah:ayah" → its mushaf page via the disk-cached single-verse fetch
+// (fetchVerseByKey already requests page_number). Used by mushaf-mode deep links
+// (?v=) and continue-reading so they can jump straight to the right page.
+const versePageCache = new Map<string, number>();
+export async function resolveVersePage(vk: string): Promise<number | null> {
+  const hit = versePageCache.get(vk);
+  if (hit) return hit;
+  try {
+    const v = await fetchVerseByKey(vk);
+    const p = versePageNumber(v);
+    if (p) versePageCache.set(vk, p);
+    return p;
+  } catch {
+    return null;
+  }
+}
+
 // ── LEMBAR (Mushaf-Pojok reading unit) ──────────────────────────────────────
 // 1 lembar = 2 consecutive mushaf pages (a sheet, front + back). The standard
 // mushaf is 604 pages → 302 lembar. Lembar N spans pages (2N-1, 2N). These are
@@ -680,9 +719,10 @@ export const fetchFootNote = async (id: string): Promise<string> => {
 // the web app: EN+ID translations (20=Saheeh, 33=Kemenag), full word fields for
 // word-by-word rendering + audio, and the tajweed/indopak verse fields.
 // Standard word/translation/tafsir-glyph fields requested for every reader load.
-const VERSE_FIELDS = 'text_uthmani,text_uthmani_tajweed,text_indopak,page_number,ruku_number';
+const VERSE_FIELDS =
+  'text_uthmani,text_uthmani_tajweed,text_indopak,page_number,ruku_number,juz_number,hizb_number,rub_el_hizb_number,sajda_number';
 const WORD_FIELDS =
-  'code_v1,code_v2,text_uthmani,text_indopak,transliteration,translation,audio_url,page_number';
+  'code_v1,code_v2,text_uthmani,text_indopak,transliteration,translation,audio_url,page_number,line_number';
 
 // Order verses by their `verse_key` ("surah:ayah") — needed when a source spans
 // more than one surah (juz, page, lembar) so the reader renders them in mushaf
@@ -725,7 +765,10 @@ export async function loadVerses(src: Source): Promise<Verse[]> {
   const l1 = versesCache.get(key);
   if (l1) return l1;
 
-  const verses = await cachedContent<Verse[]>(`verses_${key}`, async () => {
+  // `verses2_` — bumped from `verses_` when word line_number + verse juz/hizb/
+  // rub/sajda fields were added to the request (old blobs are field-incomplete;
+  // they're left on disk as harmless dead weight until the SW cache cycles).
+  const verses = await cachedContent<Verse[]>(`verses2_${key}`, async () => {
     // Lembar = two consecutive mushaf pages. `by_page` returns every verse that
     // has ANY word on that page, so a verse straddling the page boundary appears
     // in BOTH responses → dedupe by id, then sort into mushaf order.
