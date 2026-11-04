@@ -9,7 +9,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MushafPage } from './MushafPage'
 import type { Chapter } from '@/lib/quran'
-import type { MushafPageModel } from '@/lib/mushafPage'
+import { pageSide, type MushafPageModel } from '@/lib/mushafPage'
+import { useI18n } from '@/context/I18nContext'
 
 const TOTAL = 604
 const WINDOW = 2 // pages mounted on each side of the current one
@@ -33,6 +34,7 @@ export function MushafPager({
 }) {
   const [cur, setCur] = useState(() => Math.min(TOTAL, Math.max(1, initialPage)))
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null)
+  const { t } = useI18n()
   const ref = useRef<HTMLDivElement>(null)
   const settleTimer = useRef<number | undefined>(undefined)
   const landedRef = useRef(false)
@@ -142,13 +144,14 @@ export function MushafPager({
         ))}
         {cur + WINDOW < TOTAL ? <div style={{ flex: `0 0 ${(TOTAL - cur - WINDOW) * 100}%` }} /> : null}
       </div>
-      {/* Slim progress rail, page x / 604 */}
+      {/* Slim progress rail, page x / 604 + the page's side of the physical
+          spread (odd = left, even = right — a mushaf is bound on the right). */}
       <div className="pointer-events-none absolute bottom-1 left-0 right-0 flex items-center justify-center gap-2 text-[10px] text-ink/50 dark:text-cream/50">
         <div className="h-[3px] w-24 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
           <div className="h-full rounded-full bg-[#8FBC8F]" style={{ width: `${(cur / TOTAL) * 100}%` }} />
         </div>
         <span dir="ltr">
-          {cur} / {TOTAL}
+          {cur} / {TOTAL} · {t(pageSide(cur) === 'left' ? 'reader.sideLeft' : 'reader.sideRight')}
         </span>
       </div>
     </div>

@@ -5,7 +5,8 @@
 // SVG in the same geometry/colors as the app — keep the twins in lock-step.
 
 import { toArabic, type Chapter } from '@/lib/quran'
-import { BASMALA_UTHMANI, type MushafPageModel } from '@/lib/mushafPage'
+import { BASMALA_UTHMANI, pageSide, type MushafPageModel } from '@/lib/mushafPage'
+import { useI18n } from '@/context/I18nContext'
 
 const GOLD = { light: '#B8933E', dark: '#D9BC72' }
 const SOFT = { light: '#F3E9D2', dark: '#3A3323' }
@@ -84,17 +85,29 @@ export function MarginMark({ kind, n, dark, size }: Dark & { kind: 'juz' | 'hizb
   )
 }
 
+/**
+ * Framed page number, bottom-center like the print mushaf's folio number, with
+ * the page's side of the open spread ("Halaman kiri/kanan") — a mushaf is
+ * bound on the right, so ODD pages are the LEFT page of a spread and EVEN
+ * pages the RIGHT one (lib/mushafPage pageSide).
+ */
 export function PageNumberFrame({ page, dark }: Dark & { page: number }) {
+  const { t } = useI18n()
   const gold = GOLD[dark ? 'dark' : 'light']
   const soft = SOFT[dark ? 'dark' : 'light']
   const ink = INK[dark ? 'dark' : 'light']
   return (
-    <svg width={54} height={22}>
-      <rect x={1} y={1} width={52} height={20} rx={10} fill={soft} stroke={gold} strokeWidth={0.8} />
-      <text x={27} y={12} textAnchor="middle" dominantBaseline="central" fontSize={12} fontFamily="Tajawal, sans-serif" fontWeight={700} fill={ink}>
-        {toArabic(page)}
-      </text>
-    </svg>
+    <div className="flex items-center" style={{ gap: 8 }}>
+      <svg width={54} height={22}>
+        <rect x={1} y={1} width={52} height={20} rx={10} fill={soft} stroke={gold} strokeWidth={0.8} />
+        <text x={27} y={12} textAnchor="middle" dominantBaseline="central" fontSize={12} fontFamily="Tajawal, sans-serif" fontWeight={700} fill={ink}>
+          {toArabic(page)}
+        </text>
+      </svg>
+      <span style={{ fontSize: 10, lineHeight: '14px', color: gold }}>
+        {t(pageSide(page) === 'left' ? 'reader.pageSideLeft' : 'reader.pageSideRight')}
+      </span>
+    </div>
   )
 }
 

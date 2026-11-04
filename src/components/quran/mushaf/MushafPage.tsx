@@ -83,7 +83,8 @@ export function MushafPage({
   }, [model])
 
   const padV = 8
-  const hPad = 14
+  // Wider side padding on the 8-line openings (edge clipping, 2026-11-04).
+  const hPad = (model?.lineCount ?? 15) <= 8 ? 18 : 14
   const contentW = width - hPad * 2
   const contentH = height - padV * 2 - 6
   const lineCount = model?.lineCount ?? 15

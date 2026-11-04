@@ -72,7 +72,7 @@ export interface MushafPageModel {
 // (see MushafPage/MushafTajweedPage/web twin); the fallbacks below cover the
 // pre-probe paint.
 export const MUSHAF_MEASURE_EM = 15.7; // 15-line pages (measured across pages)
-export const MUSHAF_MEASURE_EM_8LINE = 11.3; // pages 1–2 large-type openings
+export const MUSHAF_MEASURE_EM_8LINE = 12.4; // pages 1–2 large-type openings (fontTools-measured on QCF V2 p1: widest line 12.02em + medallion padding)
 // Width-fit safety: the measured measure can run a few % small (probe timing,
 // medallion padding), which clips the widest lines at the screen edges. Fit at
 // 95% so every line lands inside the padded width with slack; the tajweed
@@ -83,10 +83,21 @@ export function fallbackMeasureEm(lineCount: number): number {
   return lineCount <= 8 ? MUSHAF_MEASURE_EM_8LINE : MUSHAF_MEASURE_EM;
 }
 
+// Which side of the open spread a page sits on in the physical mushaf. A mushaf
+// is bound on the RIGHT (RTL): sheet k shows its front (page 2k−1) on the LEFT
+// of the spread and its back (page 2k) on the RIGHT — so ODD pages are left
+// pages and EVEN pages are right pages, the mirror of Western books. Reading
+// order within a spread is right page (even) first, then left (odd), and each
+// lembar (sheet) is exactly one left page + one right page.
+export type MushafPageSide = 'left' | 'right';
+export const pageSide = (page: number): MushafPageSide => (page % 2 === 1 ? 'left' : 'right');
+
 // Line slack ratio above which a line is rendered CENTERED (ragged) instead of
 // both-edge justified — the print mushaf centers genuinely short verse-end
 // lines (e.g. the closing surahs on page 604) rather than stretching them.
 export const MUSHAF_RAGGED_SLACK = 0.25;
+
+
 
 /**
  * Page metrics from a measured line width.
