@@ -225,7 +225,7 @@ export function QuranSearch() {
               <input
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
-                placeholder="patience, mercy, gratitude…"
+                placeholder={t('quranSearch.aiPlaceholder')}
                 className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-[#8FBC8F] dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
               />
               <button

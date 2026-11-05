@@ -397,7 +397,7 @@ export function SurahReader() {
           </div>
           <div className="truncate text-[11px] text-ink/50 dark:text-cream/50">
             {chapter?.translated_name?.name}
-            {chapter ? ` · ${chapter.verses_count} ayat` : ''}
+            {chapter ? ` · ${t('reader.versesCountShort', { n: chapter.verses_count })}` : ''}
           </div>
         </div>
         <button
@@ -500,8 +500,8 @@ export function SurahReader() {
                 {chapter.name_arabic}
               </div>
               <div className="mt-1 text-xs text-ink/60 dark:text-cream/60">
-                {chapter.translated_name?.name} · {chapter.verses_count} ayat ·{' '}
-                {chapter.revelation_place === 'makkah' ? 'Makkiyah' : 'Madaniyah'}
+                {chapter.translated_name?.name} · {t('reader.versesCountShort', { n: chapter.verses_count })} ·{' '}
+                {chapter.revelation_place === 'makkah' ? t('surahInfo.meccan') : t('surahInfo.medinan')}
               </div>
             </div>
           ) : null}

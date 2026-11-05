@@ -7,14 +7,13 @@ import { useI18n } from '@/context/I18nContext'
 // constants in sync with sohibna/src/app/donation.tsx.
 const BANK_ACCOUNT = '7538169750'
 const WA_NUMBER = '6281809713971'
-const WA_TEXT = encodeURIComponent(
-  'Assalamualaikum, saya baru saja berdonasi untuk aplikasi Sohibna.',
-)
 const BMAC_LINK = 'https://buymeacoffee.com/sohibna'
 
 export function Support() {
   const { t, lang } = useI18n()
   const [copied, setCopied] = useState(false)
+  // WhatsApp confirmation prefill — localized per landing language.
+  const waText = encodeURIComponent(t('landing.support.waText'))
 
   const copyAccount = async () => {
     try {
@@ -110,7 +109,7 @@ export function Support() {
             </div>
             <p className="mt-1.5 text-xs text-cream/50">{t('landing.support.accountName')}</p>
             <a
-              href={`https://wa.me/${WA_NUMBER}?text=${WA_TEXT}`}
+              href={`https://wa.me/${WA_NUMBER}?text=${waText}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 inline-block text-xs font-semibold text-[#8FBC8F] underline-offset-4 hover:underline"

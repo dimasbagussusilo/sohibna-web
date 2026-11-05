@@ -2,7 +2,7 @@
 // English (en.ts) is typed against `typeof translations` so any missing or
 // extra key fails to compile. Add new strings here first, then mirror in en.ts.
 //
-// Convention: Islamic / Arabic transliterations (Assalamu'alaikum, Bismillah,
+// Convention: Islamic / Arabic transliterations (Assalammualaikum, Bismillah,
 // salah names, ruling types, surah/juz/ayah) stay literal in BOTH languages —
 // they are terms of art, not localizable copy. Hijri month names are also kept
 // constant (see HIJRI_MONTHS in src/lib/hijri.ts).
@@ -19,10 +19,11 @@ export const translations = {
     grantLocation: 'Berikan akses lokasi',
     locating: 'Mencari lokasi…',
     noArabicVoice: 'Suara Arab tidak terinstal di perangkat Anda. Beralih ke suara lokal.',
+    error: 'Kesalahan',
   },
 
   onboarding: {
-    greeting: "Assalamu'alaikum",
+    greeting: "Assalammualaikum",
     intro:
       'Tidak pernah terlalu lambat untuk memulai. Kami hadir untuk menemani setiap langkah kecil Anda mengenal Sang Pencipta.',
     start: 'Mulai Perjalanan',
@@ -44,6 +45,7 @@ export const translations = {
       noAccount: 'Belum punya akun?',
       register: 'Daftar',
       couldNotLogin: 'Gagal masuk.',
+      invalid: 'Email atau kata sandi salah.',
       invalidEmail: 'Format email tidak valid.',
       passwordRequired: 'Kata sandi wajib diisi.',
       forgot: 'Lupa kata sandi?',
@@ -59,6 +61,7 @@ export const translations = {
       haveAccount: 'Sudah punya akun?',
       login: 'Masuk',
       couldNotRegister: 'Gagal mendaftar.',
+      emailTaken: 'Email sudah terdaftar.',
       nameRequired: 'Nama wajib diisi.',
       invalidEmail: 'Format email tidak valid.',
       passwordTooShort: 'Kata sandi minimal 8 karakter.',
@@ -118,7 +121,7 @@ export const translations = {
   },
 
   home: {
-    greeting: "Assalamu'alaikum, {{name}} 👋",
+    greeting: "Assalammualaikum, {{name}} 👋",
     sub: 'Senang Anda kembali hari ini.',
     noNotifications: 'Tidak ada notifikasi baru.',
     moodQuestion: 'Bagaimana perasaan Anda hari ini?',
@@ -172,6 +175,7 @@ export const translations = {
     swipeToCollapse: 'Geser ← untuk ciutkan',
     continueReading: 'LANJUTKAN BACA',
     verseOf: 'Ayat {{n}} dari {{total}}',
+    surahN: 'Surah {{n}}',
     myCollection: 'KOLEKSI SAYA',
     lastRead: 'Terakhir Dibaca',
     favorites: 'Favorit',
@@ -188,10 +192,12 @@ export const translations = {
     downloadAudio: 'Mengunduh audio {{done}}/{{total}}',
     readingProgress: 'PROGRES BACA',
     dayStreak: '{{n}} hari beruntun',
+    streakShort: '{{n}} hr',
     streakTotalPages: '{{n}} halaman dibaca',
     streakLongest: 'Rekam {{n}} hari',
     streakLastToday: 'Terakhir baca hari ini',
     readingGoals: 'TARGET BACA',
+    goalsCount: '{{n}} tujuan',
     noGoals: 'Belum ada target. Tambahkan satu untuk mulai.',
     addGoal: 'Tambah Target',
     editGoal: 'Ubah Target',
@@ -223,6 +229,7 @@ export const translations = {
     tabVerses: 'Ayat',
     tabAi: '✨ AI',
     aiHint: 'Ketik topik (mis. sabar, rahmat) lalu tekan cari untuk menemukan ayat terkait.',
+    aiPlaceholder: 'kesabaran, rahmat, syukur…',
     aiLoading: 'Mencari ayat terkait…',
     aiError: 'Tidak dapat menemukan ayat terkait. Coba lagi.',
     hint: 'Ketik kata untuk mencari surah atau makna ayat di seluruh Al-Qur’an.',
@@ -279,6 +286,9 @@ export const translations = {
     lembar: 'Lembar {{id}}',
     lembarPages: 'Halaman {{p1}}–{{p2}}',
     ruku: 'Ruku {{n}}',
+    hizbN: 'Hizb {{n}}',
+    rubN: 'Rub {{n}}',
+    sajdahMark: 'Penanda sujud',
     versesCountShort: '{{n}} ayat',
     failedLoad: 'Gagal memuat. Periksa koneksi Anda.',
     juzLabel: 'Juz',
@@ -295,6 +305,8 @@ export const translations = {
     percentShort: '{{p}}%',
     prev: 'Sebelumnya',
     next: 'Berikutnya',
+    nextPage: 'Halaman berikutnya',
+    prevPage: 'Halaman sebelumnya',
     nextSurah: 'Surat berikutnya',
     wordNoTranslation: 'Tidak ada terjemahan.',
     footnoteLabel: 'Catatan Kaki {{marker}}',
@@ -376,6 +388,7 @@ export const translations = {
     rangeTo: 'Sampai ayat',
     searchSurah: 'Cari surah…',
     dailyAyahs: 'Ayat per hari',
+    perDay: '{{n}}/hari',
     deadline: 'Tenggat',
     optional: 'opsional',
     memorized: 'Hafal',
@@ -519,6 +532,9 @@ export const translations = {
       'Pilih qari untuk mengunduh audio ayatnya untuk seluruh Quran (~600 MB).',
     savedOffline: 'Tersimpan luring',
     storageUsed: 'Penyimpanan terpakai',
+    storageSummary: '{{mb}} MB · {{n}} surah',
+    keepOffline: 'simpan offline',
+    persistentStorage: '✓ penyimpanan permanen',
     mb: '{{n}} MB',
     clearAll: 'Hapus semua',
   },
@@ -619,6 +635,7 @@ export const translations = {
         deleteChatTitle: 'Hapus obrolan?',
     deleteChatMsg: 'Obrolan ini akan dihapus dari daftar tersimpan.',
     deleteChatConfirm: 'Hapus',
+    emptyChat: 'Obrolan kosong',
   },
 
   qibla: {
@@ -633,6 +650,7 @@ export const translations = {
     calibrationTitle: 'Kalibrasi Kompas',
     calibrationDesc: 'Untuk arah Kiblat yang lebih akurat, lambaikan ponsel Anda membentuk angka 8 sebelum digunakan.',
     gotIt: 'Mengerti',
+    tapDialHint: 'ketuk lingkaran untuk memutar +15°',
   },
 
   shortcuts: {
@@ -653,6 +671,15 @@ export const translations = {
     audioSettings: 'Pengaturan audio',
   },
 
+  pwa: {
+    installBannerTitle: 'Pasang Sohibna sebagai aplikasi',
+    install: 'Pasang',
+  },
+
+  chat: {
+    tableFallback: 'Tabel',
+  },
+
   a11y: {
     back: 'Kembali',
     next: 'Berikutnya',
@@ -661,6 +688,8 @@ export const translations = {
     settings: 'Pengaturan',
     audioSettings: 'Pengaturan audio',
     speed: 'Kecepatan',
+    pause: 'Jeda',
+    play: 'Putar',
     closePlayer: 'Tutup pemutar audio',
     dismiss: 'Tutup',
     darkMode: 'Mode gelap',
@@ -697,6 +726,7 @@ export const translations = {
     listening: 'Mendengarkan…',
     noArabicVoice: 'Suara Arab tidak terinstal di perangkat Anda. Beralih ke suara lokal.',
     comingSoon: 'Konten Iqro segera hadir.',
+    volLabels: ['1 · Huruf', '2 · Sambung', '3 · Harakat', '4 · Tajwid', '5 · Tanda', '6 · Panjang', '7 · Hamzah'],
     fases: {
       fase1: 'Fase 1',
       fase2: 'Fase 2',
@@ -770,6 +800,9 @@ export const translations = {
     bagian: 'Bagian',
     mazhabLabel: 'Mazhab',
     speed: 'Kecepatan',
+    tabPillars: 'Rukun & Bacaan',
+    tabWudhu: 'Wudhu',
+    tabCompare: 'Perbandingan Mazhab',
     section: {
       all: 'Semua',
       '1': 'Thoharoh',
@@ -1020,6 +1053,7 @@ export const translations = {
     locationManualDesc: 'Masukkan koordinat lintang & bujur secara manual.',
     locationDetect: 'Deteksi lokasi saya',
     locationDetecting: 'Mendeteksi…',
+    locationFailed: 'Gagal menentukan lokasi.',
     locationDetected: 'Lokasi terdeteksi',
     locationNotSet: 'Lokasi belum diatur',
     locationDenied: 'Izin lokasi ditolak.',
@@ -1029,6 +1063,7 @@ export const translations = {
     locationInvalid: 'Koordinat tidak valid. Periksa kembali lintang/bujur.',
     prayerName: {
       Fajr: 'Subuh',
+      Sunrise: 'Terbit',
       Dhuhr: 'Dzuhur',
       Asr: 'Ashar',
       Maghrib: 'Magrib',
@@ -1059,6 +1094,8 @@ export const translations = {
     pinnedNotification: 'Notifikasi semat waktu salat',
     pinnedNotificationHint: 'Notifikasi status permanen dengan waktu salat hari ini',
     widgetHint: 'Widget layar utama: tahan lama layar utama → Widget → Sohibna',
+    webUnavailableBody:
+      'Alarm adzan, widget waktu shalat di layar utama, dan pengaturan baterai adalah fitur Android native — semuanya ada di aplikasi mobile Sohibna.',
   },
 
   // Gregorian month / weekday labels (Hijri month names are kept constant in
@@ -1110,6 +1147,7 @@ export const translations = {
       ctaSecondary: 'Lihat Fitur',
       soon: 'Segera',
       note: 'Berjalan langsung di browser — Google Play & App Store menyusul segera.',
+      promoAlt: 'Video promo aplikasi Sohibna',
     },
     steps: {
       eyebrow: 'Mulai',
@@ -1179,6 +1217,7 @@ export const translations = {
       copy: 'Salin',
       copied: 'Tersalin!',
       waConfirm: 'Konfirmasi via WhatsApp',
+      waText: 'Assalamualaikum, saya baru saja berdonasi untuk aplikasi Sohibna.',
       inAppNote:
         'Di dalam aplikasi: menu Saya → Dukung Kami (transfer, QRIS, dukungan internasional).',
     },

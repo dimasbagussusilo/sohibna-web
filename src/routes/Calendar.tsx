@@ -15,10 +15,8 @@ import { useI18n } from '@/context/I18nContext'
 // Calendar tab (web port): Gregorian month grid with the current Hijri date
 // headlined, event dots (colored by category), a day detail panel, and the
 // upcoming occasions list.
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
 export function Calendar() {
-  const { t, lang, isRTL } = useI18n()
+  const { t, lang, isRTL, dict } = useI18n()
   const [catalog, setCatalog] = useState<IslamicEvent[] | null>(null)
   const [cursor, setCursor] = useState(() => new Date()) // any date in the shown month
   const [selected, setSelected] = useState(() => new Date())
@@ -95,7 +93,7 @@ export function Calendar() {
         </div>
 
         <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-ink/40 dark:text-cream/40">
-          {WEEKDAYS.map((w) => (
+          {dict.lists.gregWeekdays.map((w) => (
             <span key={w} className="py-1">
               {w.slice(0, isRTL ? 4 : 3)}
             </span>
@@ -213,7 +211,7 @@ export function Calendar() {
                       {date.getDate()}
                     </span>
                     <span className="text-[8px] uppercase text-ink/50 dark:text-cream/50">
-                      {date.toLocaleDateString('en', { month: 'short' })}
+                      {dict.lists.gregMonthsShort[date.getMonth()]}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">

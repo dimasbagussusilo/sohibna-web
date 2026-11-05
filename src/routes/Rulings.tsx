@@ -129,7 +129,7 @@ export function Rulings() {
           {sessionsOpen && (
             <div className="space-y-2">
               {threads.map((thread) => {
-                const preview = thread.payload[0]?.content || 'Empty Chat'
+                const preview = thread.payload[0]?.content || t('rulings.emptyChat')
                 const scope = scopeFromEntry(thread)
                 return (
                   <div
@@ -246,7 +246,7 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
         </button>
         <div className="flex flex-1 flex-col truncate">
           <span className="flex items-center gap-2 text-sm font-bold text-ink dark:text-cream">
-            <Sparkles size={14} className="text-[#8FBC8F]" /> AI Assistant
+            <Sparkles size={14} className="text-[#8FBC8F]" /> {t('rulings.askAi')}
           </span>
           {scope ? (
             // Reference badge — this chat is scoped to one chosen reference.
@@ -339,7 +339,7 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
 
           {error && (
             <div className="mx-auto rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400">
-              {error}
+              {t('rulings.noSummary')}
             </div>
           )}
           <div ref={bottomRef} className="h-2" />

@@ -129,7 +129,7 @@ function VerseCardImpl({
             onClick={() => (isPlaying ? onPause() : onPlayVerse(vk))}
             className="flex h-8 w-8 items-center justify-center rounded-full"
             style={{ backgroundColor: isPlaying ? '#8FBC8F' : 'rgba(143,188,143,0.15)' }}
-            aria-label={isPlaying ? 'pause' : 'play'}
+            aria-label={isPlaying ? t('a11y.pause') : t('a11y.play')}
           >
             {isPlaying ? (
               <Pause color="#ffffff" size={14} fill="#ffffff" />

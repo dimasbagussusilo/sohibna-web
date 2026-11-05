@@ -11,6 +11,7 @@ import type {
   MemorizedVerse,
   Source,
 } from '@/lib/quran';
+import type { TranslationKey } from '@/i18n/types';
 
 // Is verse_key "S:A" within a juz's verse_mapping (mapping: surahId → "from-to")?
 export function verseInJuz(verseKey: string, mapping: Record<string, string>): boolean {
@@ -28,25 +29,29 @@ function va(vk: string): [number, number] {
   return [s || 0, a || 0];
 }
 
+// The translator handed in by the caller (useI18n's t) — keeps this module
+// pure while the fallback labels stay localized.
+type Translator = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
 // Human label for a target card: "Surah Al-Mulk", "Juz 30", "Al-Kahf 1–30",
 // "10/day". Descriptive names only — no virtue claims (per app content standards).
-export function scopeLabel(t: HafalanTarget, chapters: Chapter[]): string {
+export function scopeLabel(t: HafalanTarget, chapters: Chapter[], tr: Translator): string {
   switch (t.scope) {
     case 'surah': {
       const c = chapters.find((x) => x.id === t.surahId);
-      return c ? c.name_simple : `Surah ${t.surahId ?? ''}`;
+      return c ? c.name_simple : tr('quranHome.surahN', { n: t.surahId ?? '' });
     }
     case 'juz':
-      return `Juz ${t.juzId ?? ''}`;
+      return tr('navSheet.juzTitle', { n: t.juzId ?? '' });
     case 'range': {
       const [sf, af] = va(t.rangeFrom ?? '');
       const [, at] = va(t.rangeTo ?? '');
       const c = chapters.find((x) => x.id === sf);
-      const name = c ? c.name_simple : 'Range';
+      const name = c ? c.name_simple : tr('hafalan.scopeRange');
       return `${name} ${af}${af === at ? '' : '–' + at}`;
     }
     case 'daily_rate':
-      return `${t.dailyAyahs ?? 0}/day`;
+      return tr('hafalan.perDay', { n: t.dailyAyahs ?? 0 });
   }
 }
 

@@ -708,7 +708,9 @@ export const fetchFootNote = async (id: string): Promise<string> => {
   if (l1) return l1;
   const text = await cachedContent(`fn_${id}`, async () => {
     const d = await getJSON<{ foot_note?: { text?: string } }>(`${API}/foot_notes/${id}`);
-    return stripHtml(d.foot_note?.text || 'No footnote found.');
+    // '' when the footnote has no content — the caller decides what to show
+    // (an English 'No footnote found.' literal here would be cached to disk).
+    return stripHtml(d.foot_note?.text || '');
   });
   footnoteCache.set(id, text);
   return text;

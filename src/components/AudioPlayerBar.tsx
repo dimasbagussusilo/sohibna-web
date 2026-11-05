@@ -102,7 +102,7 @@ export function AudioPlayerBar({
           <button
             onClick={onToggle}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-[#8FBC8F]"
-            aria-label={isPlaying ? 'pause' : 'play'}
+            aria-label={isPlaying ? t('a11y.pause') : t('a11y.play')}
           >
             {isPlaying ? (
               <Pause color="#ffffff" size={22} fill="#ffffff" />

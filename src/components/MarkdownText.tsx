@@ -1,4 +1,5 @@
 import React from 'react'
+import { useI18n } from '@/context/I18nContext'
 
 function parseInline(text: string) {
   const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
@@ -17,6 +18,7 @@ function parseInline(text: string) {
 }
 
 export function MarkdownText({ text }: { text: string }) {
+  const { t } = useI18n()
   const blocks = text.trim().split(/\n\n+/)
 
   return (
@@ -42,7 +44,7 @@ export function MarkdownText({ text }: { text: string }) {
               <div key={i} className="my-1 flex flex-col gap-3 rounded-2xl bg-black/5 p-4 dark:bg-white/5">
                 {(headers.length > 0) && (
                   <div className="font-bold text-ink dark:text-cream">
-                    {parseInline(headers[1] || headers[0] || 'Tabel')}
+                    {parseInline(headers[1] || headers[0] || t('chat.tableFallback'))}
                   </div>
                 )}
                 

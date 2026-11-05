@@ -37,10 +37,13 @@ async function saveSettings(s: LocationSettings): Promise<void> {
   await storage.setItem(SETTINGS_KEY, JSON.stringify(s))
 }
 
+/** Stable error codes — consumers map them to localized copy (alarms.locationDenied/locationFailed). */
+export type LocationErrorCode = 'denied' | 'failed'
+
 export type LocationState = {
   coords: Coords | null
   loading: boolean
-  error: string | null
+  error: LocationErrorCode | null
   settings: LocationSettings
   /** Silent re-read of persisted settings + a non-prompting fix when auto. */
   refresh: () => Promise<void>
@@ -77,7 +80,7 @@ export function useLocation(): LocationState {
   const [settings, setSettings] = useState<LocationSettings>(DEFAULT_SETTINGS)
   const [coords, setCoords] = useState<Coords | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<LocationErrorCode | null>(null)
 
   // Silent fix: only if permission is ALREADY granted. Never prompts.
   const fetchAuto = useCallback(async (): Promise<Coords | null> => {
@@ -113,7 +116,7 @@ export function useLocation(): LocationState {
         const c = await fetchAuto()
         if (!cancelled && c) setCoords(c)
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Could not determine location.')
+        if (!cancelled) setError('failed')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -138,7 +141,8 @@ export function useLocation(): LocationState {
       const c = await fetchAuto()
       if (c) setCoords(c)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not determine location.')
+      console.warn('location failed:', e)
+      setError('failed')
     } finally {
       setLoading(false)
     }
@@ -157,7 +161,8 @@ export function useLocation(): LocationState {
       setCoords(c)
       return true
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Location permission denied.')
+      console.warn('location denied/failed:', e)
+      setError('denied')
       return false
     } finally {
       setLoading(false)

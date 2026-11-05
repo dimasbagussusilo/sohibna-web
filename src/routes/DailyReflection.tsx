@@ -159,9 +159,9 @@ export function DailyReflection() {
         ) : null}
         {error ? (
           <p className="py-2 text-center text-xs text-red-400">
-            {error.includes('not configured') || error.includes('503')
+            {error === 'unavailable'
               ? t('reflection.companionUnavailable')
-              : error}
+              : t('common.couldNotReach')}
           </p>
         ) : null}
 

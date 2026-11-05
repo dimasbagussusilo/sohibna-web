@@ -132,8 +132,8 @@ export function QuranDashboard() {
         >
           <div className="text-sm font-bold text-ink dark:text-cream">{t('hafalan.title')}</div>
           <div className="text-[11px] text-ink/50 dark:text-cream/50">
-            {ud.hafalanTargets.filter((x) => !x.archived).length} targets ·{' '}
-            {Object.keys(ud.memorized).length} verses
+            {t('quranHome.hafalanTargets', { n: ud.hafalanTargets.filter((x) => !x.archived).length })} ·{' '}
+            {t('quranHome.versesCount', { n: Object.keys(ud.memorized).length })}
           </div>
         </Link>
         <Link
@@ -142,7 +142,8 @@ export function QuranDashboard() {
         >
           <div className="text-sm font-bold text-ink dark:text-cream">{t('goals.title')}</div>
           <div className="text-[11px] text-ink/50 dark:text-cream/50">
-            {ud.khatmGoals.length} goals{ud.streak ? ` · ${ud.streak.current}d` : ''}
+            {t('quranHome.goalsCount', { n: ud.khatmGoals.length })}
+            {ud.streak ? ` · ${t('quranHome.streakShort', { n: ud.streak.current })}` : ''}
           </div>
         </Link>
       </div>

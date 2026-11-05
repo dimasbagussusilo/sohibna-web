@@ -31,12 +31,12 @@ export function OfflineBanner() {
       {online && canInstall && !dismissedInstall ? (
         <div className="flex items-center justify-center gap-3 bg-[#0D1F17] px-4 py-2 text-[11px] text-cream">
           <Download size={13} className="text-[#8FBC8F]" />
-          <span>{t('downloadSheet.title') === 'Offline Downloads' ? 'Install Sohibna as an app' : 'Pasang Sohibna sebagai aplikasi'}</span>
+          <span>{t('pwa.installBannerTitle')}</span>
           <button
             onClick={() => void promptInstall()}
             className="rounded-full bg-[#8FBC8F] px-3 py-1 font-bold text-white"
           >
-            Install
+            {t('pwa.install')}
           </button>
           <button
             onClick={() => setDismissedInstall(true)}

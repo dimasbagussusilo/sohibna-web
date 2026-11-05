@@ -11,7 +11,7 @@ import { useI18n } from '@/context/I18nContext'
 // Web Speech. Volumes 3–5 (harakat/tajwid rules) render as text sections from
 // the same datasets.
 export function Iqro() {
-  const { t, lang } = useI18n()
+  const { t, lang, dict } = useI18n()
   const navigate = useNavigate()
   const [vol, setVol] = useState(1)
   const [speaking, setSpeaking] = useState<string | null>(null)
@@ -64,7 +64,7 @@ export function Iqro() {
                   : 'bg-black/5 text-ink dark:bg-white/10 dark:text-cream'
               }`}
             >
-              {volLabel(v.id, lang)}
+              {dict.iqro.volLabels[v.id - 1] ?? String(v.id)}
             </button>
           ))}
         </div>
@@ -133,7 +133,7 @@ export function Iqro() {
 
         {/* Volumes 3-5: rule reference cards */}
         {vol >= 3 ? (
-          <RulesVolume vol={vol} speak={speak} speaking={speaking} />
+          <RulesVolume vol={vol} lang={lang} speak={speak} speaking={speaking} />
         ) : null}
       </div>
     </div>
@@ -142,10 +142,12 @@ export function Iqro() {
 
 function RulesVolume({
   vol,
+  lang,
   speak,
   speaking,
 }: {
   vol: number
+  lang: Lang
   speak: (id: string, text: string) => void
   speaking: string | null
 }) {
@@ -179,25 +181,11 @@ function RulesVolume({
         >
           <span className="quran-rtl text-[32px] leading-snug text-ink dark:text-cream">{r.arab}</span>
           <span className="mt-1 text-[11px] font-semibold text-ink/70 dark:text-cream/70">
-            {r.name}
+            {r.name ? resolve(r.name, lang) : ''}
           </span>
           <Volume2 size={10} className="mt-1 text-[#8FBC8F]" />
         </button>
       ))}
     </div>
   )
-}
-
-// Volume tab labels (the data only carries ids).
-function volLabel(id: number, lang: Lang): string {
-  const names: Record<number, { id: string; en: string }> = {
-    1: { id: '1 · Huruf', en: '1 · Letters' },
-    2: { id: '2 · Sambung', en: '2 · Joining' },
-    3: { id: '3 · Harakat', en: '3 · Vowels' },
-    4: { id: '4 · Tajwid', en: '4 · Tajwid' },
-    5: { id: '5 · Tanda', en: '5 · Signs' },
-    6: { id: '6 · Panjang', en: '6 · Long' },
-    7: { id: '7 · Hamzah', en: '7 · Hamzah' },
-  }
-  return lang === 'en' ? (names[id]?.en ?? String(id)) : (names[id]?.id ?? String(id))
 }

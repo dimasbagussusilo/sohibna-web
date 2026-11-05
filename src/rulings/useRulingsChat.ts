@@ -46,7 +46,9 @@ export function useRulingsChat({ chatId, scope: initialScope }: Options) {
 
   const [messages, setMessages] = useState<RulingsChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Boolean, not the raw server message — the route renders the localized
+  // failure string (rulings.noSummary); raw e.message is English/'error'.
+  const [error, setError] = useState(false);
   const [scope, setScope] = useState<RulingsRefScope | null>(initialScope ?? null);
 
   // Mirrors the RN hook: once the user sends anything in this mount,
@@ -130,7 +132,8 @@ export function useRulingsChat({ chatId, scope: initialScope }: Options) {
         setMessages(withReply);
         persist(withReply);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'error');
+        console.error(e);
+        setError(true);
       } finally {
         setLoading(false);
       }

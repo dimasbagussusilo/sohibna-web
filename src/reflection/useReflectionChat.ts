@@ -35,7 +35,10 @@ export function useReflectionChat({ mood, verse, date }: Options) {
 
   const [messages, setMessages] = useState<ReflectionMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Short code, not the raw server message (English/'error' literal) — the
+  // route maps the codes to localized strings ('unavailable' mirrors the old
+  // not-configured/503 sniff; everything else is a network-ish failure).
+  const [error, setError] = useState<'unavailable' | 'network' | null>(null);
 
   // Resume the saved reflection for this day+mood, or seed a localized greeting
   // when starting fresh. Re-runs when the mood changes (the on-screen selector),
@@ -107,7 +110,9 @@ export function useReflectionChat({ mood, verse, date }: Options) {
         setMessages(withReply);
         persist(withReply);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'error');
+        console.error(e);
+        const msg = e instanceof Error ? e.message : '';
+        setError(/not configured|503/i.test(msg) ? 'unavailable' : 'network');
       } finally {
         setLoading(false);
       }

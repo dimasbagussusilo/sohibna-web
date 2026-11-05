@@ -21,6 +21,7 @@ export const translations: Translation = {
     grantLocation: 'منح إذن الموقع',
     locating: 'جارٍ تحديد الموقع…',
     noArabicVoice: 'لا يوجد صوت عربي مثبّت على جهازك. يتم استخدام الصوت المحلي.',
+    error: 'خطأ',
   },
 
   onboarding: {
@@ -46,6 +47,7 @@ export const translations: Translation = {
       noAccount: 'ليس لديك حساب؟',
       register: 'إنشاء حساب',
       couldNotLogin: 'فشل تسجيل الدخول.',
+      invalid: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
       invalidEmail: 'تنسيق البريد الإلكتروني غير صالح.',
       passwordRequired: 'كلمة المرور مطلوبة.',
       forgot: 'نسيت كلمة المرور؟',
@@ -61,6 +63,7 @@ export const translations: Translation = {
       haveAccount: 'لديك حساب بالفعل؟',
       login: 'تسجيل الدخول',
       couldNotRegister: 'فشل إنشاء الحساب.',
+      emailTaken: 'البريد الإلكتروني مسجّل بالفعل.',
       nameRequired: 'الاسم مطلوب.',
       invalidEmail: 'تنسيق البريد الإلكتروني غير صالح.',
       passwordTooShort: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.',
@@ -174,6 +177,7 @@ export const translations: Translation = {
     swipeToCollapse: 'اسحب → للطي',
     continueReading: 'متابعة القراءة',
     verseOf: 'آية {{n}} من {{total}}',
+    surahN: 'سورة {{n}}',
     myCollection: 'مجموعتي',
     lastRead: 'آخر ما قُرئ',
     favorites: 'المفضّلة',
@@ -190,10 +194,12 @@ export const translations: Translation = {
     downloadAudio: 'جارٍ تنزيل الصوت {{done}}/{{total}}',
     readingProgress: 'تقدّم القراءة',
     dayStreak: '{{n}} يوم متتالي',
+    streakShort: '{{n}} يوم',
     streakTotalPages: '{{n}} صفحة مقروءة',
     streakLongest: 'رقم قياسي {{n}} يوم',
     streakLastToday: 'آخر قراءة اليوم',
     readingGoals: 'أهداف القراءة',
+    goalsCount: '{{n}} هدفًا',
     noGoals: 'لا توجد أهداف بعد. أضف هدفًا للبدء.',
     addGoal: 'إضافة هدف',
     editGoal: 'تعديل الهدف',
@@ -225,6 +231,7 @@ export const translations: Translation = {
     tabVerses: 'الآيات',
     tabAi: '✨ AI',
     aiHint: 'اكتب موضوعًا (مثل الصبر، الرحمة) ثم اضغط بحث لإيجاد الآيات ذات الصلة.',
+    aiPlaceholder: 'الصبر، الرحمة، الشكر…',
     aiLoading: 'جارٍ البحث عن آيات ذات صلة…',
     aiError: 'تعذّر إيجاد آيات ذات صلة. حاول مرة أخرى.',
     hint: 'اكتب كلمة للبحث عن سورة أو معنى آية في القرآن كاملاً.',
@@ -281,6 +288,9 @@ export const translations: Translation = {
     lembar: 'الورقة {{id}}',
     lembarPages: 'الصفحات {{p1}}–{{p2}}',
     ruku: 'الركوع {{n}}',
+    hizbN: 'الحزب {{n}}',
+    rubN: 'الربع {{n}}',
+    sajdahMark: 'علامة السجدة',
     versesCountShort: '{{n}} آية',
     failedLoad: 'فشل التحميل. تحقّق من اتصالك.',
     juzLabel: 'الجزء',
@@ -297,6 +307,8 @@ export const translations: Translation = {
     percentShort: '{{p}}٪',
     prev: 'السابق',
     next: 'التالي',
+    nextPage: 'الصفحة التالية',
+    prevPage: 'الصفحة السابقة',
     nextSurah: 'السورة التالية',
     wordNoTranslation: 'لا توجد ترجمة.',
     footnoteLabel: 'الحاشية {{marker}}',
@@ -378,6 +390,7 @@ export const translations: Translation = {
     rangeTo: 'إلى الآية',
     searchSurah: 'ابحث عن سورة…',
     dailyAyahs: 'آيات في اليوم',
+    perDay: '{{n}}/يوم',
     deadline: 'الموعد النهائي',
     optional: 'اختياري',
     memorized: 'محفوظة',
@@ -521,6 +534,9 @@ export const translations: Translation = {
       'اختر قارئًا لتنزيل صوت آياته لكامل القرآن (نحو 600 ميجابايت).',
     savedOffline: 'محفوظ دون اتصال',
     storageUsed: 'المساحة المستخدمة',
+    storageSummary: '{{mb}} ميغابايت · {{n}} سورة',
+    keepOffline: 'احتفظ به دون اتصال',
+    persistentStorage: '✓ تخزين دائم',
     mb: '{{n}} ميجابايت',
     clearAll: 'حذف الكل',
   },
@@ -621,6 +637,7 @@ export const translations: Translation = {
         deleteChatTitle: 'حذف المحادثة؟',
     deleteChatMsg: 'ستُحذف هذه المحادثة من محادثاتك المحفوظة.',
     deleteChatConfirm: 'حذف',
+    emptyChat: 'محادثة فارغة',
   },
 
   qibla: {
@@ -635,6 +652,7 @@ export const translations: Translation = {
     calibrationTitle: 'معايرة البوصلة',
     calibrationDesc: 'للحصول على اتجاه دقيق للقبلة، يرجى تحريك هاتفك على شكل رقم 8 قبل الاستخدام.',
     gotIt: 'مفهوم',
+    tapDialHint: 'انقر القرص للتدوير +15°',
   },
 
   shortcuts: {
@@ -655,6 +673,15 @@ export const translations: Translation = {
     audioSettings: 'إعدادات الصوت',
   },
 
+  pwa: {
+    installBannerTitle: 'ثبّت صحبنا كتطبيق',
+    install: 'تثبيت',
+  },
+
+  chat: {
+    tableFallback: 'جدول',
+  },
+
   a11y: {
     back: 'رجوع',
     next: 'التالي',
@@ -663,6 +690,8 @@ export const translations: Translation = {
     settings: 'الإعدادات',
     audioSettings: 'إعدادات الصوت',
     speed: 'السرعة',
+    pause: 'إيقاف مؤقت',
+    play: 'تشغيل',
     closePlayer: 'إغلاق مشغّل الصوت',
     dismiss: 'إغلاق',
     darkMode: 'الوضع الليلي',
@@ -699,6 +728,7 @@ export const translations: Translation = {
     listening: 'جارٍ الاستماع…',
     noArabicVoice: 'لا يوجد صوت عربي مثبّت على جهازك. يتم استخدام الصوت المحلي.',
     comingSoon: 'محتوى إقرأ قريبًا.',
+    volLabels: ['1 · الحروف', '2 · الوصل', '3 · الحركات', '4 · التجويد', '5 · العلامات', '6 · المدود', '7 · الهمزة'],
     fases: {
       fase1: 'المرحلة 1',
       fase2: 'المرحلة 2',
@@ -772,6 +802,9 @@ export const translations: Translation = {
     bagian: 'القسم',
     mazhabLabel: 'المذهب',
     speed: 'السرعة',
+    tabPillars: 'الأركان والقراءات',
+    tabWudhu: 'الوضوء',
+    tabCompare: 'مقارنة المذاهب',
     section: {
       all: 'الكل',
       '1': 'الطهارة',
@@ -1020,6 +1053,7 @@ export const translations: Translation = {
     locationManualDesc: 'أدخل إحداثيات خط العرض والطول يدويًا.',
     locationDetect: 'اكتشف موقعي',
     locationDetecting: 'جارٍ الاكتشاف…',
+    locationFailed: 'تعذّر تحديد الموقع.',
     locationDetected: 'تم اكتشاف الموقع',
     locationNotSet: 'لم يُضبط الموقع',
     locationDenied: 'تم رفض إذن الموقع.',
@@ -1029,6 +1063,7 @@ export const translations: Translation = {
     locationInvalid: 'إحداثيات غير صالحة. تحقّق من خط العرض/الطول.',
     prayerName: {
       Fajr: 'الفجر',
+      Sunrise: 'الشروق',
       Dhuhr: 'الظهر',
       Asr: 'العصر',
       Maghrib: 'المغرب',
@@ -1059,6 +1094,8 @@ export const translations: Translation = {
     pinnedNotification: 'إشعار مثبّت بأوقات الصلاة',
     pinnedNotificationHint: 'إشعار دائم في شريط الحالة بأوقات صلاة اليوم',
     widgetHint: 'أداة الشاشة الرئيسية: اضغط مطوّلًا على الشاشة الرئيسية ← الأدوات ← صحبنا',
+    webUnavailableBody:
+      'تنبيهات الأذان وأداة أوقات الصلاة في الشاشة الرئيسية وإعدادات البطارية ميزات أصلية في أندرويد — تجدها في تطبيق صحبنا للجوال.',
   },
 
   // Gregorian month / weekday labels (Hijri month names are kept constant in
@@ -1109,6 +1146,7 @@ export const translations: Translation = {
       ctaSecondary: 'اطّلع على الميزات',
       soon: 'قريبًا',
       note: 'يعمل مباشرة في المتصفح — وسيتوفر على Google Play و App Store قريبًا.',
+      promoAlt: 'فيديو تعريفي لتطبيق صحبنا',
     },
     steps: {
       eyebrow: 'البداية',
@@ -1178,6 +1216,7 @@ export const translations: Translation = {
       copy: 'نسخ',
       copied: 'تم النسخ!',
       waConfirm: 'تأكيد عبر الواتساب',
+      waText: 'السلام عليكم، لقد تبرعتُ لدعم تطبيق صحبنا.',
       inAppNote: 'داخل التطبيق: قائمة «أنا» → ادعمنا (تحويل، QRIS، دعم دولي).',
     },
     faq: {

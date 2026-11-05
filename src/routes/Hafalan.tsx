@@ -106,7 +106,7 @@ export function Hafalan() {
             {active.map((target) => {
               const total = scopeVerseCount(target, chapters, juzs)
               const prog = targetProgress(target, ud.memorized, chapters, juzs)
-              const label = scopeLabel(target, chapters)
+              const label = scopeLabel(target, chapters, t)
               const src = trackerSource(target)
               return (
                 <div
@@ -312,7 +312,7 @@ function TargetEditor({
           >
             {Array.from({ length: 30 }, (_, i) => i + 1).map((j) => (
               <option key={j} value={j}>
-                Juz {j}
+                {t('reader.juz', { id: j })}
               </option>
             ))}
           </select>

@@ -102,7 +102,7 @@ export function Qibla() {
             </div>
 
             <p className="mt-4 text-center text-[10px] text-ink/40 dark:text-cream/40">
-              tap the dial to rotate +15°
+              {t('qibla.tapDialHint')}
             </p>
           </>
         )}
@@ -184,8 +184,7 @@ export function AlarmsUnavailable() {
       <div className="mb-4 text-4xl">🔔</div>
       <h1 className="text-base font-bold text-ink dark:text-cream">{t('alarms.title')}</h1>
       <p className="mt-2 max-w-xs text-xs leading-relaxed text-ink/50 dark:text-cream/50">
-        Adhan alarms, the home-screen prayer widget, and battery settings are
-        Android-native features — they live in the Sohibna mobile app.
+        {t('alarms.webUnavailableBody')}
       </p>
       <button
         onClick={() => navigate('/home')}

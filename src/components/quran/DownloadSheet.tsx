@@ -82,7 +82,7 @@ export function DownloadSheet({ onClose }: { onClose: () => void }) {
       <div className="mb-4 rounded-2xl bg-black/5 px-4 py-3 text-xs dark:bg-white/10">
         <div className="flex items-center justify-between">
           <span className="text-ink/60 dark:text-cream/60">
-            {(bytes / 1024 / 1024).toFixed(1)} MB · {downloaded.size} surah
+            {t('downloadSheet.storageSummary', { mb: (bytes / 1024 / 1024).toFixed(1), n: downloaded.size })}
           </span>
           <div className="flex gap-2">
             {!persistent ? (
@@ -93,18 +93,18 @@ export function DownloadSheet({ onClose }: { onClose: () => void }) {
                 }}
                 className="rounded-full bg-[#8FBC8F]/15 px-3 py-1 text-[10px] font-semibold text-[#8FBC8F]"
               >
-                keep offline
+                {t('downloadSheet.keepOffline')}
               </button>
             ) : null}
             {downloaded.size ? (
               <button onClick={clearAll} className="text-[10px] text-red-400">
-                clear
+                {t('downloadSheet.clearAll')}
               </button>
             ) : null}
           </div>
         </div>
         {persistent ? (
-          <div className="mt-1 text-[10px] text-[#8FBC8F]">✓ persistent storage</div>
+          <div className="mt-1 text-[10px] text-[#8FBC8F]">{t('downloadSheet.persistentStorage')}</div>
         ) : null}
       </div>
 

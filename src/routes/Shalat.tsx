@@ -19,8 +19,7 @@ import { useI18n } from '@/context/I18nContext'
 
 // Bi resolver (same deep-resolve as the RN app's shalat/content.ts, applied
 // per-object since our render walks typed nodes).
-const bi = (v: Bi | undefined, lang: Lang): string =>
-  v ? (lang === 'en' ? v.en : v.id) : ''
+const bi = (v: Bi | undefined, lang: Lang): string => (v ? v[lang] : '')
 const ar = (v: ArabicItem | undefined, lang: Lang) => {
   if (!v) return null
   return {
@@ -93,9 +92,9 @@ export function Shalat() {
         <div className="mb-4 grid grid-cols-3 gap-1 rounded-xl bg-black/5 p-1 dark:bg-white/10">
           {(
             [
-              ['pillars', lang === 'id' ? 'Rukun & Bacaan' : 'Pillars'],
-              ['wudhu', lang === 'id' ? 'Wudhu' : 'Ablution'],
-              ['mazhab', lang === 'id' ? 'Perbandingan' : 'Schools'],
+              ['pillars', t('shalat.tabPillars')],
+              ['wudhu', t('shalat.tabWudhu')],
+              ['mazhab', t('shalat.tabCompare')],
             ] as const
           ).map(([k, l]) => (
             <button
@@ -125,7 +124,7 @@ export function Shalat() {
                     : 'bg-black/5 text-ink dark:bg-white/10 dark:text-cream'
                 }`}
               >
-                {m}
+                {t(`shalat.mazhab.${m}`)}
               </button>
             ))}
             <span className="self-center text-[10px] text-ink/40 dark:text-cream/40">
@@ -154,7 +153,7 @@ export function Shalat() {
                   {bi(prayer.title, lang)}
                 </div>
                 <div className="text-[11px] text-ink/50 dark:text-cream/50">
-                  {prayer.rakaat} {lang === 'id' ? 'rakaat' : 'rakah'}
+                  {prayer.rakaat} {t('shalat.rakaat')}
                 </div>
               </div>
               <button
@@ -174,7 +173,7 @@ export function Shalat() {
             <div className="rounded-3xl bg-white p-5 shadow-sm dark:bg-[#122A1F]">
               <div className="mb-1 font-mono text-[10px] text-[#8FBC8F]">
                 {stepIdx + 1} / {RUKUN_STEPS.length}
-                {step.variants ? ` · ${mazhab}` : ''}
+                {step.variants ? ` · ${t(`shalat.mazhab.${mazhab}`)}` : ''}
               </div>
               <div className="mb-2 text-sm font-bold text-ink dark:text-cream">
                 {bi(body.title, lang)}
@@ -276,7 +275,7 @@ export function Shalat() {
                           mazhab === m ? 'text-[#8FBC8F]' : 'text-ink/40 dark:text-cream/40'
                         }`}
                       >
-                        {m}
+                        {t(`shalat.mazhab.${m}`)}
                       </span>
                       <span className="flex-1 text-xs leading-relaxed text-ink/75 dark:text-cream/75">
                         {bi(topic.views[m], lang)}

@@ -51,12 +51,13 @@ export function SurahHeaderCartouche({
 }
 
 export function MarginMark({ kind, n, dark, size }: Dark & { kind: 'juz' | 'hizb' | 'rub' | 'sajda'; n: number; size?: number }) {
+  const { t } = useI18n()
   const gold = GOLD[dark ? 'dark' : 'light']
   const soft = SOFT[dark ? 'dark' : 'light']
   const s = size ?? (kind === 'juz' ? 30 : kind === 'hizb' ? 20 : 14)
   if (kind === 'sajda') {
     return (
-      <span aria-label="sajdah" className="flex items-center justify-center" style={{ width: s, height: s, fontSize: s * 0.9, color: '#16A34A', lineHeight: s }}>
+      <span aria-label={t('reader.sajdahMark')} className="flex items-center justify-center" style={{ width: s, height: s, fontSize: s * 0.9, color: '#16A34A', lineHeight: s }}>
         ۩
       </span>
     )
@@ -64,7 +65,7 @@ export function MarginMark({ kind, n, dark, size }: Dark & { kind: 'juz' | 'hizb
   const c = s / 2
   return (
     <span
-      aria-label={kind === 'juz' ? `juz ${n}` : kind === 'hizb' ? `hizb ${n}` : `rub ${n}`}
+      aria-label={kind === 'juz' ? t('navSheet.juzTitle', { n }) : kind === 'hizb' ? t('reader.hizbN', { n }) : t('reader.rubN', { n })}
       className="flex items-center justify-center"
       style={{ width: s, height: s }}
     >

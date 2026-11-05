@@ -99,7 +99,9 @@ export function Home() {
             <div className="text-[11px] uppercase tracking-widest text-cream/50">
               {t('home.nextPrayer')}
             </div>
-            <div className="mt-1 text-3xl font-bold">{next.name}</div>
+            <div className="mt-1 text-3xl font-bold">
+              {t(`alarms.prayerName.${next.name}` as never)}
+            </div>
             <div className="mt-1 text-sm text-cream/70">
               {formatTime(next.time)} · {formatRemaining(next.time, new Date(now))}
             </div>

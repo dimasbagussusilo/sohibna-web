@@ -79,7 +79,7 @@ export function Hero() {
               loop
               playsInline
               preload="metadata"
-              aria-label="Sohibna app promo"
+              aria-label={t('landing.hero.promoAlt')}
             >
               <source src="/promo.av1.mp4" type='video/mp4; codecs="av01.0.05M.08"' />
               <source src="/promo.mp4" type="video/mp4" />

@@ -17,10 +17,11 @@ export const translations: Translation = {
     grantLocation: 'Grant location',
     locating: 'Locating…',
     noArabicVoice: 'No Arabic voice installed on this device. Falling back to the local voice.',
+    error: 'Error',
   },
 
   onboarding: {
-    greeting: "Assalamu'alaikum",
+    greeting: "Assalammualaikum",
     intro:
       "It's never too late for a new beginning. We are here to accompany every small step as you get to know the Creator.",
     start: 'Start Journey',
@@ -42,6 +43,7 @@ export const translations: Translation = {
       noAccount: 'No account?',
       register: 'Register',
       couldNotLogin: 'Could not log in.',
+      invalid: 'Invalid email or password.',
       invalidEmail: 'Invalid email format.',
       passwordRequired: 'Password is required.',
       forgot: 'Forgot password?',
@@ -57,6 +59,7 @@ export const translations: Translation = {
       haveAccount: 'Already have an account?',
       login: 'Log in',
       couldNotRegister: 'Could not register.',
+      emailTaken: 'Email already registered.',
       nameRequired: 'Name is required.',
       invalidEmail: 'Invalid email format.',
       passwordTooShort: 'Password must be at least 8 characters.',
@@ -116,7 +119,7 @@ export const translations: Translation = {
   },
 
   home: {
-    greeting: "Assalamu'alaikum, {{name}} 👋",
+    greeting: "Assalammualaikum, {{name}} 👋",
     sub: 'Glad to have you back today.',
     noNotifications: 'No new notifications.',
     moodQuestion: 'How are you feeling today?',
@@ -165,6 +168,7 @@ export const translations: Translation = {
     swipeToCollapse: 'Swipe ← to collapse',
     continueReading: 'CONTINUE READING',
     verseOf: 'Verse {{n}} of {{total}}',
+    surahN: 'Surah {{n}}',
     myCollection: 'MY COLLECTION',
     lastRead: 'Last Read',
     favorites: 'Favorites',
@@ -181,10 +185,12 @@ export const translations: Translation = {
     downloadAudio: 'Downloading audio {{done}}/{{total}}',
     readingProgress: 'READING PROGRESS',
     dayStreak: '{{n}} day streak',
+    streakShort: '{{n}}d',
     streakTotalPages: '{{n}} pages read',
     streakLongest: 'Best {{n}} days',
     streakLastToday: 'Last read today',
     readingGoals: 'READING GOALS',
+    goalsCount: '{{n}} goals',
     noGoals: 'No goals yet. Add one to get started.',
     addGoal: 'Add Goal',
     editGoal: 'Edit Goal',
@@ -216,6 +222,7 @@ export const translations: Translation = {
     tabVerses: 'Verses',
     tabAi: '✨ AI',
     aiHint: 'Type a topic (e.g. patience, mercy) and press search to find related verses.',
+    aiPlaceholder: 'patience, mercy, gratitude…',
     aiLoading: 'Finding related verses…',
     aiError: 'Couldn’t find related verses. Try again.',
     hint: 'Type a word to find surahs or verse meanings throughout the Quran.',
@@ -272,6 +279,9 @@ export const translations: Translation = {
     lembar: 'Lembar {{id}}',
     lembarPages: 'Pages {{p1}}–{{p2}}',
     ruku: 'Ruku {{n}}',
+    hizbN: 'Hizb {{n}}',
+    rubN: 'Rub {{n}}',
+    sajdahMark: 'Sajdah mark',
     versesCountShort: '{{n}} verses',
     failedLoad: 'Failed to load. Check your connection.',
     juzLabel: 'Juz',
@@ -288,6 +298,8 @@ export const translations: Translation = {
     percentShort: '{{p}}%',
     prev: 'Previous',
     next: 'Next',
+    nextPage: 'Next page',
+    prevPage: 'Previous page',
     nextSurah: 'Next surah',
     wordNoTranslation: 'No translation.',
     footnoteLabel: 'Footnote {{marker}}',
@@ -369,6 +381,7 @@ export const translations: Translation = {
     rangeTo: 'To verse',
     searchSurah: 'Search surah…',
     dailyAyahs: 'Verses per day',
+    perDay: '{{n}}/day',
     deadline: 'Deadline',
     optional: 'optional',
     memorized: 'Memorized',
@@ -511,6 +524,9 @@ export const translations: Translation = {
     pickReciter: 'Pick a reciter to download its verse audio for the whole Quran (~600 MB).',
     savedOffline: 'Saved offline',
     storageUsed: 'Storage used',
+    storageSummary: '{{mb}} MB · {{n}} surahs',
+    keepOffline: 'keep offline',
+    persistentStorage: '✓ persistent storage',
     mb: '{{n}} MB',
     clearAll: 'Clear all',
   },
@@ -610,6 +626,7 @@ export const translations: Translation = {
         deleteChatTitle: 'Delete chat?',
     deleteChatMsg: 'This conversation will be removed from your saved chats.',
     deleteChatConfirm: 'Delete',
+    emptyChat: 'Empty chat',
   },
 
   qibla: {
@@ -624,6 +641,7 @@ export const translations: Translation = {
     calibrationTitle: 'Calibrate Compass',
     calibrationDesc: 'For the most accurate Qibla direction, wave your phone in a figure-8 motion before use.',
     gotIt: 'Got it',
+    tapDialHint: 'tap the dial to rotate +15°',
   },
 
   shortcuts: {
@@ -644,6 +662,15 @@ export const translations: Translation = {
     audioSettings: 'Audio settings',
   },
 
+  pwa: {
+    installBannerTitle: 'Install Sohibna as an app',
+    install: 'Install',
+  },
+
+  chat: {
+    tableFallback: 'Table',
+  },
+
   a11y: {
     back: 'Back',
     next: 'Next',
@@ -652,6 +679,8 @@ export const translations: Translation = {
     settings: 'Settings',
     audioSettings: 'Audio settings',
     speed: 'Speed',
+    pause: 'Pause',
+    play: 'Play',
     closePlayer: 'Close audio player',
     dismiss: 'Dismiss',
     darkMode: 'Dark mode',
@@ -688,6 +717,7 @@ export const translations: Translation = {
     listening: 'Listening…',
     noArabicVoice: 'No Arabic voice installed on your device. Falling back to a local voice.',
     comingSoon: 'Iqro content coming soon.',
+    volLabels: ['1 · Letters', '2 · Joining', '3 · Vowels', '4 · Tajwid', '5 · Signs', '6 · Long', '7 · Hamzah'],
     fases: {
       fase1: 'Phase 1',
       fase2: 'Phase 2',
@@ -761,6 +791,9 @@ export const translations: Translation = {
     bagian: 'Section',
     mazhabLabel: 'School',
     speed: 'Speed',
+    tabPillars: 'Pillars & Recitation',
+    tabWudhu: 'Ablution',
+    tabCompare: 'Schools Compared',
     section: {
       all: 'All',
       '1': 'Purification',
@@ -1009,6 +1042,7 @@ export const translations: Translation = {
     locationManualDesc: 'Enter latitude & longitude coordinates manually.',
     locationDetect: 'Detect my location',
     locationDetecting: 'Detecting…',
+    locationFailed: 'Could not determine location.',
     locationDetected: 'Location detected',
     locationNotSet: 'Location not set',
     locationDenied: 'Location permission denied.',
@@ -1018,6 +1052,7 @@ export const translations: Translation = {
     locationInvalid: 'Invalid coordinates. Check the latitude/longitude.',
     prayerName: {
       Fajr: 'Fajr',
+      Sunrise: 'Sunrise',
       Dhuhr: 'Dhuhr',
       Asr: 'Asr',
       Maghrib: 'Maghrib',
@@ -1048,6 +1083,8 @@ export const translations: Translation = {
     pinnedNotification: 'Pinned prayer-times notification',
     pinnedNotificationHint: "Always-on status-bar notification with today's times",
     widgetHint: 'Home-screen widget: long-press your home screen → Widgets → Sohibna',
+    webUnavailableBody:
+      'Adhan alarms, the home-screen prayer widget, and battery settings are Android-native features — they live in the Sohibna mobile app.',
   },
 
   lists: {
@@ -1096,6 +1133,7 @@ export const translations: Translation = {
       ctaSecondary: 'See Features',
       soon: 'Coming soon',
       note: 'Runs right in your browser — Google Play & App Store coming soon.',
+      promoAlt: 'Sohibna app promo video',
     },
     steps: {
       eyebrow: 'Start',
@@ -1165,6 +1203,7 @@ export const translations: Translation = {
       copy: 'Copy',
       copied: 'Copied!',
       waConfirm: 'Confirm via WhatsApp',
+      waText: 'Assalamualaikum, I just made a donation to support the Sohibna app.',
       inAppNote:
         'Inside the app: Me menu → Support Us (transfer, QRIS, international support).',
     },
