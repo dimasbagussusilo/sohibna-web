@@ -9,9 +9,9 @@ automatically via GitHub Actions.
 | Origin | Serves | k8s | nginx mode |
 |---|---|---|---|
 | `app.sohibna.com` | the app (SPA + PWA) | `sohibna-web-deployment` | `APP_MODE=app` (default) |
-| `sohibna.com` + `www.sohibna.com` | marketing landing (`/`, `/en`, `/ar`) | `sohibna-landing-deployment` | `APP_MODE=landing` |
+| `sohibna.com` + `www.sohibna.com` | marketing landing (`/`, `/en`, `/ar`, `/tr`) | `sohibna-landing-deployment` | `APP_MODE=landing` |
 
-In landing mode nginx serves the SPA shell at `/`, `/en`, `/ar` (the landing
+In landing mode nginx serves the SPA shell at `/`, `/en`, `/ar`, `/tr` (the landing
 routes in `src/App.tsx`), serves `/assets/` + fonts/icons/og-image, 404s
 `/sw.js` + `/manifest.webmanifest` (the landing origin is never installable),
 and **301s everything else to `https://app.sohibna.com`**. The mode is
@@ -87,7 +87,7 @@ env at build — so both trees run side by side on localhost.
 podman build -t sohibna-web:dev .
 podman run -p 8081:8080 sohibna-web:dev                        # app mode
 podman run -p 8082:8080 -e APP_MODE=landing sohibna-web:dev   # landing mode
-# landing: / /en /ar → 200 · /home → 301 app · /sw.js → 404
+# landing: / /en /ar /tr → 200 · /home → 301 app · /sw.js → 404
 ```
 
 ## Manual

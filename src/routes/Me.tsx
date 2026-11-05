@@ -17,7 +17,7 @@ export function Me() {
   const { setAppSetting } = useQuranData()
   const navigate = useNavigate()
 
-  const LANGS: Lang[] = ['id', 'en', 'ar']
+  const LANGS: Lang[] = ['id', 'en', 'ar', 'tr']
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-6 lg:max-w-4xl">

@@ -44,7 +44,7 @@ export function QuranSearch() {
     }
     setSearching(true)
     const id = setTimeout(() => {
-      const cl = contentLangFor(lang) === 'id' ? 'id' : 'en'
+      const cl = contentLangFor(lang)
       searchVerses(q, cl)
         .then((r) => {
           setVerseHits(r.hits)

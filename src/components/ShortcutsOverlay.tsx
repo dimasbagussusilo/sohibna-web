@@ -20,7 +20,7 @@ export function GlobalHotkeys() {
   const [showSheet, setShowSheet] = useState(false)
 
   const cycleLang = () => {
-    const order: Lang[] = ['id', 'en', 'ar']
+    const order: Lang[] = ['id', 'en', 'ar', 'tr']
     setLang(order[(order.indexOf(lang) + 1) % order.length])
   }
 

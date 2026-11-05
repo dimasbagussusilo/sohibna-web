@@ -124,7 +124,7 @@ export function buildTajweedHtml(
       const mark = marks?.[v.verse_key]
       const endColor = mark ? MARK_COLOR[mark] : '#8FBC8F'
       const endStyle = mark ? ' style="position:relative;"' : ''
-      const markGlyph = mark === 'fav' ? '★' : mark === 'bk' ? '🔖' : mark === 'label' : '🏷️' : ''
+      const markGlyph = mark === 'fav' ? '★' : mark === 'bk' ? '🔖' : mark === 'label' ? '🏷️' : ''
       const badge = mark ? `<span class="markbadge" style="color:${endColor}">${markGlyph}</span>` : ''
       const endWord = v.words.find((w) => w.char_type_name === 'end')
       const endHtml =

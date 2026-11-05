@@ -448,6 +448,7 @@ export const translations: Translation = {
     translationTitle: 'Translation',
     enTransOpt: 'English · Saheeh International',
     idTransOpt: 'Indonesian · Kemenag / MoRA',
+    trTransOpt: 'Türkçe — Diyanet',
     tafsir: 'Tafsir',
     enTafsirOpt: 'Ibn Kathir · English',
     idTafsirOpt: 'Tafsir Kemenag · Indonesian',
@@ -478,6 +479,7 @@ export const translations: Translation = {
   verseCard: {
     enSaheeh: 'English · Saheeh International',
     idKemenag: 'Indonesian · Kemenag',
+    trDiyanet: 'Türkçe · Diyanet',
     tafsir: 'Tafsir',
     ibnKathir: 'Ibn Kathir · English',
     tafsirKemenag: 'Tafsir Kemenag · Indonesian',

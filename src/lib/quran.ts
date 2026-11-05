@@ -10,6 +10,7 @@
 
 import { API_BASE_URL } from '@/config';
 import { cachedContent } from './quranCache';
+import type { ContentLang } from '@/i18n/contentLang';
 
 // ── ENDPOINTS ───────────────────────────────────────────────────────────────
 
@@ -19,6 +20,13 @@ export const GADING = `${API_BASE_URL}/quran/gading`; // -> https://api.quran.ga
 
 // Verse recitation audio is served from this CDN; the API returns relative URLs.
 export const AUDIO_BASE = 'https://audio.qurancdn.com/';
+
+// Translation resource ids for the reader's translation slots: 20 = Saheeh
+// International (EN), 33 = Kemenag (ID), 77 = Diyanet İşleri (TR). Unknown
+// values fall back to English. Used to prefer "our" translation when an API
+// response carries several of one language.
+export const translationResourceFor = (lang: string): 33 | 77 | 20 =>
+  lang === 'id' ? 33 : lang === 'tr' ? 77 : 20;
 
 // ── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -144,6 +152,7 @@ export const markTs = (v: ReadingMarkValue): number =>
 export type ReadingSnapshot = {
   showEnglish: boolean;
   showIndonesian: boolean;
+  showTurkish: boolean;
   showEnglishTafsir: boolean;
   showIndoTafsir: boolean;
 };
@@ -179,7 +188,7 @@ export type ReflectionEntryData = {
   updatedAt: number; // epoch ms
 };
 
-export type AppLang = 'id' | 'en' | 'ar';
+export type AppLang = 'id' | 'en' | 'ar' | 'tr';
 
 // Appearance preference: fixed light/dark, or 'auto' = follow the time of day
 // (dark from 18:00 to 06:00, device-local — see AppContext). Synced as a string
@@ -229,6 +238,7 @@ export interface UserData {
   reciterId: number;
   showEnglish: boolean;
   showIndonesian: boolean;
+  showTurkish: boolean;
   showEnglishTafsir: boolean;
   showIndoTafsir: boolean;
   // True once the user manually picks translations/tafsir in Reader Settings —
@@ -393,6 +403,7 @@ export const DEFAULT_USER_DATA: UserData = {
   reciterId: 7,
   showEnglish: true,
   showIndonesian: false,
+  showTurkish: false,
   showEnglishTafsir: false,
   showIndoTafsir: false,
   contentLangOverride: false,
@@ -601,16 +612,19 @@ export const fetchChapters = (): Promise<Chapter[]> =>
     (await getJSON<{ chapters?: Chapter[] }>(`${API}/chapters?language=en`)).chapters || [],
   );
 
-// One verse by key (e.g. "2:152"), with EN (Saheeh, 20) + ID (Kemenag, 33)
-// translations + full word/glyph/tajweed fields — enough for `ArabicText` to
-// render it in any reader script. Disk-cached per key so a seen verse renders
-// offline. Drives the Daily Recitation banner.
+// One verse by key (e.g. "2:152"), with EN (Saheeh, 20) + ID (Kemenag, 33) +
+// TR (Diyanet, 77) translations + full word/glyph/tajweed fields — enough for
+// `ArabicText` to render it in any reader script. Disk-cached per key so a
+// seen verse renders offline. Drives the Daily Recitation banner.
 export async function fetchVerseByKey(key: string): Promise<Verse> {
-  return cachedContent<Verse>(`ayah2_${key}`, async () => {
+  // `ayah3_` — bumped from `ayah2_` when the TR translation (77) joined the
+  // request (old blobs lack it; left on disk as harmless dead weight until
+  // the SW cache cycles).
+  return cachedContent<Verse>(`ayah3_${key}`, async () => {
     const params = new URLSearchParams({
       language: 'en',
       words: 'true',
-      translations: '20,33',
+      translations: '20,33,77',
       word_fields:
         'code_v1,code_v2,text_uthmani,text_indopak,transliteration,translation,audio_url,page_number',
       fields: 'text_uthmani,text_uthmani_tajweed,text_indopak,page_number,ruku_number',
@@ -643,9 +657,9 @@ export const fetchJuzs = (): Promise<Juz[]> =>
 // (proxied at ${API}/search — see internal/quran/proxy.go). No AI: it is literal
 // full-text search over translations. lang selects the translation language
 // searched and the translation shown in each hit (en→Saheeh 20, id→Kemenag 33,
-// falling back to any translation of that language). Results are memoized in
-// memory for the session (NOT on disk — search queries are unbounded, so caching
-// each one to disk would grow storage without bound).
+// tr→Diyanet 77, falling back to any translation of that language). Results are
+// memoized in memory for the session (NOT on disk — search queries are
+// unbounded, so caching each one to disk would grow storage without bound).
 export interface VerseSearchHit {
   verseKey: string; // "7:151"
   surah: number;
@@ -658,7 +672,7 @@ const searchCache = new Map<string, { total: number; hits: VerseSearchHit[] }>()
 
 export async function searchVerses(
   query: string,
-  lang: 'en' | 'id',
+  lang: ContentLang,
 ): Promise<{ total: number; hits: VerseSearchHit[] }> {
   const q = query.trim();
   if (q.length < 2) return { total: 0, hits: [] };
@@ -678,8 +692,8 @@ export async function searchVerses(
     };
   }>(url);
 
-  const preferId = lang === 'id' ? 33 : 20;
-  const langName = lang === 'id' ? 'indonesian' : 'english';
+  const preferId = translationResourceFor(lang);
+  const langName = { 20: 'english', 33: 'indonesian', 77: 'turkish' }[preferId];
   const hits: VerseSearchHit[] = [];
   for (const r of d.search?.results || []) {
     const [s, a] = (r.verse_key || '').split(':');
@@ -718,9 +732,10 @@ export const fetchFootNote = async (id: string): Promise<string> => {
 
 // Load all verses for a navigation source, following pagination (per_page caps
 // at 50). Cached per "kind:id" (L1 in-memory + L2 disk). Same query params as
-// the web app: EN+ID translations (20=Saheeh, 33=Kemenag), full word fields for
-// word-by-word rendering + audio, and the tajweed/indopak verse fields.
-// Standard word/translation/tafsir-glyph fields requested for every reader load.
+// the web app: EN+ID+TR translations (20=Saheeh, 33=Kemenag, 77=Diyanet), full
+// word fields for word-by-word rendering + audio, and the tajweed/indopak verse
+// fields. Standard word/translation/tafsir-glyph fields requested for every
+// reader load.
 const VERSE_FIELDS =
   'text_uthmani,text_uthmani_tajweed,text_indopak,page_number,ruku_number,juz_number,hizb_number,rub_el_hizb_number,sajda_number';
 const WORD_FIELDS =
@@ -767,10 +782,10 @@ export async function loadVerses(src: Source): Promise<Verse[]> {
   const l1 = versesCache.get(key);
   if (l1) return l1;
 
-  // `verses2_` — bumped from `verses_` when word line_number + verse juz/hizb/
-  // rub/sajda fields were added to the request (old blobs are field-incomplete;
-  // they're left on disk as harmless dead weight until the SW cache cycles).
-  const verses = await cachedContent<Verse[]>(`verses2_${key}`, async () => {
+  // `verses3_` — bumped from `verses2_` when the TR translation (77) joined
+  // the request (old blobs lack it; left on disk as harmless dead weight until
+  // the SW cache cycles).
+  const verses = await cachedContent<Verse[]>(`verses3_${key}`, async () => {
     // Lembar = two consecutive mushaf pages. `by_page` returns every verse that
     // has ANY word on that page, so a verse straddling the page boundary appears
     // in BOTH responses → dedupe by id, then sort into mushaf order.
@@ -798,7 +813,7 @@ async function loadByEndpoint(endpoint: string): Promise<Verse[]> {
   const params = new URLSearchParams({
     language: 'en',
     words: 'true',
-    translations: '20,33',
+    translations: '20,33,77',
     word_fields: WORD_FIELDS,
     fields: VERSE_FIELDS,
     per_page: '50',

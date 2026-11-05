@@ -5,6 +5,7 @@ import {
   fetchChapters,
   loadVerses,
   stripHtml,
+  translationResourceFor,
   type Chapter,
   type Juz,
   type ReviewOutcome,
@@ -427,9 +428,11 @@ function ReviewQueue({
     setI((n) => n + 1)
   }
 
+  // App language's translation (en→Saheeh 20, id→Kemenag 33, tr→Diyanet 77),
+  // falling back to English.
+  const pick = verse?.translations?.find((tr) => tr.resource_id === translationResourceFor(lang))
   const en = verse?.translations?.find((tr) => tr.resource_id === 20)
-  const id_ = verse?.translations?.find((tr) => tr.resource_id === 33)
-  const trans = lang === 'id' ? id_?.text ?? en?.text : en?.text ?? id_?.text
+  const trans = pick?.text ?? en?.text
 
   return (
     <Sheet title={`${t('hafalan.reviewNow')} · ${i + 1}/${queue.length}`} onClose={onClose}>

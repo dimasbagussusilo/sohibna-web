@@ -58,9 +58,9 @@ function AccountLangApply() {
 // (reader, auth) render without the tab bar.
 //
 // Split-origin build: the apex domain (sohibna.com) serves the marketing
-// landing at /, /en, /ar — no Auth/QuranData/App providers, no tab bar, no
-// offline banner (no API calls, never installable). Every other origin runs
-// the app tree below, byte-identical to the pre-landing behavior.
+// landing at /, /en, /ar, /tr — no Auth/QuranData/App providers, no tab bar,
+// no offline banner (no API calls, never installable). Every other origin
+// runs the app tree below, byte-identical to the pre-landing behavior.
 export function App() {
   return (
     <I18nProvider>{isLandingOrigin() ? <LandingRoutes /> : <MainAppRoutes />}</I18nProvider>
@@ -73,6 +73,7 @@ function LandingRoutes() {
       <Route path="/" element={<Landing lang="id" />} />
       <Route path="/en" element={<Landing lang="en" />} />
       <Route path="/ar" element={<Landing lang="ar" />} />
+      <Route path="/tr" element={<Landing lang="tr" />} />
       {/* Deep apex links never reach the SPA in prod (nginx landing mode 301s
           them to the app origin first) — this is the dev safety net. */}
       <Route path="*" element={<GoToAppOrigin />} />

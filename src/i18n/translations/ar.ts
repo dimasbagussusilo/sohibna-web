@@ -457,6 +457,7 @@ export const translations: Translation = {
     translationTitle: 'الترجمة',
     enTransOpt: 'الإنجليزية · صحيح إنترناشونال',
     idTransOpt: 'الإندونيسية · كمناك',
+    trTransOpt: 'Türkçe — Diyanet',
     tafsir: 'التفسير',
     enTafsirOpt: 'ابن كثير · الإنجليزية',
     idTafsirOpt: 'تفسير كمناك · الإندونيسية',
@@ -487,6 +488,7 @@ export const translations: Translation = {
   verseCard: {
     enSaheeh: 'الإنجليزية · صحيح إنترناشونال',
     idKemenag: 'الإندونيسية · كمناك',
+    trDiyanet: 'Türkçe · Diyanet',
     tafsir: 'التفسير',
     ibnKathir: 'ابن كثير · الإنجليزية',
     tafsirKemenag: 'تفسير كمناك · الإندونيسية',

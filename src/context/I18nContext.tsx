@@ -14,6 +14,7 @@ import { resolvePath, interpolate } from '@/i18n/translate'
 import { translations as idTranslations } from '@/i18n/translations/id'
 import { translations as enTranslations } from '@/i18n/translations/en'
 import { translations as arTranslations } from '@/i18n/translations/ar'
+import { translations as trTranslations } from '@/i18n/translations/tr'
 
 // App-wide UI language. Bahasa Indonesia (`id`) is the default. Arabic (`ar`)
 // is the only RTL language. On web, RTL is just the <html dir> attribute —
@@ -30,6 +31,7 @@ export const DICTS: Record<Lang, Translation> = {
   id: idTranslations,
   en: enTranslations,
   ar: arTranslations,
+  tr: trTranslations,
 }
 
 const isRTLFor = (lang: Lang) => lang === 'ar'
@@ -90,7 +92,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         const saved = await storage.getItem(LANG_KEY)
         if (cancelled) return
         const next: Lang =
-          saved === 'id' || saved === 'en' || saved === 'ar' ? saved : DEFAULT_LANG
+          saved === 'id' || saved === 'en' || saved === 'ar' || saved === 'tr' ? saved : DEFAULT_LANG
         applyDocumentLang(next)
         setLangState(next)
       } catch {

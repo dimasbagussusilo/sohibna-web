@@ -55,9 +55,9 @@ server {
     # Default: negotiated freshness (no-cache semantics without add_header).
     expires -1;
 
-    # The three landing entry points (with or without trailing slash).
+    # The landing entry points (with or without trailing slash).
     # Regex beats the catch-all `location /` below.
-    location ~ ^/(en|ar)?/?$ {
+    location ~ ^/(en|ar|tr)?/?$ {
         try_files /index.html =404;
     }
     location = /index.html {

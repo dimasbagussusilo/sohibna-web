@@ -112,7 +112,7 @@ export function useRulingsChat({ chatId, scope: initialScope }: Options) {
       const trimmed = text.trim();
       if (!trimmed || loading) return;
       sentRef.current = true;
-      setError(null);
+      setError(false);
 
       const withUser: RulingsChatMessage[] = [
         ...messages,

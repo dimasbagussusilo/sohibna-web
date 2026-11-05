@@ -7,6 +7,7 @@
 // fetchVerseByKey — only the keys live here, never the text.
 
 import type { Verse } from '@/lib/quran';
+import { translationResourceFor } from '@/lib/quran';
 import type { Lang } from '@/i18n/types';
 
 export type MoodId = 'calm' | 'sad' | 'anxious' | 'tired';
@@ -64,10 +65,11 @@ export function pickMoodVerse(mood: MoodId, dateKey: string): string {
   return list[(seed + MOOD_OFFSET[mood]) % list.length] ?? '';
 }
 
-// Pick the translation matching the app language: id → Kemenag (33), else Saheeh
-// International (20). Falls back to whatever translation the verse carries.
+// Pick the translation matching the app language: id → Kemenag (33), tr →
+// Diyanet (77), else Saheeh International (20). Falls back to whatever
+// translation the verse carries.
 export function pickTranslation(v: Verse, lang: Lang): string {
-  const want = lang === 'id' ? 33 : 20;
+  const want = translationResourceFor(lang);
   const byRes = v.translations.find((tr) => tr.resource_id === want)?.text;
   return byRes ?? v.translations[0]?.text ?? '';
 }

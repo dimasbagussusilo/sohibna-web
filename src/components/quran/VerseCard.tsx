@@ -26,6 +26,7 @@ function VerseCardImpl({
   darkMode,
   showEnglish,
   showIndonesian,
+  showTurkish,
   showEnglishTafsir,
   showIndoTafsir,
   isFav,
@@ -49,6 +50,7 @@ function VerseCardImpl({
   darkMode: boolean
   showEnglish: boolean
   showIndonesian: boolean
+  showTurkish: boolean
   showEnglishTafsir: boolean
   showIndoTafsir: boolean
   isFav: boolean
@@ -77,6 +79,7 @@ function VerseCardImpl({
   const verseN = parseInt(vk.split(':')[1], 10)
   const enTrans = verse.translations?.find((tr) => tr.resource_id === 20)
   const idTrans = verse.translations?.find((tr) => tr.resource_id === 33)
+  const trTrans = verse.translations?.find((tr) => tr.resource_id === 77)
 
   useEffect(() => {
     if (!tafsirOpen) return
@@ -186,7 +189,7 @@ function VerseCardImpl({
       </div>
 
       {/* Translations */}
-      {(showEnglish || showIndonesian) && (enTrans || idTrans) ? (
+      {(showEnglish || showIndonesian || showTurkish) && (enTrans || idTrans || trTrans) ? (
         <div className="gap-3 border-t border-gray-100 px-4 pb-3 pt-3 dark:border-white/10">
           {showEnglish && enTrans ? (
             <div>
@@ -205,6 +208,16 @@ function VerseCardImpl({
               </div>
               <div className="text-sm leading-relaxed text-[#2C3E50] dark:text-[#E8E2D6]">
                 <TransText html={idTrans.text} onFootnotePress={onFootnotePress} />
+              </div>
+            </div>
+          ) : null}
+          {showTurkish && trTrans ? (
+            <div>
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {t('verseCard.trDiyanet')}
+              </div>
+              <div className="text-sm leading-relaxed text-[#2C3E50] dark:text-[#E8E2D6]">
+                <TransText html={trTrans.text} onFootnotePress={onFootnotePress} />
               </div>
             </div>
           ) : null}

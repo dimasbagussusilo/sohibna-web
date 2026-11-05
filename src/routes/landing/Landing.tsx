@@ -13,12 +13,12 @@ import { Footer } from './Footer'
 import './landing.css'
 
 // The marketing landing — served on the apex origin (sohibna.com) at /, /en,
-// /ar by the same SPA build (nginx landing mode 301s every other path to the
-// app origin). Language is fixed per route, never persisted. The "Buka
+// /ar, /tr by the same SPA build (nginx landing mode 301s every other path to
+// the app origin). Language is fixed per route, never persisted. The "Buka
 // Aplikasi" CTA points cross-origin at the app.
 
-const LANG_PATH: Record<Lang, string> = { id: '/', en: '/en', ar: '/ar' }
-const OG_LOCALE: Record<Lang, string> = { id: 'id_ID', en: 'en_US', ar: 'ar_AR' }
+const LANG_PATH: Record<Lang, string> = { id: '/', en: '/en', ar: '/ar', tr: '/tr' }
+const OG_LOCALE: Record<Lang, string> = { id: 'id_ID', en: 'en_US', ar: 'ar_AR', tr: 'tr_TR' }
 
 export function Landing({ lang }: { lang: Lang }) {
   return (
@@ -42,7 +42,7 @@ export function Landing({ lang }: { lang: Lang }) {
 function LandingMeta({ lang }: { lang: Lang }) {
   const { dict } = useI18n()
   const m = dict.landing.meta
-  const alternates: MetaAlternate[] = (['id', 'en', 'ar'] as const).map((l) => ({
+  const alternates: MetaAlternate[] = (['id', 'en', 'ar', 'tr'] as const).map((l) => ({
     hreflang: l,
     href: `${LANDING_ORIGIN}${LANG_PATH[l]}`,
   }))

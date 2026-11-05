@@ -8,4 +8,5 @@ export const langName: Record<Lang, string> = {
   id: 'Bahasa Indonesia',
   en: 'English',
   ar: 'العربية',
+  tr: 'Türkçe',
 };

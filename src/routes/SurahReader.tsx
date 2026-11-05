@@ -21,6 +21,7 @@ import type { MushafPageModel } from '@/lib/mushafPage'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
+import { contentLangFor } from '@/i18n/contentLang'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { AudioSettingsSheet } from '@/components/quran/AudioSettingsSheet'
 import { ReadingMarkSheet } from '@/components/quran/ReadingMarkSheet'
@@ -28,6 +29,7 @@ import { DashboardSheet } from '@/components/quran/DashboardSheet'
 import { DownloadSheet } from '@/components/quran/DownloadSheet'
 import { AudioPlayerBar } from '@/components/AudioPlayerBar'
 import { useQuranAudio } from '@/hooks/useQuranAudio'
+import { useQuranContentLang, flagsAreCanonical } from '@/hooks/useQuranContentLang'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { uuidv4 } from '@/lib/uuid'
 
@@ -48,9 +50,24 @@ export function SurahReader() {
   const [searchParams] = useSearchParams()
   const jumpVk = searchParams.get('v')
   const navigate = useNavigate()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { darkMode } = useApp()
-  const { ud, setUD, toggleFav, addLabel, recordLastRead, logReadingSession } = useQuranData()
+  const { ud, loaded: udLoaded, setUD, toggleFav, addLabel, recordLastRead, logReadingSession } =
+    useQuranData()
+
+  // ── Quran content language follows the app language ──────────────────────
+  // Translation + tafsir default to the app language; a manual pick in Reader
+  // Settings sets contentLangOverride (then we leave the flags alone); changing
+  // the app language on the Me page clears the override + resets to canonical.
+  // See hooks/useQuranContentLang.
+  useQuranContentLang(
+    contentLangFor(lang),
+    setUD,
+    udLoaded,
+    ud.contentLangOverride,
+    flagsAreCanonical(ud, contentLangFor(lang)),
+    ud.displayMode,
+  )
 
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [reciters, setReciters] = useState<Reciter[]>([])
@@ -522,6 +539,7 @@ export function SurahReader() {
                   darkMode={darkMode}
                   showEnglish={ud.showEnglish}
                   showIndonesian={ud.showIndonesian}
+                  showTurkish={ud.showTurkish}
                   showEnglishTafsir={ud.showEnglishTafsir}
                   showIndoTafsir={ud.showIndoTafsir}
                   isFav={m.isFav}
@@ -561,6 +579,7 @@ export function SurahReader() {
           onDisplayMode={(m) => setUD({ displayMode: m })}
           showEnglish={ud.showEnglish}
           showIndonesian={ud.showIndonesian}
+          showTurkish={ud.showTurkish}
           showEnglishTafsir={ud.showEnglishTafsir}
           showIndoTafsir={ud.showIndoTafsir}
           onToggle={(patch) => setUD(patch)}
@@ -699,6 +718,7 @@ function ReaderSettings({
   onDisplayMode,
   showEnglish,
   showIndonesian,
+  showTurkish,
   showEnglishTafsir,
   showIndoTafsir,
   onToggle,
@@ -712,11 +732,13 @@ function ReaderSettings({
   onDisplayMode: (m: 'verse' | 'reading' | 'mushaf') => void
   showEnglish: boolean
   showIndonesian: boolean
+  showTurkish: boolean
   showEnglishTafsir: boolean
   showIndoTafsir: boolean
   onToggle: (patch: {
     showEnglish?: boolean
     showIndonesian?: boolean
+    showTurkish?: boolean
     showEnglishTafsir?: boolean
     showIndoTafsir?: boolean
   }) => void
@@ -813,6 +835,11 @@ function ReaderSettings({
             label={t('readerSettings.idTransOpt')}
             on={showIndonesian}
             onChange={(v) => onToggle({ showIndonesian: v })}
+          />
+          <Toggle
+            label={t('readerSettings.trTransOpt')}
+            on={showTurkish}
+            onChange={(v) => onToggle({ showTurkish: v })}
           />
           <Toggle
             label={t('readerSettings.enTafsirOpt')}

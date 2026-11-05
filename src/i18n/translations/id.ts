@@ -455,6 +455,7 @@ export const translations = {
     translationTitle: 'Terjemahan',
     enTransOpt: 'Inggris · Saheeh International',
     idTransOpt: 'Indonesia · Kemenag',
+    trTransOpt: 'Türkçe — Diyanet',
     tafsir: 'Tafsir',
     enTafsirOpt: 'Ibn Kathir · Inggris',
     idTafsirOpt: 'Tafsir Kemenag · Indonesia',
@@ -485,6 +486,7 @@ export const translations = {
   verseCard: {
     enSaheeh: 'Inggris · Saheeh International',
     idKemenag: 'Indonesia · Kemenag',
+    trDiyanet: 'Türkçe · Diyanet',
     tafsir: 'Tafsir',
     ibnKathir: 'Ibn Kathir · Inggris',
     tafsirKemenag: 'Tafsir Kemenag · Indonesia',

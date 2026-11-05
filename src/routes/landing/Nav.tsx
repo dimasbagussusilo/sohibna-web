@@ -10,9 +10,10 @@ const LANGS: { code: Lang; label: string }[] = [
   { code: 'id', label: 'ID' },
   { code: 'en', label: 'EN' },
   { code: 'ar', label: 'AR' },
+  { code: 'tr', label: 'TR' },
 ]
 
-const LANG_PATH: Record<Lang, string> = { id: '/', en: '/en', ar: '/ar' }
+const LANG_PATH: Record<Lang, string> = { id: '/', en: '/en', ar: '/ar', tr: '/tr' }
 
 export function Nav() {
   const { t, lang } = useI18n()
