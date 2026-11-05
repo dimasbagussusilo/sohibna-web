@@ -52,6 +52,21 @@
   font-weight: 700;
   font-display: swap;
 }
+/* Scheherazade New (Arabic subset) — the Indonesian/imlai Quran script
+   (IndonesianVerse). Self-hosted (public/fonts) since the Google Fonts
+   @import was removed; served by the same origin + precached by the SW. */
+@font-face {
+  font-family: 'Scheherazade New';
+  src: url('/fonts/ScheherazadeNew-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Scheherazade New';
+  src: url('/fonts/ScheherazadeNew-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
 
 html,
 body {

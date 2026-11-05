@@ -22,11 +22,13 @@ import {
   mushafMetrics,
   type MushafPageModel,
 } from '@/lib/mushafPage'
+import { API_BASE_URL } from '@/config'
 import { loadVerses, toArabic, type Chapter, type Verse } from '@/lib/quran'
 import { isFontLoaded, loadPageFont, pageFontFamily } from '@/lib/qcfFonts'
 import { MushafFurnitureLayer } from './MushafFurniture'
 
-const QCF_CDN = 'https://verses.quran.foundation/fonts/quran/hafs'
+// Self-hosted QCF fonts, served by our API (same sub-paths as the old CDN).
+const QCF_CDN = `${API_BASE_URL}/quran/fonts`
 
 const MARK_COLOR: Record<string, string> = { fav: '#f59e0b', bk: '#3b82f6', label: '#8B5CF6' }
 

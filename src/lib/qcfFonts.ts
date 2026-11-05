@@ -7,14 +7,18 @@
 //     IndonesianVerse) which load their own fonts via @font-face.
 // Fallback while a font is still loading: Unicode `text_uthmani`.
 //
-// Loading on web is a plain FontFace from the CDN URL (CORS is open on
-// verses.quran.foundation); the service worker's 'qcf-fonts' runtime cache
-// then serves the TTF offline. No disk copy or base64 embedding needed.
+// Loading on web is a plain FontFace from the API URL (fonts self-hosted under
+// ${API_BASE_URL}/quran/fonts, same-origin-with-API as the rest of the data);
+// the service worker's 'quran-fonts' runtime cache then serves the TTF
+// offline. No disk copy or base64 embedding needed.
 
 import { useEffect, useState } from 'react'
+import { API_BASE_URL } from '@/config'
 import type { Script, Verse } from './quran'
 
-const QCF_CDN = 'https://verses.quran.foundation/fonts/quran/hafs'
+// Self-hosted QCF fonts, served by our API (same sub-paths as the old
+// upstream font CDN: v2/ttf, v4/colrv1/woff2, nastaleeq/indopak).
+const QCF_CDN = `${API_BASE_URL}/quran/fonts`
 
 export const INDO_PAK_FAMILY = 'IndoPakNastaleeq'
 const INDO_PAK_URL = `${QCF_CDN}/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.ttf`

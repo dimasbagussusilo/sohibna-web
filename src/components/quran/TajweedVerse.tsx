@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { API_BASE_URL } from '@/config'
 import { toArabic, type Verse, type WordPressInfo } from '@/lib/quran'
 
 // TajweedVerse (web) renders tajweed colouring exactly like the RN app's
@@ -7,10 +8,11 @@ import { toArabic, type Verse, type WordPressInfo } from '@/lib/quran'
 // (base-palette 0) or dark (1) palette. On web the HTML is injected directly
 // into the DOM (dangerouslySetInnerHTML): no WebView, no postMessage bridge —
 // word taps are plain event delegation reading data-* attrs, and offline
-// works for free because the SW runtime-caches the font CDN.
+// works for free because the SW runtime-caches the API font URLs.
 
 const px = (lvl: number) => 18 + (lvl - 1) * 3.3
-const QCF_CDN = 'https://verses.quran.foundation/fonts/quran/hafs'
+// Self-hosted QCF fonts, served by our API (same sub-paths as the old CDN).
+const QCF_CDN = `${API_BASE_URL}/quran/fonts`
 
 function pagesIn(verses: Verse[]): number[] {
   return Array.from(

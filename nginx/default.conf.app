@@ -22,8 +22,10 @@ server {
 
     # Security headers. CSP: no third-party scripts; fonts/audio/frames are
     # content-only (see lib/storage.ts for the localStorage-token tradeoff
-    # this enables). frame-ancestors blocks clickjacking.
-    add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://sohibna-api.catatanbidan.id https://api.bigdatacloud.net; font-src 'self' https://verses.quran.foundation https://fonts.gstatic.com data:; media-src 'self' https://audio.qurancdn.com; img-src 'self' data: https://*.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src https://maps.google.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+    # this enables). frame-ancestors blocks clickjacking. Fonts are served by
+    # the API (font-src); connect-src also carries the Google identity
+    # endpoints the Firebase JS SDK needs for Google Sign-In.
+    add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://sohibna-api.catatanbidan.id https://api.bigdatacloud.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseapp.com; font-src 'self' https://sohibna-api.catatanbidan.id data:; media-src 'self' https://audio.qurancdn.com; img-src 'self' data: https://*.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src https://maps.google.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "geolocation=(self)" always;
@@ -36,7 +38,7 @@ server {
     location /assets/ {
         expires off;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
-        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://sohibna-api.catatanbidan.id https://api.bigdatacloud.net; font-src 'self' https://verses.quran.foundation https://fonts.gstatic.com data:; media-src 'self' https://audio.qurancdn.com; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'" always;
+        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://sohibna-api.catatanbidan.id https://api.bigdatacloud.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseapp.com; font-src 'self' https://sohibna-api.catatanbidan.id data:; media-src 'self' https://audio.qurancdn.com; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         add_header Permissions-Policy "geolocation=(self)" always;

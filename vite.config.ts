@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['offline.html', 'fonts/*.ttf', 'icons/*.png'],
+      includeAssets: ['offline.html', 'fonts/*.ttf', 'fonts/*.woff2', 'icons/*.png'],
       manifest: {
         name: 'Sohibna',
         short_name: 'Sohibna',
@@ -49,8 +49,24 @@ export default defineConfig({
             },
           },
           {
-            // QCF V2 per-page TTFs + IndoPak Nastaleeq (+ V4 COLRv1 woff2).
-            // CORS + long max-age verified on the CDN.
+            // Self-hosted QCF fonts served by the Go API (v2/ttf, v4/colrv1,
+            // nastaleeq) — the client-side half of the font self-hosting move.
+            // Its own cache name: the old 'qcf-fonts' cache is keyed to the
+            // retired CDN origin and would never persist these responses.
+            urlPattern: (opts) =>
+              opts.url.origin === apiOrigin() && /^\/quran\/fonts\//.test(opts.url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'quran-fonts',
+              expiration: { maxEntries: 1500, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // QCF V2 per-page TTFs + IndoPak Nastaleeq (+ V4 COLRv1 woff2) from
+            // the RETIRED upstream CDN. Kept so already-installed SWs keep
+            // serving their pre-migration 'qcf-fonts' cache entries; no new
+            // traffic should arrive here once clients fetch from the API.
             urlPattern: ({ url }) => url.origin === 'https://verses.quran.foundation',
             handler: 'CacheFirst',
             options: {
@@ -68,17 +84,6 @@ export default defineConfig({
             options: {
               cacheName: 'quran-audio',
               expiration: { maxEntries: 3000, maxAgeSeconds: 365 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Scheherazade New (Indonesian/imlai script) via Google Fonts.
-            urlPattern: ({ url }) =>
-              url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'gfonts',
-              expiration: { maxEntries: 60, maxAgeSeconds: 180 * 24 * 60 * 60 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

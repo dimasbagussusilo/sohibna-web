@@ -6,7 +6,8 @@ import { convertToImlai } from '@/lib/imlai'
 // LPMQ style) script: quran.com's `text_uthmani_tajweed` field passed through
 // convertToImlai (lib/imlai.ts), with the tajweed rules re-emitted as COLORED
 // spans. On web this is a plain DOM fragment (no WebView) — Scheherazade New
-// via Google Fonts, cached offline by the SW runtime cache.
+// comes from the self-hosted @font-face in src/index.css (public/fonts),
+// precached by the service worker for offline.
 //
 // Structure contract (mirrors TajweedVerse exactly): per-word
 // `<span class=qtword data-wk=…>` wrapping nested rule spans, the ayah-end
@@ -38,10 +39,6 @@ const TAJWEED_COLORS: Record<string, string> = {
   madda_obligatory: '#d69a5b', // tan — 4-5-harakah madd (quran.com's name)
   madda_necessary: '#d69a5b', // tan — 6-harakah madd (defensive alias)
 }
-
-// Google Fonts CSS for Scheherazade New (Naskh family designed for Quranic
-// orthography). The SW 'gfonts' runtime cache keeps it offline.
-const FONT_CSS = `@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');`
 
 // A run of text under one tajweed rule (null = no rule / base text).
 type Seg = { rule: string | null; text: string }
@@ -160,7 +157,6 @@ export function buildIndonesianHtml(
     .join('')
 
   return `<style>
-${FONT_CSS}
 .iv-body{direction:rtl;text-align:center;color:${color};font-size:${size}px;line-height:2.2;font-family:'Scheherazade New',serif;}
 ${ruleCss}
 .iv-body .end{color:#8FBC8F;font-size:0.85em;}
