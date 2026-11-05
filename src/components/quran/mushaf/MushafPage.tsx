@@ -170,7 +170,16 @@ export function MushafPage({
         <style>{`@font-face{font-family:'QCF_V4_P${page}';src:url('${QCF_CDN}/v4/colrv1/woff2/p${page}.woff2') format('woff2');font-display:swap;}
 @font-palette-values --QCF_V4_P${page}-L{font-family:'QCF_V4_P${page}';base-palette:0;}
 @font-palette-values --QCF_V4_P${page}-D{font-family:'QCF_V4_P${page}';base-palette:1;}
-.mushafrow.tj{font-family:'QCF_V4_P${page}';font-palette:--QCF_V4_P${page}-${theme};}`}</style>
+.mushafrow.tj{font-family:'QCF_V4_P${page}';font-palette:--QCF_V4_P${page}-${theme};}
+${(Object.entries(MARK_COLOR) as Array<[string, string]>)
+  .concat([['def', '#8FBC8F']])
+  .map(
+    ([k, c]) =>
+      `@font-palette-values --QCF_V4_P${page}-E${k}{font-family:'QCF_V4_P${page}';base-palette:${dark ? 1 : 0};override-colors:10 ${c},11 ${c},12 ${c},13 #000000;}` +
+      `.end.e-${k}{font-family:'QCF_V4_P${page}';font-palette:--QCF_V4_P${page}-E${k};}`,
+  )
+  .join('')}
+.end.gl{font-size:1em;}`}</style>
       ) : null}
 
       {model ? (
@@ -194,15 +203,36 @@ export function MushafPage({
                   {row.words.map((mw) => {
                     if (mw.w.char_type_name === 'end') {
                       const mark = marks[mw.vk]
+                      const color = mark ? MARK_COLOR[mark] : '#8FBC8F'
+                      // Medallion glyph: the `end` word's code_v2 IS the ornament
+                      // with the verse number baked in. Tajweed → the page's QCF
+                      // V4 font + e-* tint palette (override-colors recolours the
+                      // ornament layers only, so the number keeps its ink); uthmani
+                      // → the V2 page font (monochrome glyph, CSS colour tints the
+                      // whole medallion — same as the app's native reader). The old
+                      // hand-drawn ۝+digits broke wherever the device's Arabic
+                      // fallback lacks U+06DD's digit-enclosing behaviour.
+                      if (mw.w.code_v2 && (tajweed || fontReady)) {
+                        return (
+                          <span
+                            key={mw.key}
+                            className={tajweed ? `end gl e-${mark || 'def'}` : undefined}
+                            style={{
+                              color: tajweed ? undefined : color,
+                              fontFamily: tajweed ? undefined : pageFontFamily(page),
+                              fontSize: '1em',
+                              paddingInline: '0.12em',
+                            }}
+                          >
+                            {mw.w.code_v2}
+                          </span>
+                        )
+                      }
                       const n = toArabic(Number(mw.vk.split(':')[1]))
                       return (
                         <span
                           key={mw.key}
-                          style={{
-                            color: mark ? MARK_COLOR[mark] : '#8FBC8F',
-                            fontSize: '1.15em',
-                            paddingInline: '0.12em',
-                          }}
+                          style={{ color, fontSize: '1.15em', paddingInline: '0.12em' }}
                         >
                           {' '}
                           ۝{n}

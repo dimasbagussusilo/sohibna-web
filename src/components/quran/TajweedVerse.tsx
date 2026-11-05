@@ -72,6 +72,30 @@ export function buildTajweedHtml(
     .map((p) => `.p${p}{font-family:'QCF_V4_P${p}';font-palette:--QCF_V4_P${p}-${theme};}`)
     .join('')
 
+  // Ayah-end medallion palettes: the verse's `end` word code_v2 glyph is the
+  // full Mushaf medallion (ornament + number baked in) as a COLR glyph whose
+  // layers use palette indexes 10 (crest finial), 11 (scalloped crest), 12
+  // (centre disc) and 13 (ink linework + number strokes) — verified constant
+  // across all page fonts. override-colors recolours the ORNAMENT layers
+  // (10/11/12) to the medallion tint — green by default, the mark colour for
+  // marked verses — and forces 13 to black ink so the number inside stays
+  // readable against the tint in BOTH themes (the dark base palette's white
+  // ink is only 2.1:1 on green/amber). This replaces hand-drawing ۝+digits
+  // in the browser's fallback font, which breaks on devices whose Arabic
+  // fallback lacks U+06DD's digit-enclosing behaviour.
+  const END_TINTS: Array<[string, string]> = [['def', '#8FBC8F'], ...Object.entries(MARK_COLOR)]
+  const endPalettes = pages
+    .flatMap((p) =>
+      END_TINTS.map(
+        ([k, c]) =>
+          `@font-palette-values --QCF_V4_P${p}-E${k}{font-family:'QCF_V4_P${p}';base-palette:${dark ? 1 : 0};override-colors:10 ${c},11 ${c},12 ${c},13 #000000;}`,
+      ),
+    )
+    .join('')
+  const endClasses = pages
+    .flatMap((p) => END_TINTS.map(([k]) => `.end.e-${k}.p${p}{font-palette:--QCF_V4_P${p}-E${k};}`))
+    .join('')
+
   const body = verses
     .map((v) => {
       const wordsHtml = v.words
@@ -90,21 +114,30 @@ export function buildTajweedHtml(
         })
         .join('')
       // Ayah-end medallion: clickable when interactive → opens the verse
-      // action bar. For a marked verse the medallion is coloured and the mark
-      // icon is a badge on it (see .markbadge).
+      // action bar. For a marked verse the medallion is tinted (e-* palette
+      // class) and the mark icon is a badge on it (see .markbadge). The glyph
+      // path renders the `end` word's code_v2 — the ornament WITH the number
+      // already inside it — in the page's QCF V4 font (same as the words), so
+      // the medallion is identical on every device; the hand-drawn ۝+digits
+      // fallback span survives only for payloads without an end glyph.
       const endAttrs = interactive ? ` data-vk="${escAttr(v.verse_key)}"` : ''
       const mark = marks?.[v.verse_key]
       const endColor = mark ? MARK_COLOR[mark] : '#8FBC8F'
-      const endStyle = mark ? ` style="color:${endColor};position:relative;"` : ''
-      const markGlyph = mark === 'fav' ? '★' : mark === 'bk' ? '🔖' : mark === 'label' ? '🏷️' : ''
+      const endStyle = mark ? ' style="position:relative;"' : ''
+      const markGlyph = mark === 'fav' ? '★' : mark === 'bk' ? '🔖' : mark === 'label' : '🏷️' : ''
       const badge = mark ? `<span class="markbadge" style="color:${endColor}">${markGlyph}</span>` : ''
-      return `${wordsHtml}<span class="end"${endAttrs}${endStyle}> ۝${toArabic(v.verse_number)}${badge}</span> `
+      const endWord = v.words.find((w) => w.char_type_name === 'end')
+      const endHtml =
+        endWord?.code_v2 && endWord.page_number && pages.includes(endWord.page_number)
+          ? `<span class="end gl e-${mark || 'def'} p${endWord.page_number}"${endAttrs}${endStyle}>${endWord.code_v2}${badge}</span> `
+          : `<span class="end"${endAttrs}${mark ? ` style="color:${endColor};position:relative;"` : ''}> ۝${toArabic(v.verse_number)}${badge}</span> `
+      return `${wordsHtml}${endHtml}`
     })
     .join('')
 
   return `<style>
 .tv-body{direction:rtl;text-align:center;color:${color};font-size:${size}px;line-height:2.0;}
-${fontFaces}${palettes}${classes}
+${fontFaces}${palettes}${classes}${endPalettes}${endClasses}
 .tv-body .end{color:#8FBC8F;}
 .tv-body .qtword.active{background-color:rgba(143,188,143,0.3);border-radius:4px;cursor:pointer;}
 .tv-body .end.active{background-color:rgba(143,188,143,0.35);border-radius:6px;cursor:pointer;}
