@@ -1239,7 +1239,7 @@ export const translations = {
       q3: 'Apakah data saya aman?',
       a3: 'Koneksi terenkripsi, dan bila Anda masuk dengan akun, penanda bacaan serta hafalan tersimpan aman dan tersinkron antar perangkat.',
       q4: 'Apakah tersedia dalam bahasa Arab?',
-      a4: 'Ya. Antarmuka tersedia dalam Bahasa Indonesia, English, dan العربية dengan tata letak kanan-ke-kiri.',
+      a4: 'Ya. Antarmuka tersedia dalam Bahasa Indonesia, English, العربية, Türkçe, dan اردو (tata letak kanan-ke-kiri untuk bahasa Arab dan Urdu).',
       q5: 'Bagaimana cara memasangnya di HP?',
       a5: 'Ikuti langkah singkat pada bagian “Unduh” di atas — hanya butuh satu menit.',
       q6: 'Kapan tersedia di Google Play dan App Store?',

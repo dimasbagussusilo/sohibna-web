@@ -1225,7 +1225,7 @@ export const translations: Translation = {
       q3: 'Is my data safe?',
       a3: 'Connections are encrypted, and if you sign in, your reading markers and memorization are stored securely and synced across devices.',
       q4: 'Is Arabic available?',
-      a4: 'Yes. The interface is available in Indonesian, English, and العربية with a right-to-left layout.',
+      a4: 'Yes. The interface is available in Bahasa Indonesia, English, العربية, Türkçe, and اردو (right-to-left layout for Arabic and Urdu).',
       q5: 'How do I install it on my phone?',
       a5: 'Follow the quick steps in the “Download” section above — it takes about a minute.',
       q6: 'When will it be on Google Play and the App Store?',

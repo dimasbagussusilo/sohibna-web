@@ -7,6 +7,13 @@
   font-weight: 700;
 }
 
+/* Urdu headlines: Tajawal has no Urdu glyphs — per-glyph fallback would mix
+   metrics mid-word. Nastaliq first (Urdu), Naskh next (Arabic-script spare),
+   Tajawal last (Latin/brand words in mixed headlines). */
+html[lang='ur'] .font-display {
+  font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+}
+
 .glass {
   background: rgb(255 255 255 / 0.05);
   border: 1px solid rgb(255 255 255 / 0.1);

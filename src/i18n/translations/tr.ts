@@ -1237,7 +1237,7 @@ export const translations: Translation = {
       q3: 'Verilerim güvende mi?',
       a3: 'Bağlantılar şifrelidir; hesabınızla giriş yaptığınızda okuma imleriniz ve hafızlığınız güvenle saklanır ve cihazlar arasında eşitlenir.',
       q4: 'Arapça mevcut mu?',
-      a4: 'Evet. Arayüz Endonezce, İngilizce, Türkçe ve العربية dillerinde mevcuttur; العربية için sağdan sola düzen kullanılır.',
+      a4: 'Evet. Arayüz Endonezce, İngilizce, العربية, Türkçe ve اردو dillerinde mevcuttur; العربية ve اردو için sağdan sola düzen kullanılır.',
       q5: 'Telefonuma nasıl kurarım?',
       a5: 'Yukarıdaki “İndir” bölümündeki kısa adımları izleyin — bir dakikanızı alır.',
       q6: 'Google Play ve App Store ne zaman gelecek?',
