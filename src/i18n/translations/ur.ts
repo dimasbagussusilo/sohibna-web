@@ -20,6 +20,7 @@ export const translations: Translation = {
     locating: 'مقام معلوم کیا جا رہا ہے…',
     noArabicVoice: 'آپ کی ڈیوائس پر عربی آواز انسٹال نہیں ہے۔ مقامی آواز پر منتقل کیا جا رہا ہے۔',
     error: 'خرابی',
+    experimental: 'تجرباتی',
   },
 
   onboarding: {

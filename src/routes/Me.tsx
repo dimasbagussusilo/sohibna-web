@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
 import { useQuranData } from '@/context/QuranDataContext'
-import { langName } from '@/i18n/langName'
+import { langName, isExperimentalLang } from '@/i18n/langName'
 import type { Lang } from '@/i18n/types'
 import { VerifyEmailBanner } from '@/components/VerifyEmailBanner'
 
@@ -68,6 +68,11 @@ export function Me() {
               }`}
             >
               {langName[l]}
+              {isExperimentalLang(l) && (
+                <span className="ml-1.5 rounded-full bg-[#8FBC8F]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#8FBC8F]">
+                  {t('common.experimental')}
+                </span>
+              )}
             </button>
           ))}
         </div>

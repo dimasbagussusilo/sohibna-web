@@ -20,6 +20,7 @@ export const translations = {
     locating: 'Mencari lokasi…',
     noArabicVoice: 'Suara Arab tidak terinstal di perangkat Anda. Beralih ke suara lokal.',
     error: 'Kesalahan',
+    experimental: 'Eksperimental',
   },
 
   onboarding: {

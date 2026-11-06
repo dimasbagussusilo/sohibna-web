@@ -22,6 +22,7 @@ export const translations: Translation = {
     locating: 'جارٍ تحديد الموقع…',
     noArabicVoice: 'لا يوجد صوت عربي مثبّت على جهازك. يتم استخدام الصوت المحلي.',
     error: 'خطأ',
+    experimental: 'تجريبية',
   },
 
   onboarding: {

@@ -18,6 +18,7 @@ export const translations: Translation = {
     locating: 'Locating…',
     noArabicVoice: 'No Arabic voice installed on this device. Falling back to the local voice.',
     error: 'Error',
+    experimental: 'Experimental',
   },
 
   onboarding: {

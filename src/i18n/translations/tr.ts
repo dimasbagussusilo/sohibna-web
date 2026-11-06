@@ -20,6 +20,7 @@ export const translations: Translation = {
     locating: 'Konum belirleniyor…',
     noArabicVoice: 'Cihazınızda Arapça ses yüklü değil. Yerel sese geçiliyor.',
     error: 'Hata',
+    experimental: 'Deneysel',
   },
 
   onboarding: {

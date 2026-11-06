@@ -11,3 +11,8 @@ export const langName: Record<Lang, string> = {
   tr: 'Türkçe',
   ur: 'اردو',
 };
+
+// Languages still marked experimental in the pickers (badge next to the
+// name). Remove from this list once the native-speaker review gate passes.
+export const experimentalLangs: readonly Lang[] = ['ur'];
+export const isExperimentalLang = (lang: Lang): boolean => experimentalLangs.includes(lang);
