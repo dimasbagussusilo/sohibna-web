@@ -459,6 +459,7 @@ export const translations: Translation = {
     tafsir: 'Tefsir',
     enTafsirOpt: 'İbn Kesir · İngilizce',
     idTafsirOpt: 'Kemenag Tefsiri · Endonezce',
+    trTafsirOpt: 'İbn Kesir · Türkçe (çeviri)',
     reciter: 'Kâri',
   },
 
@@ -490,6 +491,7 @@ export const translations: Translation = {
     tafsir: 'Tefsir',
     ibnKathir: 'İbn Kesir · İngilizce',
     tafsirKemenag: 'Kemenag Tefsiri · Endonezce',
+    tafsirIbnKesirTr: 'İbn Kesir · Türkçe (çeviri)',
     noTafsir: 'Tefsir mevcut değil.',
     addLabel: 'Etiket ekle…',
     addMark: 'Yeni okuma imi…',

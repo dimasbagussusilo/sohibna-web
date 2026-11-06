@@ -3,8 +3,10 @@ import { ChevronDown, ChevronUp, Play, Pause } from 'lucide-react'
 import {
   ensureEnTafsir,
   ensureIndoTafsir,
+  ensureTrTafsir,
   getEnTafsir,
   getIndoTafsir,
+  getTrTafsir,
   stripHtml,
   type FootnotePressInfo,
   type Script,
@@ -29,6 +31,8 @@ function VerseCardImpl({
   showTurkish,
   showEnglishTafsir,
   showIndoTafsir,
+  showTurkishTafsir,
+  fallbackTafsirLang,
   isFav,
   labels,
   hasMark,
@@ -53,6 +57,10 @@ function VerseCardImpl({
   showTurkish: boolean
   showEnglishTafsir: boolean
   showIndoTafsir: boolean
+  showTurkishTafsir: boolean
+  /** Shown when ALL tafsir toggles are off, so the TAFSIR row is never a dead
+   *  end (follows the app language). The toggles keep their meaning when on. */
+  fallbackTafsirLang: 'en' | 'id' | 'tr'
   isFav: boolean
   labels: string[]
   hasMark: boolean
@@ -70,6 +78,7 @@ function VerseCardImpl({
 }) {
   const [enTafsir, setEnTafsir] = useState<string | undefined>()
   const [indoTafsir, setIndoTafsir] = useState<string | undefined>()
+  const [trTafsir, setTrTafsir] = useState<string | undefined>()
   const [loadingTafsir, setLoadingTafsir] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { t } = useI18n()
@@ -81,23 +90,52 @@ function VerseCardImpl({
   const idTrans = verse.translations?.find((tr) => tr.resource_id === 33)
   const trTrans = verse.translations?.find((tr) => tr.resource_id === 77)
 
+  // Which tafsir languages this card shows when expanded: the settings toggles
+  // when any is on; otherwise the content-language fallback (the TAFSIR row
+  // is always present — toggles select, never gate). Mirrors the RN app.
+  const tafsirEn =
+    showEnglishTafsir ||
+    (!showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && fallbackTafsirLang === 'en')
+  const tafsirId =
+    showIndoTafsir ||
+    (!showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && fallbackTafsirLang === 'id')
+  const tafsirTr =
+    showTurkishTafsir ||
+    (!showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && fallbackTafsirLang === 'tr')
+
+  // TR rows are partially populated server-side (translation backfill). Once
+  // loading finishes, a missing/empty TR entry treats the EN arm as ON for this
+  // verse — the Turkish user sees the EN tafsir under its normal label instead
+  // of a dead "tafsir unavailable" end.
+  const trMissingAfterLoad = tafsirTr && !loadingTafsir && !trTafsir
+  const renderTafsirEn = tafsirEn || trMissingAfterLoad
+  const renderTafsirTr = tafsirTr && !trMissingAfterLoad
+
   useEffect(() => {
     if (!tafsirOpen) return
     let alive = true
     setLoadingTafsir(true)
     ;(async () => {
       const tasks: Array<Promise<void>> = []
-      if (showEnglishTafsir) {
+      // EN is also loaded for the TR arm — it is TR's per-verse fallback.
+      if (tafsirEn || tafsirTr) {
         tasks.push(
           ensureEnTafsir(surah).then(() => {
             if (alive) setEnTafsir(getEnTafsir(vk))
           }),
         )
       }
-      if (showIndoTafsir) {
+      if (tafsirId) {
         tasks.push(
           ensureIndoTafsir(surah).then(() => {
             if (alive) setIndoTafsir(getIndoTafsir(surah, verseN))
+          }),
+        )
+      }
+      if (tafsirTr) {
+        tasks.push(
+          ensureTrTafsir(surah).then(() => {
+            if (alive) setTrTafsir(getTrTafsir(vk))
           }),
         )
       }
@@ -107,9 +145,7 @@ function VerseCardImpl({
     return () => {
       alive = false
     }
-  }, [tafsirOpen, showEnglishTafsir, showIndoTafsir, surah, vk, verseN])
-
-  const showTafsirSection = showEnglishTafsir || showIndoTafsir
+  }, [tafsirOpen, tafsirEn, tafsirId, tafsirTr, surah, vk, verseN])
 
   return (
     <div className="mx-3 mb-3 rounded-2xl border border-gray-100 bg-[#FBF8F1] dark:border-white/10 dark:bg-[#122A1F]">
@@ -224,51 +260,60 @@ function VerseCardImpl({
         </div>
       ) : null}
 
-      {/* Tafsir */}
-      {showTafsirSection ? (
-        <div className="border-t border-gray-100 dark:border-white/10">
-          <button
-            onClick={() => onToggleTafsir(vk)}
-            className="flex w-full flex-row items-center justify-between px-4 py-2.5"
-          >
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              {t('verseCard.tafsir')}
-            </span>
-            {tafsirOpen ? (
-              <ChevronUp color="#9ca3af" size={14} />
-            ) : (
-              <ChevronDown color="#9ca3af" size={14} />
-            )}
-          </button>
+      {/* Tafsir — always present (a settings toggle-off no longer hides the row;
+          expanding with all toggles off falls back to fallbackTafsirLang). */}
+      <div className="border-t border-gray-100 dark:border-white/10">
+        <button
+          onClick={() => onToggleTafsir(vk)}
+          className="flex w-full flex-row items-center justify-between px-4 py-2.5"
+        >
+          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            {t('verseCard.tafsir')}
+          </span>
           {tafsirOpen ? (
-            <div className="gap-3 px-4 pb-4">
-              {loadingTafsir ? (
-                <div className="h-4 w-4 animate-pulse rounded-full bg-[#8FBC8F]/50" />
-              ) : null}
-              {showEnglishTafsir ? (
-                <div>
-                  <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    {t('verseCard.ibnKathir')}
-                  </div>
-                  <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
-                    {enTafsir ? stripHtml(enTafsir) : t('verseCard.noTafsir')}
-                  </div>
+            <ChevronUp color="#9ca3af" size={14} />
+          ) : (
+            <ChevronDown color="#9ca3af" size={14} />
+          )}
+        </button>
+        {tafsirOpen ? (
+          <div className="gap-3 px-4 pb-4">
+            {loadingTafsir ? (
+              <div className="h-4 w-4 animate-pulse rounded-full bg-[#8FBC8F]/50" />
+            ) : null}
+            {renderTafsirEn ? (
+              <div>
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {t('verseCard.ibnKathir')}
                 </div>
-              ) : null}
-              {showIndoTafsir ? (
-                <div>
-                  <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    {t('verseCard.tafsirKemenag')}
-                  </div>
-                  <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
-                    {indoTafsir ? indoTafsir : t('verseCard.noTafsir')}
-                  </div>
+                <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+                  {enTafsir ? stripHtml(enTafsir) : t('verseCard.noTafsir')}
                 </div>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+              </div>
+            ) : null}
+            {tafsirId ? (
+              <div>
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {t('verseCard.tafsirKemenag')}
+                </div>
+                <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+                  {indoTafsir ? indoTafsir : t('verseCard.noTafsir')}
+                </div>
+              </div>
+            ) : null}
+            {renderTafsirTr ? (
+              <div>
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {t('verseCard.tafsirIbnKesirTr')}
+                </div>
+                <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+                  {trTafsir ? stripHtml(trTafsir) : t('verseCard.noTafsir')}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

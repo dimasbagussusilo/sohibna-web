@@ -155,6 +155,7 @@ export type ReadingSnapshot = {
   showTurkish: boolean;
   showEnglishTafsir: boolean;
   showIndoTafsir: boolean;
+  showTurkishTafsir: boolean;
 };
 
 // ── Account-attached progress + prefs (0008) ────────────────────────────────
@@ -241,6 +242,7 @@ export interface UserData {
   showTurkish: boolean;
   showEnglishTafsir: boolean;
   showIndoTafsir: boolean;
+  showTurkishTafsir: boolean;
   // True once the user manually picks translations/tafsir in Reader Settings —
   // pauses the "content follows app language" behaviour so their choice sticks
   // until the next language change (which clears it). See useQuranContentLang.
@@ -406,6 +408,7 @@ export const DEFAULT_USER_DATA: UserData = {
   showTurkish: false,
   showEnglishTafsir: false,
   showIndoTafsir: false,
+  showTurkishTafsir: false,
   contentLangOverride: false,
   audioRate: 1,
   repeatMode: 'none',
@@ -454,6 +457,13 @@ const surahInfoCache = new Map<string, { source: string; text: string }>();
 // English tafsir (Ibn Kathir, resource 169) is fetched per-chapter once.
 const enTafsirLoaded = new Set<string>(); // `ch${surah}`
 const enTafsirMap = new Map<string, string>(); // `169-${verseKey}` → text
+
+// Turkish tafsir (machine-translated Ibn Kathir, resource 9334) — mirrors the
+// EN arm. Server rows are PARTIALLY populated (translation backfill running):
+// verses without a row simply miss here, and the UI falls back to the EN
+// tafsir for that verse.
+const trTafsirLoaded = new Set<string>(); // `ch${surah}`
+const trTafsirMap = new Map<string, string>(); // `9334-${verseKey}` → text
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -842,12 +852,21 @@ export async function ensureEnTafsir(surah: number): Promise<void> {
   if (enTafsirLoaded.has(tag)) return;
   try {
     const arr = await cachedContent<Array<{ verse_key: string; text: string }>>(
-      `entafsir_${surah}`,
+      `entafsir2_${surah}`,
       async () => {
-        const d = await getJSON<{ tafsirs?: Array<{ verse_key: string; text: string }> }>(
-          `${API}/tafsirs/169/by_chapter/${surah}`,
-        );
-        return d.tafsirs || [];
+        const all: Array<{ verse_key: string; text: string }> = [];
+        let page = 1;
+        let totalPages = 1;
+        do {
+          const d = await getJSON<{
+            tafsirs?: Array<{ verse_key: string; text: string }>;
+            pagination?: { total_pages?: number };
+          }>(`${API}/tafsirs/169/by_chapter/${surah}?per_page=50&page=${page}`);
+          (d.tafsirs || []).forEach((t) => all.push(t));
+          totalPages = d.pagination?.total_pages || 1;
+          page++;
+        } while (page <= totalPages);
+        return all;
       },
     );
     arr.forEach((t) => enTafsirMap.set(`169-${t.verse_key}`, t.text));
@@ -858,6 +877,41 @@ export async function ensureEnTafsir(surah: number): Promise<void> {
 }
 
 export const getEnTafsir = (verseKey: string): string | undefined => enTafsirMap.get(`169-${verseKey}`);
+
+// Turkish tafsir (machine-translated Ibn Kathir, resource 9334) — fetched once
+// per chapter, mirroring ensureEnTafsir. Text is HTML like the EN arm's and is
+// stripped at render. A failed/partial load leaves rows absent → callers fall
+// back to the EN tafsir per verse.
+export async function ensureTrTafsir(surah: number): Promise<void> {
+  const tag = `ch${surah}`;
+  if (trTafsirLoaded.has(tag)) return;
+  try {
+    const arr = await cachedContent<Array<{ verse_key: string; text: string }>>(
+      `tafsir_tr_${surah}`,
+      async () => {
+        const all: Array<{ verse_key: string; text: string }> = [];
+        let page = 1;
+        let totalPages = 1;
+        do {
+          const d = await getJSON<{
+            tafsirs?: Array<{ verse_key: string; text: string }>;
+            pagination?: { total_pages?: number };
+          }>(`${API}/tafsirs/9334/by_chapter/${surah}?per_page=50&page=${page}`);
+          (d.tafsirs || []).forEach((t) => all.push(t));
+          totalPages = d.pagination?.total_pages || 1;
+          page++;
+        } while (page <= totalPages);
+        return all;
+      },
+    );
+    arr.forEach((t) => trTafsirMap.set(`9334-${t.verse_key}`, t.text));
+    trTafsirLoaded.add(tag);
+  } catch {
+    /* leave unloaded; UI falls back to the EN tafsir */
+  }
+}
+
+export const getTrTafsir = (verseKey: string): string | undefined => trTafsirMap.get(`9334-${verseKey}`);
 
 // Indonesian tafsir (Kemenag via Gading Dev → tafsir.id.long per verse).
 export async function ensureIndoTafsir(surah: number): Promise<void> {

@@ -461,6 +461,7 @@ export const translations: Translation = {
     tafsir: 'التفسير',
     enTafsirOpt: 'ابن كثير · الإنجليزية',
     idTafsirOpt: 'تفسير كمناك · الإندونيسية',
+    trTafsirOpt: 'İbn Kesir · Türkçe (çeviri)',
     reciter: 'القارئ',
   },
 
@@ -492,6 +493,7 @@ export const translations: Translation = {
     tafsir: 'التفسير',
     ibnKathir: 'ابن كثير · الإنجليزية',
     tafsirKemenag: 'تفسير كمناك · الإندونيسية',
+    tafsirIbnKesirTr: 'İbn Kesir · Türkçe (çeviri)',
     noTafsir: 'لا يتوفر تفسير.',
     addLabel: 'إضافة تصنيف…',
     addMark: 'علامة جديدة…',

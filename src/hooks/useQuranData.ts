@@ -57,6 +57,7 @@ const SETTING_KEYS = new Set<string>([
   'showTurkish',
   'showEnglishTafsir',
   'showIndoTafsir',
+  'showTurkishTafsir',
   'audioRate',
   'repeatMode',
   'repeatCount',

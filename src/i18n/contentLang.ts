@@ -14,5 +14,14 @@ export const contentLangFor = (lang: Lang): ContentLang =>
 // Chapter intros + tafsir have NO Turkish upstream (Maududi/King Fahad en/id
 // only, Ibn Kathir en / Kemenag id) — collapse tr onto English so those
 // selectors keep their two-value caches instead of forking a third, identical
-// "en-in-Turkish-locale" copy.
+// "en-in-Turkish-locale" copy. (Tafsir itself now HAS a Turkish arm — resource
+// 9334 — see tafsirLangFor below; intros stay en/id.)
 export const enIdContentFor = (lang: Lang): 'en' | 'id' => (lang === 'id' ? 'id' : 'en');
+
+// Tafsir language selector: unlike intros, tafsir HAS a Turkish arm
+// (machine-translated Ibn Kathir, resource 9334), so tr keeps its own tafsir
+// language; en/id are unchanged. Used by the reader's fallbackTafsirLang (the
+// TAFSIR row's language when every tafsir toggle is off).
+export type TafsirLang = 'en' | 'id' | 'tr';
+export const tafsirLangFor = (lang: Lang): TafsirLang =>
+  lang === 'tr' ? 'tr' : enIdContentFor(contentLangFor(lang));

@@ -8,8 +8,9 @@ import type { DisplayMode, UserData } from '@/lib/quran';
 // The Quran content (translation + tafsir) defaults to the app language:
 //   English    → Saheeh International (trans) + Ibn Kathir (tafsir)
 //   Indonesian → Kemenag (trans) + Kemenag (tafsir)
-//   Turkish    → Diyanet İşleri (trans) + Ibn Kathir (tafsir — there is no
-//                Turkish tafsir upstream, so English tafsir stays canonical)
+//   Turkish    → Diyanet İşleri (trans) + İbn Kesir Türkçe (tafsir — machine-
+//                translated 9334; the EN tafsir is the per-verse fallback while
+//                rows backfill)
 // (Surah info follows appLang separately in SurahInfoSheet — Maududi / King Fahad.)
 //
 // Behaviour (kept deliberately simple so it's robust — no persisted "synced lang" or
@@ -58,9 +59,11 @@ export function useQuranContentLang(
       showEnglish: wantEn,
       showIndonesian: wantId,
       showTurkish: wantTr,
-      // Tafsir only exists in EN (Ibn Kathir) + ID (Kemenag) — Turkish keeps the
-      // English tafsir on.
-      showEnglishTafsir: wantEn || wantTr,
+      // Turkish now pairs the Diyanet translation with the TURKISH tafsir
+      // (machine-translated İbn Kesir, 9334); the English tafsir is
+      // fallback-only (rendered per-verse while a TR row is still missing).
+      showEnglishTafsir: wantEn,
+      showTurkishTafsir: wantTr,
       showIndoTafsir: wantId,
       contentLangOverride: false,
     });
@@ -72,15 +75,18 @@ export function useQuranContentLang(
 export function flagsAreCanonical(ud: UserData, lang: ContentLang): boolean {
   if (lang === 'en') {
     return (
-      ud.showEnglish && !ud.showIndonesian && !ud.showTurkish && ud.showEnglishTafsir && !ud.showIndoTafsir
+      ud.showEnglish && !ud.showIndonesian && !ud.showTurkish &&
+      ud.showEnglishTafsir && !ud.showIndoTafsir && !ud.showTurkishTafsir
     );
   }
   if (lang === 'tr') {
     return (
-      !ud.showEnglish && !ud.showIndonesian && ud.showTurkish && ud.showEnglishTafsir && !ud.showIndoTafsir
+      !ud.showEnglish && !ud.showIndonesian && ud.showTurkish &&
+      !ud.showEnglishTafsir && !ud.showIndoTafsir && ud.showTurkishTafsir
     );
   }
   return (
-    !ud.showEnglish && ud.showIndonesian && !ud.showTurkish && !ud.showEnglishTafsir && ud.showIndoTafsir
+    !ud.showEnglish && ud.showIndonesian && !ud.showTurkish &&
+    !ud.showEnglishTafsir && ud.showIndoTafsir && !ud.showTurkishTafsir
   );
 }

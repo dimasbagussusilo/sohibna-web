@@ -21,7 +21,7 @@ import type { MushafPageModel } from '@/lib/mushafPage'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
-import { contentLangFor } from '@/i18n/contentLang'
+import { contentLangFor, tafsirLangFor } from '@/i18n/contentLang'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { AudioSettingsSheet } from '@/components/quran/AudioSettingsSheet'
 import { ReadingMarkSheet } from '@/components/quran/ReadingMarkSheet'
@@ -68,6 +68,14 @@ export function SurahReader() {
     flagsAreCanonical(ud, contentLangFor(lang)),
     ud.displayMode,
   )
+
+  // Tafsir fallback for the un-gated TAFSIR row on verse cards: when ALL
+  // tafsir toggles are off, expanding fetches this language (follows the app
+  // language; Turkish has its own machine-translated tafsir arm — İbn Kesir
+  // 9334 — so tr no longer collapses to English), so tafsir is never a dead
+  // end. The settings toggles keep their meaning (which languages to show
+  // when on).
+  const fallbackTafsirLang = tafsirLangFor(lang)
 
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [reciters, setReciters] = useState<Reciter[]>([])
@@ -542,6 +550,8 @@ export function SurahReader() {
                   showTurkish={ud.showTurkish}
                   showEnglishTafsir={ud.showEnglishTafsir}
                   showIndoTafsir={ud.showIndoTafsir}
+                  showTurkishTafsir={ud.showTurkishTafsir}
+                  fallbackTafsirLang={fallbackTafsirLang}
                   isFav={m.isFav}
                   labels={m.labels}
                   hasMark={m.hasMark}
@@ -582,6 +592,7 @@ export function SurahReader() {
           showTurkish={ud.showTurkish}
           showEnglishTafsir={ud.showEnglishTafsir}
           showIndoTafsir={ud.showIndoTafsir}
+          showTurkishTafsir={ud.showTurkishTafsir}
           onToggle={(patch) => setUD(patch)}
         />
       ) : null}
@@ -721,6 +732,7 @@ function ReaderSettings({
   showTurkish,
   showEnglishTafsir,
   showIndoTafsir,
+  showTurkishTafsir,
   onToggle,
 }: {
   onClose: () => void
@@ -735,12 +747,14 @@ function ReaderSettings({
   showTurkish: boolean
   showEnglishTafsir: boolean
   showIndoTafsir: boolean
+  showTurkishTafsir: boolean
   onToggle: (patch: {
     showEnglish?: boolean
     showIndonesian?: boolean
     showTurkish?: boolean
     showEnglishTafsir?: boolean
     showIndoTafsir?: boolean
+    showTurkishTafsir?: boolean
   }) => void
 }) {
   const { t } = useI18n()
@@ -850,6 +864,11 @@ function ReaderSettings({
             label={t('readerSettings.idTafsirOpt')}
             on={showIndoTafsir}
             onChange={(v) => onToggle({ showIndoTafsir: v })}
+          />
+          <Toggle
+            label={t('readerSettings.trTafsirOpt')}
+            on={showTurkishTafsir}
+            onChange={(v) => onToggle({ showTurkishTafsir: v })}
           />
         </div>
 
