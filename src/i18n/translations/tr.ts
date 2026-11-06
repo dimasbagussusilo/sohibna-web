@@ -1107,6 +1107,14 @@ export const translations: Translation = {
       "Ezan alarmları, ana ekran namaz widgetı ve pil ayarları Android'e özgü özelliklerdir — hepsi Sohibna mobil uygulamasında yer alır.",
   },
 
+  // Pop-up announcement dialog chrome — title/body/CTA text itself comes
+  // from the announcements table via the API, not from these keys.
+  announcement: {
+    ctaDonate: 'Bağış Yap',
+    ctaOpenLink: 'Bağlantıyı Aç',
+    closeForToday: 'Belki sonra',
+  },
+
   // Gregorian month / weekday labels (Hijri month names are kept constant in
   // src/lib/hijri.ts — they do not vary between languages).
   lists: {

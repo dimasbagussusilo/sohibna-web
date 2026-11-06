@@ -10,6 +10,7 @@ import { AppShell } from '@/components/AppShell'
 import { TabBar } from '@/components/TabBar'
 import { Toast } from '@/components/Toast'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { AnnouncementPopup } from '@/components/AnnouncementPopup'
 import { GlobalHotkeys } from '@/components/ShortcutsOverlay'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { Home } from '@/routes/Home'
@@ -139,6 +140,7 @@ function MainAppRoutes() {
             <OfflineBanner />
             <Toast />
             <ConfirmDialog />
+            <AnnouncementPopup />
           </AppProvider>
         </QuranDataProvider>
       </AuthProvider>

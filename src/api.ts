@@ -138,6 +138,21 @@ export const findRelatedVerses = (topic: string, lang: string) =>
   postJSON<RelatedResult>('/quran/related', { topic, lang });
 export const fetchEvents = () => getJSON<IslamicEventDTO[]>('/events');
 
+// Pop-up announcements (donation invitations, news) — GET /announcements.
+// `content` is a per-language map; resolveContent picks the entry for the UI
+// language with fallbacks (see src/lib/announcements.ts).
+export type AnnouncementContent = { title: string; body: string; cta?: string };
+export type AnnouncementDTO = {
+  id: string;
+  content: Record<string, AnnouncementContent>;
+  image_url: string;
+  action: '' | 'donate' | 'url';
+  action_url: string;
+  frequency: 'daily' | 'once';
+  updated_at: string;
+};
+export const fetchAnnouncements = () => getJSON<AnnouncementDTO[]>('/announcements');
+
 // ── AUTH ────────────────────────────────────────────────────────────────────
 
 // Re-export so existing `import { AuthError } from '@/api'` keeps working.

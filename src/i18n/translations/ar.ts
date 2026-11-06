@@ -1107,6 +1107,14 @@ export const translations: Translation = {
       'تنبيهات الأذان وأداة أوقات الصلاة في الشاشة الرئيسية وإعدادات البطارية ميزات أصلية في أندرويد — تجدها في تطبيق صحبنا للجوال.',
   },
 
+  // Pop-up announcement dialog chrome — title/body/CTA text itself comes
+  // from the announcements table via the API, not from these keys.
+  announcement: {
+    ctaDonate: 'تبرع الآن',
+    ctaOpenLink: 'افتح الرابط',
+    closeForToday: 'ربما لاحقًا',
+  },
+
   // Gregorian month / weekday labels (Hijri month names are kept constant in
   // src/lib/hijri.ts — they do not vary between languages).
   lists: {

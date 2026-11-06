@@ -1107,6 +1107,14 @@ export const translations: Translation = {
       'اذان کے الارم، ہوم اسکرین کا نمازِ اوقات ویجٹ، اور بیٹری کی ترتیبات اینڈرائیڈ کی اصل (native) خصوصیات ہیں — یہ سب Sohibna موبائل ایپ میں موجود ہیں۔',
   },
 
+  // Pop-up announcement dialog chrome — title/body/CTA text itself comes
+  // from the announcements table via the API, not from these keys.
+  announcement: {
+    ctaDonate: 'ابھی عطیہ دیں',
+    ctaOpenLink: 'لنک کھولیں',
+    closeForToday: 'شاید بعد میں',
+  },
+
   // Gregorian month / weekday labels (Hijri month names are kept constant in
   // src/lib/hijri.ts — they do not vary between languages).
   lists: {

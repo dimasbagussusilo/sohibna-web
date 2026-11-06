@@ -1107,6 +1107,14 @@ export const translations = {
       'Alarm adzan, widget waktu shalat di layar utama, dan pengaturan baterai adalah fitur Android native — semuanya ada di aplikasi mobile Sohibna.',
   },
 
+  // Pop-up announcement dialog chrome — title/body/CTA text itself comes
+  // from the announcements table via the API, not from these keys.
+  announcement: {
+    ctaDonate: 'Donasi Sekarang',
+    ctaOpenLink: 'Buka Tautan',
+    closeForToday: 'Mungkin Nanti',
+  },
+
   // Gregorian month / weekday labels (Hijri month names are kept constant in
   // src/lib/hijri.ts — they do not vary between languages).
   lists: {

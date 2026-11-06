@@ -1096,6 +1096,14 @@ export const translations: Translation = {
       'Adhan alarms, the home-screen prayer widget, and battery settings are Android-native features — they live in the Sohibna mobile app.',
   },
 
+  // Pop-up announcement dialog chrome — title/body/CTA text itself comes
+  // from the announcements table via the API, not from these keys.
+  announcement: {
+    ctaDonate: 'Donate Now',
+    ctaOpenLink: 'Open Link',
+    closeForToday: 'Maybe later',
+  },
+
   lists: {
     gregMonthsFull: [
       'January', 'February', 'March', 'April', 'May', 'June',

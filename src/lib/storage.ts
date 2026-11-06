@@ -8,6 +8,8 @@
 //     (pre-appearance builds used the boolean sohibna:dark_mode — migrated
 //     once in AppContext, then removed)
 //   reflection:* / prayed:* / location / place-name / islamic-events caches
+//   sohibna:ann:daily.<id> / sohibna:ann:once.<id> (pop-up announcement
+//     seen-flags, src/lib/announcements.ts)
 //
 // SECURITY NOTE: the RN app kept tokens in the OS keychain (SecureStore). Web
 // has no equivalent available to JS, so refresh/access tokens live in
