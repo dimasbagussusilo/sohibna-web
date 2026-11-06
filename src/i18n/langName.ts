@@ -9,4 +9,5 @@ export const langName: Record<Lang, string> = {
   en: 'English',
   ar: 'العربية',
   tr: 'Türkçe',
+  ur: 'اردو',
 };

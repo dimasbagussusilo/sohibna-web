@@ -3,8 +3,8 @@ import type { Lang } from '@/i18n/types';
 // Type shapes for the Dzikir & Doa feature. Pedagogical prose/meaning is
 // trilingual (Bi); Arabic + transliteration stay plain strings.
 
-/** A quadrilingual string — Indonesian source + English, Arabic and Turkish translations. */
-export type Bi = { id: string; en: string; ar: string; tr: string };
+/** A quintilingual string — Indonesian source + English, Arabic, Turkish and Urdu translations. */
+export type Bi = { id: string; en: string; ar: string; tr: string; ur: string };
 
 /** Deeply resolves every Bi in a shape to a plain string for the given lang. */
 export type Resolved<T> = T extends Bi

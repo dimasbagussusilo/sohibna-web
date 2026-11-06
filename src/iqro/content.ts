@@ -20,7 +20,8 @@ const isBi = (x: unknown): x is Bi =>
   'en' in x &&
   'ar' in x &&
   'tr' in x &&
-  Object.keys(x).length === 4;
+  'ur' in x &&
+  Object.keys(x).length === 5;
 
 /**
  * Deeply resolve every Bi leaf in a data tree to a plain string for the given

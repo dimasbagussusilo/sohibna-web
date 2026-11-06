@@ -56,7 +56,9 @@ export function Support() {
             {t('landing.support.hadith')}
           </blockquote>
           <figcaption
-            className={`mt-3 text-xs text-[#8FBC8F] ${lang === 'ar' ? 'quran-rtl' : ''}`}
+            className={`mt-3 text-xs text-[#8FBC8F] ${
+              lang === 'ar' || lang === 'ur' ? 'quran-rtl' : ''
+            }`}
           >
             {t('landing.support.hadithSource')}
           </figcaption>

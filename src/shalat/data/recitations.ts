@@ -9,8 +9,8 @@ import type { ArabicItem } from '../types';
 export const TAKBIR: ArabicItem = {
   arabic: 'اللَّهُ أَكْبَرُ',
   latin: 'Allaahu akbar',
-  meaning: { id: 'Allah Maha Besar.', en: 'Allah is the Greatest.', ar: 'الله أكبر.', tr: 'Allah en büyüktür.' },
-  reference: { id: 'Takbiratul ihram (rukun shalat)', en: 'Takbiratul ihram (pillar of prayer)', ar: 'تكبيرة الإحرام (ركن الصلاة)', tr: 'İftitah tekbiri (namazın rüknü)' },
+  meaning: { id: 'Allah Maha Besar.', en: 'Allah is the Greatest.', ar: 'الله أكبر.', tr: 'Allah en büyüktür.', ur: 'اللہ سب سے بڑا ہے۔' },
+  reference: { id: 'Takbiratul ihram (rukun shalat)', en: 'Takbiratul ihram (pillar of prayer)', ar: 'تكبيرة الإحرام (ركن الصلاة)', tr: 'İftitah tekbiri (namazın rüknü)', ur: 'تکبیرِ تحریمہ (نماز کا رکن)' },
 };
 
 export const DOA_IFTITAH: ArabicItem = {
@@ -23,15 +23,16 @@ export const DOA_IFTITAH: ArabicItem = {
     en: 'Allah is the Greatest beyond measure, all praise is for Allah abundantly, and glory be to Allah morning and evening. I have turned my face to Him who created the heavens and the earth as a pure monotheist, and I am not of the polytheists. My prayer, my devotion, my life, and my death are for Allah, Lord of the worlds, with no partner. So I have been commanded, and I am of the Muslims.',
     ar: 'الله أكبر كبيرًا، والحمد لله كثيرًا، وسبحان الله بكرة وأصيلًا. وجّهت وجهي للذي فطر السماوات والأرض حنيفًا مسلمًا وما أنا من المشركين. إن صلاتي ونسكي ومحياي ومماتي لله رب العالمين، لا شريك له، وبذلك أُمرت وأنا من المسلمين.',
     tr: 'Allah kemaliyle en büyüktür, sonsuz hamd Allah’ındır, Allah sabah ve akşam noksan sıfatlardan uzaktır. Yüzümü, hanif olarak teslimiyetle, gökleri ve yeri yaratana çevirdim ve ben müşriklerden değilim. Şüphesiz benim namazım, ibadetim, hayatım ve ölümüm âlemlerin Rabbi Allah içindir; O’nun hiçbir ortağı yoktur. Bana böyle emredildi ve ben Müslümanlardanım.',
+    ur: 'اللہ کمالِ عظمت والا ہے، اللہ کے لیے بے شمار تعریفیں ہیں اور اللہ صبح و شام پاک ہے۔ میں نے اپنا منہ اس ذات کی طرف پھیر دیا جس نے آسمانوں اور زمین کو پیدا کیا، میں حنیف اور مسلمان ہوں اور میں مشرکوں میں سے نہیں ہوں۔ بے شک میری نماز، میری عبادت، میرا جینا اور میرا مرنا اللہ ہی کے لیے ہے جو تمام جہانوں کا رب ہے؛ اُس کا کوئی شریک نہیں؛ اسی کا مجھے حکم دیا گیا ہے اور میں مسلمانوں میں سے ہوں۔'
   },
-  reference: { id: 'HR. Muslim', en: 'Muslim', ar: 'رواه مسلم', tr: 'Müslim' },
+  reference: { id: 'HR. Muslim', en: 'Muslim', ar: 'رواه مسلم', tr: 'Müslim', ur: 'مسلم' },
 };
 
 export const TASBIH_RUKU: ArabicItem = {
   arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ وَبِحَمْدِهِ',
   latin: 'Subhaana rabbiyal ‘azhiimi wa bihamdih (3×)',
-  meaning: { id: 'Maha Suci Tuhanku Yang Maha Agung dan dengan memuji-Nya.', en: 'Glory to my Lord, the Most Great, and praise to Him.', ar: 'سبحان ربي العظيم وبحمده.', tr: 'Büyük Rabbim noksan sıfatlardan uzaktır ve O’na hamdolsun.' },
-  reference: { id: 'HR. Abu Dawud & At-Tirmidzi', en: 'Abu Dawud & At-Tirmidhi', ar: 'رواه أبو داود والترمذي', tr: 'Ebû Dâvûd ve Tirmizî' },
+  meaning: { id: 'Maha Suci Tuhanku Yang Maha Agung dan dengan memuji-Nya.', en: 'Glory to my Lord, the Most Great, and praise to Him.', ar: 'سبحان ربي العظيم وبحمده.', tr: 'Büyük Rabbim noksan sıfatlardan uzaktır ve O’na hamdolsun.', ur: 'میرا ربِ عظیم پاک ہے اور اُسی کی تعریف ہے۔' },
+  reference: { id: 'HR. Abu Dawud & At-Tirmidzi', en: 'Abu Dawud & At-Tirmidhi', ar: 'رواه أبو داود والترمذي', tr: 'Ebû Dâvûd ve Tirmizî', ur: 'ابوداؤد و ترمذی' },
 };
 
 export const DOA_ITIDAL: ArabicItem = {
@@ -42,15 +43,16 @@ export const DOA_ITIDAL: ArabicItem = {
     en: 'Allah hears those who praise Him. Our Lord, to You be all praise.',
     ar: 'سمع الله لمن حمده، ربنا لك الحمد.',
     tr: 'Allah, kendisine hamd edenin hamdini işitir (kabul eder). Rabbimiz, hamd sanadır.',
+    ur: 'اللہ سن لیتا ہے اُسے جو اُس کی حمد کرتا ہے۔ اے ہمارے رب! تیرے ہی لیے تمام تعریفیں ہیں۔'
   },
-  reference: { id: 'HR. Bukhari & Muslim', en: 'Bukhari & Muslim', ar: 'متفق عليه', tr: 'Buhârî ve Müslim' },
+  reference: { id: 'HR. Bukhari & Muslim', en: 'Bukhari & Muslim', ar: 'متفق عليه', tr: 'Buhârî ve Müslim', ur: 'بخاری و مسلم' },
 };
 
 export const TASBIH_SUJUD: ArabicItem = {
   arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى وَبِحَمْدِهِ',
   latin: 'Subhaana rabbiyal a’laa wa bihamdih (3×)',
-  meaning: { id: 'Maha Suci Tuhanku Yang Maha Tinggi dan dengan memuji-Nya.', en: 'Glory to my Lord, the Most High, and praise to Him.', ar: 'سبحان ربي الأعلى وبحمده.', tr: 'En yüce Rabbim noksan sıfatlardan uzaktır ve O’na hamdolsun.' },
-  reference: { id: 'HR. Abu Dawud & At-Tirmidzi', en: 'Abu Dawud & At-Tirmidhi', ar: 'رواه أبو داود والترمذي', tr: 'Ebû Dâvûd ve Tirmizî' },
+  meaning: { id: 'Maha Suci Tuhanku Yang Maha Tinggi dan dengan memuji-Nya.', en: 'Glory to my Lord, the Most High, and praise to Him.', ar: 'سبحان ربي الأعلى وبحمده.', tr: 'En yüce Rabbim noksan sıfatlardan uzaktır ve O’na hamdolsun.', ur: 'میرا ربِ اعلیٰ پاک ہے اور اُسی کی تعریف ہے۔' },
+  reference: { id: 'HR. Abu Dawud & At-Tirmidzi', en: 'Abu Dawud & At-Tirmidhi', ar: 'رواه أبو داود والترمذي', tr: 'Ebû Dâvûd ve Tirmizî', ur: 'ابوداؤد و ترمذی' },
 };
 
 export const DOA_ANTARA_SUJUD: ArabicItem = {
@@ -61,8 +63,9 @@ export const DOA_ANTARA_SUJUD: ArabicItem = {
     en: 'My Lord, forgive me, have mercy on me, cover my shortcomings, raise my rank, provide for me, guide me, grant me well-being, and pardon me.',
     ar: 'رب اغفر لي وارحمني واجبرني وارفعني وارزقني واهدني وعافني واعفُ عني.',
     tr: 'Rabbim! Beni bağışla, bana merhamet et, açığımı kapat, beni yücelt, bana rızık ver, bana hidayet et, bana âfiyet ver ve beni affet.',
+    ur: 'اے میرے رب! مجھے بخش دے، مجھ پر رحم فرما، میری کمی پوری فرما دے، میرا مرتبہ بلند فرما دے، مجھے رزق عطا فرما، ہدایت عطا فرما، عافیت عطا فرما اور مجھے معاف کر دے۔'
   },
-  reference: { id: 'HR. Abu Dawud & At-Tirmidzi', en: 'Abu Dawud & At-Tirmidhi', ar: 'رواه أبو داود والترمذي', tr: 'Ebû Dâvûd ve Tirmizî' },
+  reference: { id: 'HR. Abu Dawud & At-Tirmidzi', en: 'Abu Dawud & At-Tirmidhi', ar: 'رواه أبو داود والترمذي', tr: 'Ebû Dâvûd ve Tirmizî', ur: 'ابوداؤد و ترمذی' },
 };
 
 export const TASYAHHUD: ArabicItem = {
@@ -75,8 +78,9 @@ export const TASYAHHUD: ArabicItem = {
     en: 'All greetings, prayers, and good things belong to Allah. Peace, mercy, and blessings of Allah be upon you, O Prophet; peace be upon us and upon the righteous servants of Allah. I bear witness that there is no god but Allah, and that Muhammad is His servant and messenger.',
     ar: 'التحيات لله والصلوات والطيبات، السلام عليك أيها النبي ورحمة الله وبركاته، السلام علينا وعلى عباد الله الصالحين، أشهد أن لا إله إلا الله وأشهد أن محمدًا عبده ورسوله.',
     tr: 'Bütün selamlar, salâtlar ve güzel sözler Allah’ındır. Ey Nebî! Sana Allah’ın selamı, rahmeti ve bereketi olsun; selam bizlerin ve Allah’ın salih kullarının üzerine olsun. Allah’tan başka ilah olmadığına ve Muhammed’in O’nun kulu ve elçisi olduğuna şahadet ederim.',
+    ur: 'تمام تحیاتیں، تمام عبادتیں اور تمام نیک باتیں اللہ ہی کے لیے ہیں۔ اے نبی! آپ پر سلام ہو اور اللہ کی رحمت اور اُس کی برکتیں؛ سلام ہو ہم پر اور اللہ کے نیک بندوں پر۔ میں گواہی دیتا ہوں کہ اللہ کے سوا کوئی معبود نہیں اور میں گواہی دیتا ہوں کہ محمد اُس کے بندے اور اُس کے رسول ہیں۔'
   },
-  reference: { id: 'HR. Bukhari & Muslim', en: 'Bukhari & Muslim', ar: 'متفق عليه', tr: 'Buhârî ve Müslim' },
+  reference: { id: 'HR. Bukhari & Muslim', en: 'Bukhari & Muslim', ar: 'متفق عليه', tr: 'Buhârî ve Müslim', ur: 'بخاری و مسلم' },
 };
 
 export const SHALAWAT: ArabicItem = {
@@ -89,8 +93,9 @@ export const SHALAWAT: ArabicItem = {
     en: 'O Allah, send blessings upon Muhammad and the family of Muhammad, as You sent blessings upon Ibrahim and the family of Ibrahim. You are indeed Praiseworthy, Glorious. O Allah, bestow barakah upon Muhammad and the family of Muhammad, as You bestowed barakah upon Ibrahim and the family of Ibrahim.',
     ar: 'اللهم صلِّ على محمد وعلى آل محمد، كما صليت على إبراهيم وعلى آل إبراهيم، إنك حميد مجيد. اللهم بارك على محمد وعلى آل محمد، كما باركت على إبراهيم وعلى آل إبراهيم، إنك حميد مجيد.',
     tr: 'Allah’ım! Muhammed’e ve Muhammed’in âline, İbrahim’e ve İbrahim’in âline salât ettiğin gibi salât et; şüphesiz Sen övülen ve yücelensin. Allah’ım! Muhammed’e ve Muhammed’in âline, İbrahim’e ve İbrahim’in âline bereket verdiğin gibi bereket ver.',
+    ur: 'اے اللہ! محمد پر اور آلِ محمد پر رحمت نازل فرما، جیسے تو نے ابراہیم پر اور آلِ ابراہیم پر رحمت نازل فرمائی؛ بے شک تو تعریف والا، بزرگی والا ہے۔ اے اللہ! محمد پر اور آلِ محمد پر برکت نازل فرما، جیسے تو نے ابراہیم پر اور آلِ ابراہیم پر برکت نازل فرمائی۔'
   },
-  reference: { id: 'HR. Bukhari & Muslim (shalawat Ibrahimiyah)', en: 'Bukhari & Muslim (Ibrahimiyyah salawat)', ar: 'متفق عليه (الصلاة الإبراهيمية)', tr: 'Buhârî ve Müslim (İbrahimiye salavâtı)' },
+  reference: { id: 'HR. Bukhari & Muslim (shalawat Ibrahimiyah)', en: 'Bukhari & Muslim (Ibrahimiyyah salawat)', ar: 'متفق عليه (الصلاة الإبراهيمية)', tr: 'Buhârî ve Müslim (İbrahimiye salavâtı)', ur: 'بخاری و مسلم (درودِ ابراہیمی)' },
 };
 
 export const SALAM: ArabicItem = {
@@ -101,8 +106,9 @@ export const SALAM: ArabicItem = {
     en: 'Peace and mercy of Allah be upon you.',
     ar: 'السلام عليكم ورحمة الله.',
     tr: 'Allah’ın selamı ve rahmeti sizin üzerine olsun.',
+    ur: 'تم پر سلامتی اور اللہ کی رحمت ہو۔'
   },
-  reference: { id: 'HR. Bukhari & Muslim', en: 'Bukhari & Muslim', ar: 'متفق عليه', tr: 'Buhârî ve Müslim' },
+  reference: { id: 'HR. Bukhari & Muslim', en: 'Bukhari & Muslim', ar: 'متفق عليه', tr: 'Buhârî ve Müslim', ur: 'بخاری و مسلم' },
 };
 
 export const QUNUT_DOA: ArabicItem = {
@@ -115,6 +121,7 @@ export const QUNUT_DOA: ArabicItem = {
     en: 'O Allah, guide me among those You have guided, grant me well-being among those You have granted well-being, take me into Your care among those You have taken into Your care, bless for me what You have given, and protect me from the evil You have decreed. For You decree and none decrees upon You. None is humiliated whom You befriend, and none is honored whom You take as an enemy. Blessed are You, our Lord, and Exalted.',
     ar: 'اللهم اهدني فيمن هديت، وعافني فيمن عافيت، وتولَّني فيمن توليت، وبارك لي فيما أعطيت، وقني شر ما قضيت؛ فإنك تقضي ولا يُقضى عليك، وإنه لا يذل من واليت، ولا يعز من عاديت، تباركت ربنا وتعاليت.',
     tr: 'Allah’ım! Hidayette ettiklerine beni de hidayette et, âfiyet verdiklerine bana da âfiyet ver, koruma altına aldıklarına beni de koruma altına al, verdiğin şeyi benim için bereketli kıl ve takdir ettiğin şeyin şerrinden beni koru. Şüphesiz Sen hükmedersin, sana hükmedilmez. Dost edindiğini zelil etmezsin, düşman edindiğini de aziz etmezsin. Rabbimiz! Sen noksan sıfatlardan uzak ve yücesin.',
+    ur: 'اے اللہ! مجھے ہدایت دے جن کو تو نے ہدایت دی، مجھے عافیت دے جن کو تو نے عافیت دی، مجھے اپنی ولایت میں لے لے جن کو تو نے ولایت دی، اور جو کچھ تو نے مجھے دیا اس میں برکت عطا فرما اور مجھے اس کے شر سے بچا لے جو تو نے تقدیر فرمایا؛ بے شک تو ہی تقدیر فرماتا ہے اور تیری تقدیر نہیں کی جاتی، اور جس کو تو نے دوست بنایا وہ ذلیل نہیں ہوتا اور جس کو تو نے دشمن بنایا وہ عزت والا نہیں ہوتا؛ اے ہمارے رب! تو پاک ہے اور بلند و بالا ہے۔'
   },
-  reference: { id: 'HR. An-Nasa-i & At-Tirmidzi', en: 'An-Nasa-i & At-Tirmidhi', ar: 'رواه النسائي والترمذي', tr: 'Nesâî ve Tirmizî' },
+  reference: { id: 'HR. An-Nasa-i & At-Tirmidzi', en: 'An-Nasa-i & At-Tirmidhi', ar: 'رواه النسائي والترمذي', tr: 'Nesâî ve Tirmizî', ur: 'نسائی و ترمذی' },
 };

@@ -14,7 +14,7 @@ export function LandingI18n({ lang, children }: { lang: Lang; children: ReactNod
 
   const value = useMemo(() => {
     const dict = DICTS[lang]
-    const isRTL = lang === 'ar'
+    const isRTL = lang === 'ar' || lang === 'ur'
     return {
       ...parent,
       lang,
@@ -32,7 +32,7 @@ export function LandingI18n({ lang, children }: { lang: Lang; children: ReactNod
       dir: document.documentElement.dir,
     }
     document.documentElement.lang = lang
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+    document.documentElement.dir = lang === 'ar' || lang === 'ur' ? 'rtl' : 'ltr'
     return () => {
       document.documentElement.lang = prev.lang
       document.documentElement.dir = prev.dir

@@ -3,7 +3,7 @@
 # 05-select-nginx-mode.sh (APP_MODE=landing).
 #
 # Same image as app mode — only this server block differs:
-#   • /, /en, /ar serve the SPA shell (the landing routes in src/App.tsx)
+#   • /, /en, /ar, /tr, /ur serve the SPA shell (the landing routes in src/App.tsx)
 #   • hashed assets, fonts, icons, og-image, robots.txt are served
 #   • sw.js / registerSW.js / manifest.webmanifest 404 → the landing origin
 #     never owns a service worker and is never installable (the SPA also
@@ -57,7 +57,7 @@ server {
 
     # The landing entry points (with or without trailing slash).
     # Regex beats the catch-all `location /` below.
-    location ~ ^/(en|ar|tr)?/?$ {
+    location ~ ^/(en|ar|tr|ur)?/?$ {
         try_files /index.html =404;
     }
     location = /index.html {

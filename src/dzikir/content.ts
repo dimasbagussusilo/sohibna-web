@@ -4,7 +4,7 @@ import type { Bi, Lang, Resolved } from './types';
 import { DZIKIR_ITEMS } from './data';
 
 const isBi = (x: unknown): x is Bi =>
-  !!x && typeof x === 'object' && 'id' in x && 'en' in x && 'ar' in x && 'tr' in x && Object.keys(x).length === 4;
+  !!x && typeof x === 'object' && 'id' in x && 'en' in x && 'ar' in x && 'tr' in x && 'ur' in x && Object.keys(x).length === 5;
 
 /** Deeply resolve every Bi leaf to a plain string for the active language. */
 export function resolve<T>(node: T, lang: Lang): Resolved<T> {

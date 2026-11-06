@@ -43,6 +43,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: '1 Muharrem',
       detail: 'İslami (Hicri) yeni yılın ilk günü — tefekkür ve niyetleri yenileme anı.',
     },
+    ur: {
+      title: 'اسلامی نیا سال',
+      short: '1 محرم',
+      detail: 'نئے اسلامی (ہجری) سال کا پہلا دن — غور و فکر اور نیتوں کی تجدید کا موقع۔',
+    },
   },
   tasua: {
     en: {
@@ -64,6 +69,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       title: "Tasu'a",
       short: '9 Muharrem · sünnet oruç',
       detail: "Muharrem'in 9. gününü oruçlu geçirmek, 10. gün (Aşure) ile birlikte müstahabdır.",
+    },
+    ur: {
+      title: 'تسوعہ',
+      short: '9 محرم · سنت روزہ',
+      detail: '9 محرم کا روزہ 10 محرم (عاشورہ) کے ساتھ مستحسن ہے۔',
     },
   },
   ashura: {
@@ -91,6 +101,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       detail:
         "Muharrem'in 10. günü — Allah'ın Musa ﷺ ve kavmini kurtardığı gündür. Bu günü oruçlu geçirmek, geçmiş bir yılın günahlarına kefaret olur.",
     },
+    ur: {
+      title: 'یومِ عاشورہ',
+      short: '10 محرم · سنت روزہ',
+      detail: '10 محرم — وہ دن جب اللہ نے موسیٰ ﷺ اور ان کی قوم کو نجات دی۔ اس کا روزہ گزشتہ سال کے گناہوں کا کفارہ ہے۔',
+    },
   },
   mawlid: {
     en: {
@@ -112,6 +127,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       title: 'Mevlid Kandili',
       short: '12 Rebiülevvel',
       detail: "Peygamber Muhammed ﷺ'ın doğum ayı olarak birçokları tarafından anılır.",
+    },
+    ur: {
+      title: 'میلادالنبی',
+      short: '12 ربیع الاول',
+      detail: 'بہت سے لوگ اسے نبی محمد ﷺ کی ولادت کا مہینہ سمجھ کر مناتے ہیں۔',
     },
   },
   'isra-miraj': {
@@ -135,6 +155,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: '27 Recep',
       detail: "Peygamberimiz ﷺ'ın gece yolculuğu ve göğe yükselişi.",
     },
+    ur: {
+      title: 'اسراء و معراج',
+      short: '27 رجب',
+      detail: 'نبی ﷺ کا شبِ سفر اور آسمانوں کی جانب معراج۔',
+    },
   },
   'nisf-shaban': {
     en: {
@@ -157,6 +182,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: '15 Şaban',
       detail: 'Mağfiret ve rahmet gecesi; birçokları bu geceyi namaz ve zikirle ihya eder.',
     },
+    ur: {
+      title: 'نصف شعبان (لیلۃالبراءۃ)',
+      short: '15 شعبان',
+      detail: 'مغفرت اور رحمت کی رات؛ بہت سے لوگ اسے نماز اور ذکر میں گزارتے ہیں۔',
+    },
   },
   'ramadan-start': {
     en: {
@@ -178,6 +208,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       title: "Ramazan'ın Başlangıcı",
       short: '1 Ramazan',
       detail: "Mübarek oruç ayı başlar. Ramazan'ın her gününü oruçlu geçirmek farzdır.",
+    },
+    ur: {
+      title: 'رمضان کا آغاز',
+      short: '1 رمضان',
+      detail: 'مبارک مہینۂ روزے کا آغاز ہوتا ہے۔ رمضان کا ہر دن روزہ رکھنا فرض ہے۔',
     },
   },
   'ramadan-fast': {
@@ -205,6 +240,12 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       detail: "Ramazan boyunca şafaktan gün batımına kadar oruç tutmak — İslam'ın beş şartından biridir.",
       rhythm: "Ramazan'ın her günü",
     },
+    ur: {
+      title: 'رمضان کا روزہ',
+      short: 'فرض روزہ',
+      detail: 'رمضان بھر فجر سے غروبِ آفتاب تک روزہ رکھنا — اسلام کے پانچ ارکان میں سے ایک۔',
+      rhythm: 'رمضان کا ہر دن',
+    },
   },
   'lailatul-qadr': {
     en: {
@@ -226,6 +267,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       title: 'Kadir Gecesi (kabul edilen tarih)',
       short: '27 Ramazan',
       detail: "Kadir Gecesi, bin aydan hayırlıdır. Ramazan'ın son on gününün tek gecelerinde aranır.",
+    },
+    ur: {
+      title: 'شبِ قدر (متعین تاریخ)',
+      short: '27 رمضان',
+      detail: 'شبِ قدر — ہزار مہینوں سے بہتر۔ رمضان کے آخری دس دن کی طاق راتوں میں تلاش کی جاتی ہے۔',
     },
   },
   'eid-fitr': {
@@ -249,6 +295,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: '1 Şevval · Bayramınız mübarek olsun',
       detail: "Ramazan'ın sonunu işaretleyen bayram. Bu günde oruç tutmak haramdır.",
     },
+    ur: {
+      title: 'عیدالفطر',
+      short: '1 شوال · عید مبارک',
+      detail: 'رمضان کے اختتام کی عید۔ اس دن روزہ رکھنا حرام ہے۔',
+    },
   },
   'shawwal-six': {
     en: {
@@ -270,6 +321,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       title: "Şevval'de Altı Gün Orucu",
       short: '2–7 Şevval · sünnet oruç',
       detail: "Şevval'de altı gün oruç tutmak, Ramazan ile birlikte tüm bir yıl oruç tutmak gibidir.",
+    },
+    ur: {
+      title: 'شوال کے چھ روزے',
+      short: '2–7 شوال · سنت روزہ',
+      detail: 'شوال میں چھ روزے رکھنا، رمضان کے ساتھ مل کر، گویا پورا سال روزہ رکھ لینے کے مثل ہے۔',
     },
   },
   arafah: {
@@ -293,6 +349,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: '9 Zilhicce · sünnet oruç',
       detail: 'Hacca gitmeyenler için Arefe Günü orucu, geçmiş ve gelecek yılın günahlarına kefaret olur.',
     },
+    ur: {
+      title: 'یومِ عرفہ',
+      short: '9 ذوالحجہ · سنت روزہ',
+      detail: 'حاجیوں کے سوا دوسروں کے لیے یومِ عرفہ کا روزہ گزشتہ اور آنے والے سال کے گناہوں کا کفارہ ہے۔',
+    },
   },
   'eid-adha': {
     en: {
@@ -315,6 +376,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: '10 Zilhicce · Bayramınız mübarek olsun',
       detail: 'Kurban bayramıdır. Bu günde oruç tutmak haramdır.',
     },
+    ur: {
+      title: 'عیدالاضحیٰ',
+      short: '10 ذوالحجہ · عید مبارک',
+      detail: 'قربانی کی عید۔ اس دن روزہ رکھنا حرام ہے۔',
+    },
   },
   tashreeq: {
     en: {
@@ -336,6 +402,11 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       title: 'Teşrik Günleri',
       short: '11–13 Zilhicce',
       detail: 'Teşrik günleridir. Bu günlerde oruç tutmak haramdır.',
+    },
+    ur: {
+      title: 'ایامِ تشریق',
+      short: '11–13 ذوالحجہ',
+      detail: 'تشریق کے دن۔ ان دنوں روزہ رکھنا حرام ہے۔',
     },
   },
   beedh: {
@@ -363,6 +434,12 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       detail: '"Beyaz günler": her hicri ayın 13, 14 ve 15. günlerinde oruç tutmaktır.',
       rhythm: "Her hicri ayın 13, 14 ve 15'i",
     },
+    ur: {
+      title: 'ایامِ بیض (سفید دن)',
+      short: '13–15 ہر ہجری مہینہ · سنت روزہ',
+      detail: '"سفید دن": ہر ہجری مہینے کی 13، 14 اور 15 تاریخ کو روزہ رکھنا۔',
+      rhythm: 'ہر ہجری مہینے کی 13، 14 اور 15',
+    },
   },
   'mon-thu': {
     en: {
@@ -388,6 +465,12 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       short: 'Haftalık sünnet oruç',
       detail: 'Peygamber ﷺ Pazartesi ve Perşembe günleri oruç tutardı — amellerin arz edildiği günler.',
       rhythm: 'Her Pazartesi & Perşembe',
+    },
+    ur: {
+      title: 'سوموار اور جمعرات کا روزہ',
+      short: 'ہفتہ وار سنت روزہ',
+      detail: 'نبی ﷺ سوموار اور جمعرات کو روزہ رکھتے تھے — یہ وہ دن ہیں جب اعمال پیش کیے جاتے ہیں۔',
+      rhythm: 'ہر سوموار اور جمعرات',
     },
   },
 };

@@ -1,12 +1,12 @@
 import type { Lang } from '@/i18n/types';
 
 // Type shapes for the Iqro curriculum, ported from iqro/1–4.html datasets.
-// Pedagogical prose is quadrilingual (Bi). Term names (letters, harakat, tajwid
+// Pedagogical prose is quintilingual (Bi). Term names (letters, harakat, tajwid
 // rules) are also Bi: Indonesian/English keep the transliteration, Arabic gets
 // the native term (السكون، الفتحة…).
 
-/** A quadrilingual string — Indonesian source + English, Arabic and Turkish translations. */
-export type Bi = { id: string; en: string; ar: string; tr: string };
+/** A quintilingual string — Indonesian source + English, Arabic, Turkish and Urdu translations. */
+export type Bi = { id: string; en: string; ar: string; tr: string; ur: string };
 
 /** Deeply resolves every Bi in a shape to a plain string for the given lang. */
 export type Resolved<T> = T extends Bi

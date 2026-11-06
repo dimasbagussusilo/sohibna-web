@@ -1,9 +1,9 @@
 import type { translations as idTranslations } from './translations/id';
 
 // Supported UI languages. Bahasa Indonesia (`id`) is the app default; Arabic
-// (`ar`) is the only RTL language (see I18nContext for the RTL wiring).
-// Turkish (`tr`) is LTR, laid out exactly like `id`/`en`.
-export type Lang = 'id' | 'en' | 'ar' | 'tr';
+// (`ar`) and Urdu (`ur`) are the RTL languages (see I18nContext for the RTL
+// wiring). Turkish (`tr`) is LTR, laid out exactly like `id`/`en`.
+export type Lang = 'id' | 'en' | 'ar' | 'tr' | 'ur';
 
 // The canonical shape of a translation dictionary, derived from (but widened
 // beyond) the Bahasa Indonesia source-of-truth file. `as const` in id.ts gives

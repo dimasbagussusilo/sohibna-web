@@ -22,11 +22,12 @@ export const GADING = `${API_BASE_URL}/quran/gading`; // -> https://api.quran.ga
 export const AUDIO_BASE = 'https://audio.qurancdn.com/';
 
 // Translation resource ids for the reader's translation slots: 20 = Saheeh
-// International (EN), 33 = Kemenag (ID), 77 = Diyanet İşleri (TR). Unknown
-// values fall back to English. Used to prefer "our" translation when an API
-// response carries several of one language.
-export const translationResourceFor = (lang: string): 33 | 77 | 20 =>
-  lang === 'id' ? 33 : lang === 'tr' ? 77 : 20;
+// International (EN), 33 = Kemenag (ID), 77 = Diyanet İşleri (TR),
+// 97 = Tafheem-ul-Quran (UR). Unknown values fall back to English. Used to
+// prefer "our" translation when an API response carries several of one
+// language.
+export const translationResourceFor = (lang: string): 33 | 77 | 97 | 20 =>
+  lang === 'id' ? 33 : lang === 'tr' ? 77 : lang === 'ur' ? 97 : 20;
 
 // ── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -153,9 +154,11 @@ export type ReadingSnapshot = {
   showEnglish: boolean;
   showIndonesian: boolean;
   showTurkish: boolean;
+  showUrdu: boolean;
   showEnglishTafsir: boolean;
   showIndoTafsir: boolean;
   showTurkishTafsir: boolean;
+  showUrduTafsir: boolean;
 };
 
 // ── Account-attached progress + prefs (0008) ────────────────────────────────
@@ -189,7 +192,7 @@ export type ReflectionEntryData = {
   updatedAt: number; // epoch ms
 };
 
-export type AppLang = 'id' | 'en' | 'ar' | 'tr';
+export type AppLang = 'id' | 'en' | 'ar' | 'tr' | 'ur';
 
 // Appearance preference: fixed light/dark, or 'auto' = follow the time of day
 // (dark from 18:00 to 06:00, device-local — see AppContext). Synced as a string
@@ -240,9 +243,11 @@ export interface UserData {
   showEnglish: boolean;
   showIndonesian: boolean;
   showTurkish: boolean;
+  showUrdu: boolean;
   showEnglishTafsir: boolean;
   showIndoTafsir: boolean;
   showTurkishTafsir: boolean;
+  showUrduTafsir: boolean;
   // True once the user manually picks translations/tafsir in Reader Settings —
   // pauses the "content follows app language" behaviour so their choice sticks
   // until the next language change (which clears it). See useQuranContentLang.
@@ -406,9 +411,11 @@ export const DEFAULT_USER_DATA: UserData = {
   showEnglish: true,
   showIndonesian: false,
   showTurkish: false,
+  showUrdu: false,
   showEnglishTafsir: false,
   showIndoTafsir: false,
   showTurkishTafsir: false,
+  showUrduTafsir: false,
   contentLangOverride: false,
   audioRate: 1,
   repeatMode: 'none',
@@ -464,6 +471,13 @@ const enTafsirMap = new Map<string, string>(); // `169-${verseKey}` → text
 // tafsir for that verse.
 const trTafsirLoaded = new Set<string>(); // `ch${surah}`
 const trTafsirMap = new Map<string, string>(); // `9334-${verseKey}` → text
+
+// Urdu tafsir (Ibn Kathir, resource 160) — fetched once per chapter, mirroring
+// the EN/TR arms. Text is HTML like the EN arm's and is stripped at render.
+// A failed/partial load leaves rows absent → callers fall back to the EN
+// tafsir per verse.
+const urTafsirLoaded = new Set<string>(); // `ch${surah}`
+const urTafsirMap = new Map<string, string>(); // `160-${verseKey}` → text
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -623,18 +637,19 @@ export const fetchChapters = (): Promise<Chapter[]> =>
   );
 
 // One verse by key (e.g. "2:152"), with EN (Saheeh, 20) + ID (Kemenag, 33) +
-// TR (Diyanet, 77) translations + full word/glyph/tajweed fields — enough for
-// `ArabicText` to render it in any reader script. Disk-cached per key so a
-// seen verse renders offline. Drives the Daily Recitation banner.
+// TR (Diyanet, 77) + UR (Tafheem, 97) translations + full word/glyph/tajweed
+// fields — enough for `ArabicText` to render it in any reader script.
+// Disk-cached per key so a seen verse renders offline. Drives the Daily
+// Recitation banner.
 export async function fetchVerseByKey(key: string): Promise<Verse> {
-  // `ayah3_` — bumped from `ayah2_` when the TR translation (77) joined the
+  // `ayah4_` — bumped from `ayah3_` when the UR translation (97) joined the
   // request (old blobs lack it; left on disk as harmless dead weight until
   // the SW cache cycles).
-  return cachedContent<Verse>(`ayah3_${key}`, async () => {
+  return cachedContent<Verse>(`ayah4_${key}`, async () => {
     const params = new URLSearchParams({
       language: 'en',
       words: 'true',
-      translations: '20,33,77',
+      translations: '20,33,77,97',
       word_fields:
         'code_v1,code_v2,text_uthmani,text_indopak,transliteration,translation,audio_url,page_number',
       fields: 'text_uthmani,text_uthmani_tajweed,text_indopak,page_number,ruku_number',
@@ -667,7 +682,8 @@ export const fetchJuzs = (): Promise<Juz[]> =>
 // (proxied at ${API}/search — see internal/quran/proxy.go). No AI: it is literal
 // full-text search over translations. lang selects the translation language
 // searched and the translation shown in each hit (en→Saheeh 20, id→Kemenag 33,
-// tr→Diyanet 77, falling back to any translation of that language). Results are
+// tr→Diyanet 77, ur→Tafheem 97; falls back to any translation of that
+// language). Results are
 // memoized in memory for the session (NOT on disk — search queries are
 // unbounded, so caching each one to disk would grow storage without bound).
 export interface VerseSearchHit {
@@ -703,7 +719,7 @@ export async function searchVerses(
   }>(url);
 
   const preferId = translationResourceFor(lang);
-  const langName = { 20: 'english', 33: 'indonesian', 77: 'turkish' }[preferId];
+  const langName = { 20: 'english', 33: 'indonesian', 77: 'turkish', 97: 'urdu' }[preferId];
   const hits: VerseSearchHit[] = [];
   for (const r of d.search?.results || []) {
     const [s, a] = (r.verse_key || '').split(':');
@@ -742,10 +758,10 @@ export const fetchFootNote = async (id: string): Promise<string> => {
 
 // Load all verses for a navigation source, following pagination (per_page caps
 // at 50). Cached per "kind:id" (L1 in-memory + L2 disk). Same query params as
-// the web app: EN+ID+TR translations (20=Saheeh, 33=Kemenag, 77=Diyanet), full
-// word fields for word-by-word rendering + audio, and the tajweed/indopak verse
-// fields. Standard word/translation/tafsir-glyph fields requested for every
-// reader load.
+// the web app: EN+ID+TR+UR translations (20=Saheeh, 33=Kemenag, 77=Diyanet,
+// 97=Tafheem), full word fields for word-by-word rendering + audio, and the
+// tajweed/indopak verse fields. Standard word/translation/tafsir-glyph fields
+// requested for every reader load.
 const VERSE_FIELDS =
   'text_uthmani,text_uthmani_tajweed,text_indopak,page_number,ruku_number,juz_number,hizb_number,rub_el_hizb_number,sajda_number';
 const WORD_FIELDS =
@@ -792,10 +808,10 @@ export async function loadVerses(src: Source): Promise<Verse[]> {
   const l1 = versesCache.get(key);
   if (l1) return l1;
 
-  // `verses3_` — bumped from `verses2_` when the TR translation (77) joined
+  // `verses4_` — bumped from `verses3_` when the UR translation (97) joined
   // the request (old blobs lack it; left on disk as harmless dead weight until
   // the SW cache cycles).
-  const verses = await cachedContent<Verse[]>(`verses3_${key}`, async () => {
+  const verses = await cachedContent<Verse[]>(`verses4_${key}`, async () => {
     // Lembar = two consecutive mushaf pages. `by_page` returns every verse that
     // has ANY word on that page, so a verse straddling the page boundary appears
     // in BOTH responses → dedupe by id, then sort into mushaf order.
@@ -823,7 +839,7 @@ async function loadByEndpoint(endpoint: string): Promise<Verse[]> {
   const params = new URLSearchParams({
     language: 'en',
     words: 'true',
-    translations: '20,33,77',
+    translations: '20,33,77,97',
     word_fields: WORD_FIELDS,
     fields: VERSE_FIELDS,
     per_page: '50',
@@ -912,6 +928,59 @@ export async function ensureTrTafsir(surah: number): Promise<void> {
 }
 
 export const getTrTafsir = (verseKey: string): string | undefined => trTafsirMap.get(`9334-${verseKey}`);
+
+// Urdu tafsir (Ibn Kathir, resource 160) — fetched once per chapter, mirroring
+// ensureTrTafsir. Text is HTML like the EN arm's and is stripped at render.
+// A failed/partial load leaves rows absent → callers fall back to the EN
+// tafsir per verse.
+export async function ensureUrTafsir(surah: number): Promise<void> {
+  const tag = `ch${surah}`;
+  if (urTafsirLoaded.has(tag)) return;
+  try {
+    const arr = await cachedContent<Array<{ verse_key: string; text: string }>>(
+      `tafsir_ur_${surah}`,
+      async () => {
+        const all: Array<{ verse_key: string; text: string }> = [];
+        let page = 1;
+        let totalPages = 1;
+        do {
+          const d = await getJSON<{
+            tafsirs?: Array<{ verse_key: string; text: string }>;
+            pagination?: { total_pages?: number };
+          }>(`${API}/tafsirs/160/by_chapter/${surah}?per_page=50&page=${page}`);
+          (d.tafsirs || []).forEach((t) => all.push(t));
+          totalPages = d.pagination?.total_pages || 1;
+          page++;
+        } while (page <= totalPages);
+        return all;
+      },
+    );
+    arr.forEach((t) => urTafsirMap.set(`160-${t.verse_key}`, t.text));
+    urTafsirLoaded.add(tag);
+  } catch {
+    /* leave unloaded; UI falls back to the EN tafsir */
+  }
+}
+
+// The Urdu Ibn Kathir (160) is GROUPED upstream: commentary for a passage
+// sits under its first verse only (e.g. all of An-Nas under 114:1). A verse
+// without its own row shows the nearest PREVIOUS entry of the same surah —
+// the passage's commentary — matching how quran.com presents grouped tafsirs.
+export const getUrTafsir = (verseKey: string): string | undefined => {
+  const hit = urTafsirMap.get(`160-${verseKey}`);
+  if (hit) return hit;
+  const colon = verseKey.indexOf(':');
+  if (colon <= 0) return undefined;
+  const surah = verseKey.slice(0, colon);
+  let ayah = parseInt(verseKey.slice(colon + 1), 10);
+  if (!Number.isFinite(ayah)) return undefined;
+  while (ayah > 1) {
+    ayah--;
+    const prev = urTafsirMap.get(`160-${surah}:${ayah}`);
+    if (prev) return prev;
+  }
+  return undefined;
+};
 
 // Indonesian tafsir (Kemenag via Gading Dev → tafsir.id.long per verse).
 export async function ensureIndoTafsir(surah: number): Promise<void> {

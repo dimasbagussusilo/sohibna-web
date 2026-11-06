@@ -66,8 +66,8 @@ export function pickMoodVerse(mood: MoodId, dateKey: string): string {
 }
 
 // Pick the translation matching the app language: id → Kemenag (33), tr →
-// Diyanet (77), else Saheeh International (20). Falls back to whatever
-// translation the verse carries.
+// Diyanet (77), ur → Tafheem (97), else Saheeh International (20). Falls back
+// to whatever translation the verse carries.
 export function pickTranslation(v: Verse, lang: Lang): string {
   const want = translationResourceFor(lang);
   const byRes = v.translations.find((tr) => tr.resource_id === want)?.text;

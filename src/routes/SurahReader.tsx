@@ -548,9 +548,11 @@ export function SurahReader() {
                   showEnglish={ud.showEnglish}
                   showIndonesian={ud.showIndonesian}
                   showTurkish={ud.showTurkish}
+                  showUrdu={ud.showUrdu}
                   showEnglishTafsir={ud.showEnglishTafsir}
                   showIndoTafsir={ud.showIndoTafsir}
                   showTurkishTafsir={ud.showTurkishTafsir}
+                  showUrduTafsir={ud.showUrduTafsir}
                   fallbackTafsirLang={fallbackTafsirLang}
                   isFav={m.isFav}
                   labels={m.labels}
@@ -590,9 +592,11 @@ export function SurahReader() {
           showEnglish={ud.showEnglish}
           showIndonesian={ud.showIndonesian}
           showTurkish={ud.showTurkish}
+          showUrdu={ud.showUrdu}
           showEnglishTafsir={ud.showEnglishTafsir}
           showIndoTafsir={ud.showIndoTafsir}
           showTurkishTafsir={ud.showTurkishTafsir}
+          showUrduTafsir={ud.showUrduTafsir}
           onToggle={(patch) => setUD(patch)}
         />
       ) : null}
@@ -730,9 +734,11 @@ function ReaderSettings({
   showEnglish,
   showIndonesian,
   showTurkish,
+  showUrdu,
   showEnglishTafsir,
   showIndoTafsir,
   showTurkishTafsir,
+  showUrduTafsir,
   onToggle,
 }: {
   onClose: () => void
@@ -745,16 +751,20 @@ function ReaderSettings({
   showEnglish: boolean
   showIndonesian: boolean
   showTurkish: boolean
+  showUrdu: boolean
   showEnglishTafsir: boolean
   showIndoTafsir: boolean
   showTurkishTafsir: boolean
+  showUrduTafsir: boolean
   onToggle: (patch: {
     showEnglish?: boolean
     showIndonesian?: boolean
     showTurkish?: boolean
+    showUrdu?: boolean
     showEnglishTafsir?: boolean
     showIndoTafsir?: boolean
     showTurkishTafsir?: boolean
+    showUrduTafsir?: boolean
   }) => void
 }) {
   const { t } = useI18n()
@@ -856,6 +866,11 @@ function ReaderSettings({
             onChange={(v) => onToggle({ showTurkish: v })}
           />
           <Toggle
+            label={t('readerSettings.urTransOpt')}
+            on={showUrdu}
+            onChange={(v) => onToggle({ showUrdu: v })}
+          />
+          <Toggle
             label={t('readerSettings.enTafsirOpt')}
             on={showEnglishTafsir}
             onChange={(v) => onToggle({ showEnglishTafsir: v })}
@@ -869,6 +884,11 @@ function ReaderSettings({
             label={t('readerSettings.trTafsirOpt')}
             on={showTurkishTafsir}
             onChange={(v) => onToggle({ showTurkishTafsir: v })}
+          />
+          <Toggle
+            label={t('readerSettings.urTafsirOpt')}
+            on={showUrduTafsir}
+            onChange={(v) => onToggle({ showUrduTafsir: v })}
           />
         </div>
 

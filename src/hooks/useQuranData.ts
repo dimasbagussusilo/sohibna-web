@@ -55,9 +55,11 @@ const SETTING_KEYS = new Set<string>([
   'showEnglish',
   'showIndonesian',
   'showTurkish',
+  'showUrdu',
   'showEnglishTafsir',
   'showIndoTafsir',
   'showTurkishTafsir',
+  'showUrduTafsir',
   'audioRate',
   'repeatMode',
   'repeatCount',
@@ -169,7 +171,7 @@ async function collectBackfillOps(snapshot: UserData): Promise<Op[]> {
   }
   if (snapshot.appSettings.lang === null) {
     const raw = await AsyncStorage.getItem('sohibna:lang');
-    if (raw === 'id' || raw === 'en' || raw === 'ar' || raw === 'tr') ops.push({ kind: 'setting', key: 'app.lang', value: raw });
+    if (raw === 'id' || raw === 'en' || raw === 'ar' || raw === 'tr' || raw === 'ur') ops.push({ kind: 'setting', key: 'app.lang', value: raw });
   }
   if (snapshot.appSettings.alarms === null) {
     const raw = await AsyncStorage.getItem('sohibna:alarm_settings');

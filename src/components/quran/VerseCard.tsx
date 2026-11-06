@@ -4,9 +4,11 @@ import {
   ensureEnTafsir,
   ensureIndoTafsir,
   ensureTrTafsir,
+  ensureUrTafsir,
   getEnTafsir,
   getIndoTafsir,
   getTrTafsir,
+  getUrTafsir,
   stripHtml,
   type FootnotePressInfo,
   type Script,
@@ -29,9 +31,11 @@ function VerseCardImpl({
   showEnglish,
   showIndonesian,
   showTurkish,
+  showUrdu,
   showEnglishTafsir,
   showIndoTafsir,
   showTurkishTafsir,
+  showUrduTafsir,
   fallbackTafsirLang,
   isFav,
   labels,
@@ -55,12 +59,14 @@ function VerseCardImpl({
   showEnglish: boolean
   showIndonesian: boolean
   showTurkish: boolean
+  showUrdu: boolean
   showEnglishTafsir: boolean
   showIndoTafsir: boolean
   showTurkishTafsir: boolean
+  showUrduTafsir: boolean
   /** Shown when ALL tafsir toggles are off, so the TAFSIR row is never a dead
    *  end (follows the app language). The toggles keep their meaning when on. */
-  fallbackTafsirLang: 'en' | 'id' | 'tr'
+  fallbackTafsirLang: 'en' | 'id' | 'tr' | 'ur'
   isFav: boolean
   labels: string[]
   hasMark: boolean
@@ -79,6 +85,7 @@ function VerseCardImpl({
   const [enTafsir, setEnTafsir] = useState<string | undefined>()
   const [indoTafsir, setIndoTafsir] = useState<string | undefined>()
   const [trTafsir, setTrTafsir] = useState<string | undefined>()
+  const [urTafsir, setUrTafsir] = useState<string | undefined>()
   const [loadingTafsir, setLoadingTafsir] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { t } = useI18n()
@@ -89,27 +96,28 @@ function VerseCardImpl({
   const enTrans = verse.translations?.find((tr) => tr.resource_id === 20)
   const idTrans = verse.translations?.find((tr) => tr.resource_id === 33)
   const trTrans = verse.translations?.find((tr) => tr.resource_id === 77)
+  const urTrans = verse.translations?.find((tr) => tr.resource_id === 97)
 
   // Which tafsir languages this card shows when expanded: the settings toggles
   // when any is on; otherwise the content-language fallback (the TAFSIR row
   // is always present — toggles select, never gate). Mirrors the RN app.
-  const tafsirEn =
-    showEnglishTafsir ||
-    (!showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && fallbackTafsirLang === 'en')
-  const tafsirId =
-    showIndoTafsir ||
-    (!showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && fallbackTafsirLang === 'id')
-  const tafsirTr =
-    showTurkishTafsir ||
-    (!showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && fallbackTafsirLang === 'tr')
+  const allTafsirOff =
+    !showEnglishTafsir && !showIndoTafsir && !showTurkishTafsir && !showUrduTafsir
+  const tafsirEn = showEnglishTafsir || (allTafsirOff && fallbackTafsirLang === 'en')
+  const tafsirId = showIndoTafsir || (allTafsirOff && fallbackTafsirLang === 'id')
+  const tafsirTr = showTurkishTafsir || (allTafsirOff && fallbackTafsirLang === 'tr')
+  const tafsirUr = showUrduTafsir || (allTafsirOff && fallbackTafsirLang === 'ur')
 
   // TR rows are partially populated server-side (translation backfill). Once
   // loading finishes, a missing/empty TR entry treats the EN arm as ON for this
   // verse — the Turkish user sees the EN tafsir under its normal label instead
-  // of a dead "tafsir unavailable" end.
+  // of a dead "tafsir unavailable" end. UR rows behave the same (160 coverage
+  // is partial per chapter).
   const trMissingAfterLoad = tafsirTr && !loadingTafsir && !trTafsir
-  const renderTafsirEn = tafsirEn || trMissingAfterLoad
+  const urMissingAfterLoad = tafsirUr && !loadingTafsir && !urTafsir
+  const renderTafsirEn = tafsirEn || trMissingAfterLoad || urMissingAfterLoad
   const renderTafsirTr = tafsirTr && !trMissingAfterLoad
+  const renderTafsirUr = tafsirUr && !urMissingAfterLoad
 
   useEffect(() => {
     if (!tafsirOpen) return
@@ -117,8 +125,8 @@ function VerseCardImpl({
     setLoadingTafsir(true)
     ;(async () => {
       const tasks: Array<Promise<void>> = []
-      // EN is also loaded for the TR arm — it is TR's per-verse fallback.
-      if (tafsirEn || tafsirTr) {
+      // EN is also loaded for the TR/UR arms — it is their per-verse fallback.
+      if (tafsirEn || tafsirTr || tafsirUr) {
         tasks.push(
           ensureEnTafsir(surah).then(() => {
             if (alive) setEnTafsir(getEnTafsir(vk))
@@ -139,13 +147,20 @@ function VerseCardImpl({
           }),
         )
       }
+      if (tafsirUr) {
+        tasks.push(
+          ensureUrTafsir(surah).then(() => {
+            if (alive) setUrTafsir(getUrTafsir(vk))
+          }),
+        )
+      }
       await Promise.all(tasks)
       if (alive) setLoadingTafsir(false)
     })()
     return () => {
       alive = false
     }
-  }, [tafsirOpen, tafsirEn, tafsirId, tafsirTr, surah, vk, verseN])
+  }, [tafsirOpen, tafsirEn, tafsirId, tafsirTr, tafsirUr, surah, vk, verseN])
 
   return (
     <div className="mx-3 mb-3 rounded-2xl border border-gray-100 bg-[#FBF8F1] dark:border-white/10 dark:bg-[#122A1F]">
@@ -225,7 +240,8 @@ function VerseCardImpl({
       </div>
 
       {/* Translations */}
-      {(showEnglish || showIndonesian || showTurkish) && (enTrans || idTrans || trTrans) ? (
+      {(showEnglish || showIndonesian || showTurkish || showUrdu) &&
+      (enTrans || idTrans || trTrans || urTrans) ? (
         <div className="gap-3 border-t border-gray-100 px-4 pb-3 pt-3 dark:border-white/10">
           {showEnglish && enTrans ? (
             <div>
@@ -254,6 +270,16 @@ function VerseCardImpl({
               </div>
               <div className="text-sm leading-relaxed text-[#2C3E50] dark:text-[#E8E2D6]">
                 <TransText html={trTrans.text} onFootnotePress={onFootnotePress} />
+              </div>
+            </div>
+          ) : null}
+          {showUrdu && urTrans ? (
+            <div>
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {t('verseCard.urTafheem')}
+              </div>
+              <div className="text-sm leading-relaxed text-[#2C3E50] dark:text-[#E8E2D6]">
+                <TransText html={urTrans.text} onFootnotePress={onFootnotePress} />
               </div>
             </div>
           ) : null}
@@ -308,6 +334,16 @@ function VerseCardImpl({
                 </div>
                 <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                   {trTafsir ? stripHtml(trTafsir) : t('verseCard.noTafsir')}
+                </div>
+              </div>
+            ) : null}
+            {renderTafsirUr ? (
+              <div>
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {t('verseCard.tafsirIbnKathirUr')}
+                </div>
+                <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+                  {urTafsir ? stripHtml(urTafsir) : t('verseCard.noTafsir')}
                 </div>
               </div>
             ) : null}

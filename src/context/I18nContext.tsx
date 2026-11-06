@@ -15,9 +15,10 @@ import { translations as idTranslations } from '@/i18n/translations/id'
 import { translations as enTranslations } from '@/i18n/translations/en'
 import { translations as arTranslations } from '@/i18n/translations/ar'
 import { translations as trTranslations } from '@/i18n/translations/tr'
+import { translations as urTranslations } from '@/i18n/translations/ur'
 
 // App-wide UI language. Bahasa Indonesia (`id`) is the default. Arabic (`ar`)
-// is the only RTL language. On web, RTL is just the <html dir> attribute —
+// and Urdu (`ur`) are the RTL languages. On web, RTL is just the <html dir> attribute —
 // unlike the RN app (which restarts the process), switching direction updates
 // the live layout instantly, no relaunch. `t(key, vars)` resolves a dotted
 // path in the active dictionary and interpolates `{{token}}` placeholders.
@@ -32,9 +33,10 @@ export const DICTS: Record<Lang, Translation> = {
   en: enTranslations,
   ar: arTranslations,
   tr: trTranslations,
+  ur: urTranslations,
 }
 
-const isRTLFor = (lang: Lang) => lang === 'ar'
+const isRTLFor = (lang: Lang) => lang === 'ar' || lang === 'ur'
 
 // Push direction + language onto <html>. Called at hydration (before first
 // paint via the loading gate) and on every language switch.
@@ -92,7 +94,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         const saved = await storage.getItem(LANG_KEY)
         if (cancelled) return
         const next: Lang =
-          saved === 'id' || saved === 'en' || saved === 'ar' || saved === 'tr' ? saved : DEFAULT_LANG
+          saved === 'id' || saved === 'en' || saved === 'ar' || saved === 'tr' || saved === 'ur'
+            ? saved
+            : DEFAULT_LANG
         applyDocumentLang(next)
         setLangState(next)
       } catch {

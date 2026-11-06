@@ -15,8 +15,9 @@
 
 /* Fonts — mirrors the RN app:
    1. UI text: the platform system font (RN's default when no fontFamily is
-      set). Tajawal applies ONLY when the UI language is Arabic (the RN
-      AppText behaviour) — scoped to <html dir="rtl"> below.
+      set). Tajawal applies ONLY when the UI language is Arabic and Noto
+      Nastaliq Urdu when it is Urdu (the RN AppText behaviour) — scoped to
+      <html lang=...> below.
    2. Arabic *content* (duas, niats, Iqro glyphs — the .quran-rtl spans):
       the device's Naskh. Android ships Noto Naskh Arabic as its system
       Arabic face; we self-host the same family so desktop browsers (whose
@@ -67,6 +68,16 @@
   font-weight: 700;
   font-display: swap;
 }
+/* Noto Nastaliq Urdu (variable) — the Urdu UI face. Nastaliq is a hanging
+   calligraphic style (not Naskh), so it needs its own font even though the
+   Arabic-script content below renders fine in Naskh. Self-hosted like the
+   other faces; the weight axis covers 400–700 in one file. */
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/NotoNastaliqUrdu-VF.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
 
 html,
 body {
@@ -81,9 +92,19 @@ body {
 }
 
 /* Arabic UI language: switch the whole UI to Tajawal (RN AppText equivalent —
-   Tajawal is the UI font only for Arabic; id/en keep the system font). */
-html[dir='rtl'] body {
+   Tajawal is the UI font only for Arabic; id/en/tr keep the system font).
+   Scoped by lang, not dir: Urdu is also RTL but uses Nastaliq (below). */
+html[lang='ar'] body {
   font-family: Tajawal, system-ui, sans-serif;
+}
+
+/* Urdu UI language: Nastaliq — the script's native calligraphic style. Its
+   hanging baseline needs generous line-height or descenders collide with the
+   next line; Noto Naskh Arabic (verified Urdu coverage) is the metric
+   fallback while the Nastaliq face loads. */
+html[lang='ur'] body {
+  font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', system-ui, sans-serif;
+  line-height: 1.9;
 }
 
 /* RTL icon mirroring (replaces the RN app's RtlMirror / useRtlFlipStyle). */

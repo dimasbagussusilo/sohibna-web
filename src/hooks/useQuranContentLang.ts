@@ -3,7 +3,7 @@ import type { ContentLang } from '@/i18n/contentLang';
 import type { DisplayMode, UserData } from '@/lib/quran';
 
 // useQuranContentLang — "content follows the app language, with a session override".
-// (Port of the RN app's hook, widened for the Turkish content arm.)
+// (Port of the RN app's hook, widened for the Turkish + Urdu content arms.)
 //
 // The Quran content (translation + tafsir) defaults to the app language:
 //   English    → Saheeh International (trans) + Ibn Kathir (tafsir)
@@ -11,6 +11,8 @@ import type { DisplayMode, UserData } from '@/lib/quran';
 //   Turkish    → Diyanet İşleri (trans) + İbn Kesir Türkçe (tafsir — machine-
 //                translated 9334; the EN tafsir is the per-verse fallback while
 //                rows backfill)
+//   Urdu       → Tafheem-ul-Quran (trans) + Ibn Kathir Urdu (tafsir, 160; the
+//                EN tafsir is the per-verse fallback for missing rows)
 // (Surah info follows appLang separately in SurahInfoSheet — Maududi / King Fahad.)
 //
 // Behaviour (kept deliberately simple so it's robust — no persisted "synced lang" or
@@ -55,15 +57,19 @@ export function useQuranContentLang(
     const wantEn = lang === 'en';
     const wantId = lang === 'id';
     const wantTr = lang === 'tr';
+    const wantUr = lang === 'ur';
     setUD({
       showEnglish: wantEn,
       showIndonesian: wantId,
       showTurkish: wantTr,
-      // Turkish now pairs the Diyanet translation with the TURKISH tafsir
-      // (machine-translated İbn Kesir, 9334); the English tafsir is
-      // fallback-only (rendered per-verse while a TR row is still missing).
+      showUrdu: wantUr,
+      // Turkish pairs the Diyanet translation with the TURKISH tafsir
+      // (machine-translated İbn Kesir, 9334); Urdu pairs Tafheem with the
+      // Ibn Kathir Urdu tafsir (160). In both the English tafsir is
+      // fallback-only (rendered per-verse while a TR/UR row is still missing).
       showEnglishTafsir: wantEn,
       showTurkishTafsir: wantTr,
+      showUrduTafsir: wantUr,
       showIndoTafsir: wantId,
       contentLangOverride: false,
     });
@@ -75,18 +81,24 @@ export function useQuranContentLang(
 export function flagsAreCanonical(ud: UserData, lang: ContentLang): boolean {
   if (lang === 'en') {
     return (
-      ud.showEnglish && !ud.showIndonesian && !ud.showTurkish &&
-      ud.showEnglishTafsir && !ud.showIndoTafsir && !ud.showTurkishTafsir
+      ud.showEnglish && !ud.showIndonesian && !ud.showTurkish && !ud.showUrdu &&
+      ud.showEnglishTafsir && !ud.showIndoTafsir && !ud.showTurkishTafsir && !ud.showUrduTafsir
     );
   }
   if (lang === 'tr') {
     return (
-      !ud.showEnglish && !ud.showIndonesian && ud.showTurkish &&
-      !ud.showEnglishTafsir && !ud.showIndoTafsir && ud.showTurkishTafsir
+      !ud.showEnglish && !ud.showIndonesian && ud.showTurkish && !ud.showUrdu &&
+      !ud.showEnglishTafsir && !ud.showIndoTafsir && ud.showTurkishTafsir && !ud.showUrduTafsir
+    );
+  }
+  if (lang === 'ur') {
+    return (
+      !ud.showEnglish && !ud.showIndonesian && !ud.showTurkish && ud.showUrdu &&
+      !ud.showEnglishTafsir && !ud.showIndoTafsir && !ud.showTurkishTafsir && ud.showUrduTafsir
     );
   }
   return (
-    !ud.showEnglish && ud.showIndonesian && !ud.showTurkish &&
-    !ud.showEnglishTafsir && ud.showIndoTafsir && !ud.showTurkishTafsir
+    !ud.showEnglish && ud.showIndonesian && !ud.showTurkish && !ud.showUrdu &&
+    !ud.showEnglishTafsir && ud.showIndoTafsir && !ud.showTurkishTafsir && !ud.showUrduTafsir
   );
 }
