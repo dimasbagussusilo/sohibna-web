@@ -461,7 +461,7 @@ export const translations: Translation = {
     tafsir: 'Tefsir',
     enTafsirOpt: 'İbn Kesir · İngilizce',
     idTafsirOpt: 'Kemenag Tefsiri · Endonezce',
-    trTafsirOpt: 'İbn Kesir · Türkçe (çeviri)',
+    trTafsirOpt: 'Tefsir el-Muhtasar · Türkçe',
     reciter: 'Kâri',
   },
 
@@ -493,7 +493,7 @@ export const translations: Translation = {
     tafsir: 'Tefsir',
     ibnKathir: 'İbn Kesir · İngilizce',
     tafsirKemenag: 'Kemenag Tefsiri · Endonezce',
-    tafsirIbnKesirTr: 'İbn Kesir · Türkçe (çeviri)',
+    tafsirTrMukhtasar: 'Tefsir el-Muhtasar · Türkçe',
     urTafheem: 'اردو · تفہیم القرآن',
     tafsirIbnKathirUr: 'تفسیر ابن کثیر · اردو',
     noTafsir: 'Tefsir mevcut değil.',

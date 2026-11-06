@@ -493,7 +493,7 @@ export const translations: Translation = {
     tafsir: 'تفسیر',
     ibnKathir: 'ابن کثیر · انگریزی',
     tafsirKemenag: 'تفسیر Kemenag · انڈونیشیائی',
-    tafsirIbnKesirTr: 'ابن کثیر · ترکی (ترجمہ)',
+    tafsirTrMukhtasar: 'ابن کثیر · ترکی (ترجمہ)',
     urTafheem: 'اردو · تفہیم القرآن',
     tafsirIbnKathirUr: 'تفسیر ابن کثیر · اردو',
     noTafsir: 'تفسیر دستیاب نہیں۔',

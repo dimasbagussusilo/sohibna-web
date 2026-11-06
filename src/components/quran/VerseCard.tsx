@@ -330,7 +330,7 @@ function VerseCardImpl({
             {renderTafsirTr ? (
               <div>
                 <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                  {t('verseCard.tafsirIbnKesirTr')}
+                  {t('verseCard.tafsirTrMukhtasar')}
                 </div>
                 <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                   {trTafsir ? stripHtml(trTafsir) : t('verseCard.noTafsir')}

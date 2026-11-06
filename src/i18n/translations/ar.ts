@@ -463,7 +463,7 @@ export const translations: Translation = {
     tafsir: 'التفسير',
     enTafsirOpt: 'ابن كثير · الإنجليزية',
     idTafsirOpt: 'تفسير كمناك · الإندونيسية',
-    trTafsirOpt: 'İbn Kesir · Türkçe (çeviri)',
+    trTafsirOpt: 'Tefsir el-Muhtasar · Türkçe',
     reciter: 'القارئ',
   },
 
@@ -495,7 +495,7 @@ export const translations: Translation = {
     tafsir: 'التفسير',
     ibnKathir: 'ابن كثير · الإنجليزية',
     tafsirKemenag: 'تفسير كمناك · الإندونيسية',
-    tafsirIbnKesirTr: 'İbn Kesir · Türkçe (çeviri)',
+    tafsirTrMukhtasar: 'Tefsir el-Muhtasar · Türkçe',
     urTafheem: 'اردو · تفہیم القرآن',
     tafsirIbnKathirUr: 'تفسیر ابن کثیر · اردو',
     noTafsir: 'لا يتوفر تفسير.',
