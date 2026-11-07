@@ -97,8 +97,6 @@ export const pageSide = (page: number): MushafPageSide => (page % 2 === 1 ? 'lef
 // lines (e.g. the closing surahs on page 604) rather than stretching them.
 export const MUSHAF_RAGGED_SLACK = 0.25;
 
-
-
 /**
  * Page metrics from a measured line width.
  * fontSize fits the longest line to the content width, clamped by the row
@@ -135,6 +133,218 @@ export function mushafNaturalMetrics(
   const fontSize = (contentW * MUSHAF_FIT_SAFETY) / Math.max(measureEm, 1);
   const rowH = fontSize * 1.75;
   return { fontSize, rowH, blockH: rowH * lineCount };
+}
+
+// ── Page frame (the traditional printed-mushaf border) ──────────────────────
+// Concentric structure outside-in: paper margin (edge) → gold hairline (rule)
+// → ornamental repeating-motif band → gold hairline → paper gap → text block,
+// plus a corner medallion at each corner of the band centerline. All three
+// renderers (native MushafPage, MushafTajweedPage WebView, web MushafPage)
+// derive their geometry from this ONE spec so text insets and font shrink
+// stay identical.
+
+export interface MushafFrameSpec {
+  edge: number; // paper margin: page-card edge → outer rule
+  rule: number; // hairline weight (outer and inner rules)
+  band: number; // ornamental band thickness (all four sides)
+  gap: number; // paper gap: inner rule → text block
+  insetX: number; // page-card edge → text block = edge + 2*rule + band + gap
+  corner: number; // corner medallion side length
+  tile: number; // band motif repeat pitch
+  stroke: number; // motif stroke weight (≥0.6 for crispness)
+  simple: boolean; // bands < 10 render the simplified diamond chain
+}
+
+export interface MushafFrameColors {
+  gold: string;
+  maroon: string;
+  soft: string;
+  paper: string;
+  ink: string;
+}
+
+// Two-tone accent for the band motif (gold + maroon arabesque, like print).
+export const MUSHAF_MAROON = { light: '#7E3B37', dark: '#9C6055' };
+
+export function mushafFrameColors(dark: boolean): MushafFrameColors {
+  return {
+    gold: dark ? '#D9BC72' : '#B8933E',
+    maroon: dark ? MUSHAF_MAROON.dark : MUSHAF_MAROON.light,
+    soft: dark ? '#3A3323' : '#F3E9D2',
+    paper: dark ? '#122A1F' : '#FBF8F1',
+    ink: dark ? '#E8E2D6' : '#2C3E50',
+  };
+}
+
+export function mushafFrameSpec(width: number): MushafFrameSpec {
+  const band = Math.min(22, Math.max(7, Math.round(width * 0.04)));
+  const gap = Math.round(4 + band * 0.45);
+  const edge = 2;
+  const rule = 1;
+  return {
+    edge,
+    rule,
+    band,
+    gap,
+    insetX: edge + 2 * rule + band + gap,
+    // Corner medallion BOUNDING-box side. The medallion is a 45° knot centered
+    // on the band centerline, so it overshoots the band by (corner−band)/2 =
+    // 2dp inward (into the gap — always < gap) and outward (to 1dp inside the
+    // page-card edge). Never larger: a bigger knot pokes past the card.
+    corner: band + 4,
+    tile: Math.max(10, Math.round(band * 1.6)),
+    stroke: Math.max(0.6, band * 0.07),
+    simple: band < 10,
+  };
+}
+
+// Page box: composes the frame spec with the page cell dims. ONE derivation of
+// contentW/contentH for all three renderers (replaces the per-renderer
+// hPad/padV/folio arithmetic that had drifted: 12 vs 14 hPad, 26 vs 6 folio).
+export interface MushafPageBox {
+  spec: MushafFrameSpec;
+  contentW: number;
+  contentH: number;
+  padX: number; // container horizontal padding (text inset)
+  padTop: number; // container top padding (frame top structure + gap)
+  bandBottom: number; // page bottom edge → inner face of the bottom band
+  folioH: number; // folio strip height
+  folioGap: number; // slack between text block and folio strip
+}
+
+export function mushafPageBox(
+  width: number,
+  height: number,
+  lineCount: number,
+  folioH = 26,
+): MushafPageBox {
+  const spec = mushafFrameSpec(width);
+  // 8-line openings keep their extra side inset (edge clipping, 2026-11-04).
+  const padX = spec.insetX + (lineCount <= 8 ? 6 : 0);
+  const padTop = spec.insetX;
+  const bandBottom = spec.edge + 2 * spec.rule + spec.band;
+  const folioGap = 4;
+  return {
+    spec,
+    contentW: width - padX * 2,
+    contentH: height - padTop - bandBottom - folioH - folioGap,
+    padX,
+    padTop,
+    bandBottom,
+    folioH,
+    folioGap,
+  };
+}
+
+// ── Frame geometry (pure; shared by all three renderers) ────────────────────
+// The frame decomposes into primitive shapes that react-native-svg, DOM SVG
+// and the WebView HTML string all render identically: hairline rects (rules),
+// one soft-filled band rect, and fill-bucketed PATHS (one path per palette
+// color holds every star/diamond/dot subpath — a whole page frame is ~9 SVG
+// elements). Rotations are baked into the vertices; no <Pattern>/<use>
+// (react-native-svg Pattern is unreliable).
+
+export type MushafFrameFill = 'gold' | 'maroon' | 'paper' | 'soft';
+
+export type MushafFrameShape =
+  | { k: 'rule'; x: number; y: number; w: number; h: number } // gold hairline rect
+  | { k: 'ground'; x: number; y: number; w: number; h: number } // soft band rect
+  | { k: 'path'; d: string; f: MushafFrameFill; sw?: number }; // filled path (+ gold stroke when sw)
+
+export function mushafFrameShapes(W: number, H: number): MushafFrameShape[] {
+  const out: MushafFrameShape[] = [];
+  const s = mushafFrameSpec(W);
+  const bx = s.edge + s.rule; // band outer offset
+  const bi = bx + s.band; // band inner offset (inner rule)
+  // Too small to frame (never in practice — page cards are ≥ ~250dp): the
+  // renderers leave the page unframed rather than emitting negative rects.
+  if (W < 4 * bi || H < 4 * bi) return out;
+
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  // 45°-rotated square ("diamond"), bounding box b centered at (cx, cy).
+  const dia = (cx: number, cy: number, b: number) =>
+    `M${r2(cx + b / 2)} ${r2(cy)}L${r2(cx)} ${r2(cy + b / 2)}L${r2(cx - b / 2)} ${r2(cy)}L${r2(cx)} ${r2(cy - b / 2)}Z`;
+  // Axis-aligned square, side a.
+  const sq = (cx: number, cy: number, a: number) =>
+    `M${r2(cx - a / 2)} ${r2(cy - a / 2)}H${r2(cx + a / 2)}V${r2(cy + a / 2)}H${r2(cx - a / 2)}Z`;
+  // Circle as two arcs (paths only — keeps the element count at ~9/page).
+  const dot = (cx: number, cy: number, r: number) =>
+    `M${r2(cx - r)} ${r2(cy)}a${r2(r)} ${r2(r)} 0 1 0 ${r2(2 * r)} 0a${r2(r)} ${r2(r)} 0 1 0 ${r2(-2 * r)} 0Z`;
+
+  // Concentric rules + band ground.
+  out.push({ k: 'rule', x: s.edge, y: s.edge, w: W - 2 * s.edge, h: H - 2 * s.edge });
+  out.push({ k: 'ground', x: bx, y: bx, w: W - 2 * bx, h: H - 2 * bx });
+  out.push({ k: 'rule', x: bi, y: bi, w: W - 2 * bi, h: H - 2 * bi });
+
+  // Band motif, one run per side. Corner medallions cover the corners, so
+  // tiles run BETWEEN them; the pitch stretches (p = Lu/n) so the run ends
+  // exactly at the medallions — never a ragged partial tile.
+  const cs = s.corner;
+  const gold: string[] = [];
+  const maroon: string[] = [];
+  const paper: string[] = [];
+  const side = (horizontal: boolean, far: boolean) => {
+    const span = (horizontal ? W : H) - 2 * bx;
+    const Lu = span - cs;
+    if (Lu < s.tile) return; // too short to tile: rules + corners only
+    const n = Math.max(1, Math.floor(Lu / s.tile));
+    const p = Lu / n;
+    const start = bx + cs / 2;
+    const near = bx + s.band / 2;
+    const cc = far ? (horizontal ? H : W) - bx - s.band / 2 : near; // centerline
+    for (let i = 0; i < n; i++) {
+      const m = start + i * p + p / 2; // tile center along the run
+      const cx = horizontal ? m : cc;
+      const cy = horizontal ? cc : m;
+      if (s.simple) gold.push(dia(cx, cy, s.band * 0.5)); // woven diamond chain
+      else {
+        // 8-pointed star = axis-aligned ∪ 45° squares (both gold), paper pupil.
+        const st = s.band * 0.62;
+        gold.push(sq(cx, cy, st), dia(cx, cy, st));
+        paper.push(dot(cx, cy, s.band * 0.16));
+      }
+    }
+    // Seam accents at every tile boundary (the chain's interlocks).
+    for (let i = 0; i <= n; i++) {
+      const m = start + i * p;
+      const cx = horizontal ? m : cc;
+      const cy = horizontal ? cc : m;
+      if (s.simple) maroon.push(dot(cx, cy, s.band * 0.12));
+      else maroon.push(dia(cx, cy, s.band * 0.5));
+    }
+  };
+  side(true, false); // top
+  side(true, true); // bottom
+  side(false, false); // left
+  side(false, true); // right
+
+  // Corner medallions: concentric square knots on the band centerline corners.
+  const k = bx + s.band / 2;
+  const plates: string[] = [];
+  const cornM: string[] = [];
+  const cornG: string[] = [];
+  const cornP: string[] = [];
+  for (const [cx, cy] of [
+    [k, k],
+    [W - k, k],
+    [k, H - k],
+    [W - k, H - k],
+  ] as Array<[number, number]>) {
+    plates.push(dia(cx, cy, cs)); // paper plate interrupts band + rules
+    cornM.push(sq(cx, cy, cs * 0.62));
+    cornG.push(dia(cx, cy, cs * 0.38));
+    cornP.push(dot(cx, cy, cs * 0.09));
+  }
+
+  if (gold.length) out.push({ k: 'path', d: gold.join(''), f: 'gold' });
+  if (maroon.length) out.push({ k: 'path', d: maroon.join(''), f: 'maroon' });
+  if (paper.length) out.push({ k: 'path', d: paper.join(''), f: 'paper' });
+  // One plate path for all four corners (paper fill + gold stroke = the knot).
+  out.push({ k: 'path', d: plates.join(''), f: 'paper', sw: s.stroke * 1.4 });
+  out.push({ k: 'path', d: cornM.join(''), f: 'maroon' });
+  out.push({ k: 'path', d: cornG.join(''), f: 'gold' });
+  out.push({ k: 'path', d: cornP.join(''), f: 'paper' });
+  return out;
 }
 
 // Whether a line renders ragged (centered) instead of both-edge justified:

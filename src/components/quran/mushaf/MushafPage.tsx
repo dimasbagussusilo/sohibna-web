@@ -10,9 +10,10 @@
 // font is ready (document.fonts.ready): widest text row's children-width-sum
 // ÷ current font-size. Near-full lines justify both edges (space-between over
 // a few % slack); short verse-end lines (slack > 25%) render centered, like
-// the print. Furniture is the shared overlay (MushafFurnitureLayer). Word/
-// medallion taps are inert on web this pass (web has no word tooltip / verse
-// action bar in the reader).
+// the print. Furniture is the shared overlay (MushafFurnitureLayer); the
+// printed-mushaf frame (MushafFrameWeb) is an absolute layer behind the rows.
+// Word/medallion taps are inert on web this pass (web has no word tooltip /
+// verse action bar in the reader).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -20,12 +21,14 @@ import {
   fallbackMeasureEm,
   isRaggedLine,
   mushafMetrics,
+  mushafPageBox,
   type MushafPageModel,
 } from '@/lib/mushafPage'
 import { API_BASE_URL } from '@/config'
 import { loadVerses, toArabic, type Chapter, type Verse } from '@/lib/quran'
 import { isFontLoaded, loadPageFont, pageFontFamily } from '@/lib/qcfFonts'
 import { MushafFurnitureLayer } from './MushafFurniture'
+import { MushafFrameWeb } from './MushafFrame'
 
 // Self-hosted QCF fonts, served by our API (same sub-paths as the old CDN).
 const QCF_CDN = `${API_BASE_URL}/quran/fonts`
@@ -84,12 +87,12 @@ export function MushafPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model])
 
-  const padV = 8
-  // Wider side padding on the 8-line openings (edge clipping, 2026-11-04).
-  const hPad = (model?.lineCount ?? 15) <= 8 ? 18 : 14
-  const contentW = width - hPad * 2
-  const contentH = height - padV * 2 - 6
   const lineCount = model?.lineCount ?? 15
+  // The framed page box — frame insets + folio strip reserve (lib/mushafPage:
+  // ONE derivation shared with the app's MushafPage/MushafTajweedPage).
+  const box = mushafPageBox(width, height, lineCount)
+  const contentW = box.contentW
+  const contentH = box.contentH
   const fontReady = fontRev > 0 && isFontLoaded(pageFontFamily(page))
   const ink = dark ? '#E8E2D6' : '#2C3E50'
   const theme = dark ? 'D' : 'L'
@@ -163,11 +166,13 @@ export function MushafPage({
         backgroundColor: dark ? '#122A1F' : '#FBF8F1',
         borderTop: `0.5px solid ${dark ? 'rgba(255,255,255,0.08)' : '#E5E0D2'}`,
         borderBottom: `0.5px solid ${dark ? 'rgba(255,255,255,0.08)' : '#E5E0D2'}`,
-        paddingTop: padV,
-        paddingBottom: padV + 6,
+        paddingTop: box.padTop,
+        paddingBottom: box.bandBottom + box.folioH + box.folioGap,
       }}
       dir="rtl"
     >
+      {/* The traditional page frame — absolute, behind the rows. */}
+      <MushafFrameWeb width={width} height={height} dark={dark} />
       {tajweed ? (
         <style>{`@font-face{font-family:'QCF_V4_P${page}';src:url('${QCF_CDN}/v4/colrv1/woff2/p${page}.woff2') format('woff2');font-display:swap;}
 @font-palette-values --QCF_V4_P${page}-L{font-family:'QCF_V4_P${page}';base-palette:0;}
@@ -185,7 +190,10 @@ ${(Object.entries(MARK_COLOR) as Array<[string, string]>)
       ) : null}
 
       {model ? (
-        <div className="flex h-full flex-col justify-center" style={{ fontSize: `${fontSize}px` }}>
+        /* `relative` (not static) so the rows paint above the positioned frame
+           SVG; height = the box's content height so the block centers exactly
+           where the app's native page centers it (folio strip excluded). */
+        <div className="relative flex flex-col justify-center" style={{ height: box.contentH, fontSize: `${fontSize}px` }}>
           <div ref={gridRef} style={{ height: rowH * model.lineCount }}>
             {model.rows.map((row) => {
               if (row.type !== 'text') return <div key={row.line} style={{ height: rowH }} /> // furniture overlay draws it
@@ -261,7 +269,16 @@ ${(Object.entries(MARK_COLOR) as Array<[string, string]>)
       )}
 
       {model ? (
-        <MushafFurnitureLayer model={model} rowH={rowH} padTop={padV + top} hPad={hPad} width={width} dark={dark} chapters={chapters} />
+        <MushafFurnitureLayer
+          model={model}
+          rowH={rowH}
+          padTop={box.padTop + top}
+          padX={box.padX}
+          folioBottom={box.bandBottom + box.folioGap}
+          width={width}
+          dark={dark}
+          chapters={chapters}
+        />
       ) : null}
     </div>
   )

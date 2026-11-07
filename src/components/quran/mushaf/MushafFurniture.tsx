@@ -11,6 +11,9 @@ import { useI18n } from '@/context/I18nContext'
 const GOLD = { light: '#B8933E', dark: '#D9BC72' }
 const SOFT = { light: '#F3E9D2', dark: '#3A3323' }
 const INK = { light: '#2C3E50', dark: '#E8E2D6' }
+// Page paper — margin medallions get a paper halo so they read cleanly where
+// they hang over the frame band (mushafFrameColors().paper twin).
+const PAPER = { light: '#FBF8F1', dark: '#122A1F' }
 
 type Dark = { dark: boolean }
 
@@ -54,10 +57,11 @@ export function MarginMark({ kind, n, dark, size }: Dark & { kind: 'juz' | 'hizb
   const { t } = useI18n()
   const gold = GOLD[dark ? 'dark' : 'light']
   const soft = SOFT[dark ? 'dark' : 'light']
+  const paper = PAPER[dark ? 'dark' : 'light']
   const s = size ?? (kind === 'juz' ? 30 : kind === 'hizb' ? 20 : 14)
   if (kind === 'sajda') {
     return (
-      <span aria-label={t('reader.sajdahMark')} className="flex items-center justify-center" style={{ width: s, height: s, fontSize: s * 0.9, color: '#16A34A', lineHeight: s }}>
+      <span aria-label={t('reader.sajdahMark')} className="flex items-center justify-center" style={{ width: s, height: s, fontSize: s * 0.9, color: '#16A34A', lineHeight: s, background: paper, borderRadius: 3 }}>
         ۩
       </span>
     )
@@ -71,9 +75,13 @@ export function MarginMark({ kind, n, dark, size }: Dark & { kind: 'juz' | 'hizb
     >
       <svg width={s} height={s}>
         {kind === 'rub' ? (
-          <rect x={c - 4} y={c - 4} width={8} height={8} fill={soft} stroke={gold} strokeWidth={1} transform={`rotate(45 ${c} ${c})`} />
+          <>
+            <rect x={c - 6.5} y={c - 6.5} width={13} height={13} fill={paper} transform={`rotate(45 ${c} ${c})`} />
+            <rect x={c - 4} y={c - 4} width={8} height={8} fill={soft} stroke={gold} strokeWidth={1} transform={`rotate(45 ${c} ${c})`} />
+          </>
         ) : (
           <>
+            <circle cx={c} cy={c} r={c + 1} fill={paper} />
             <circle cx={c} cy={c} r={c - 1} fill={soft} stroke={gold} strokeWidth={1} />
             {kind === 'juz' ? <circle cx={c} cy={c} r={c - 4} fill="none" stroke={gold} strokeWidth={0.5} opacity={0.7} /> : null}
             <text x={c} y={c + 1} textAnchor="middle" dominantBaseline="central" fontSize={s * 0.42} fontFamily="Tajawal, sans-serif" fontWeight={700} fill={gold}>
@@ -114,13 +122,16 @@ export function PageNumberFrame({ page, dark }: Dark & { page: number }) {
 
 /**
  * The whole furniture layer (shared positioning with the app twin): absolute
- * overlay, pointer-events none so text spans stay selectable.
+ * overlay, pointer-events none so text spans stay selectable. padX = the
+ * framed page box's side inset; folioBottom = where the folio strip sits above
+ * the frame's bottom band (mushafPageBox derivation).
  */
 export function MushafFurnitureLayer({
   model,
   rowH,
   padTop,
-  hPad,
+  padX,
+  folioBottom,
   width,
   dark,
   chapters,
@@ -128,7 +139,8 @@ export function MushafFurnitureLayer({
   model: MushafPageModel
   rowH: number
   padTop: number
-  hPad: number
+  padX: number
+  folioBottom: number
   width: number
   dark: boolean
   chapters: Record<number, Chapter>
@@ -140,11 +152,11 @@ export function MushafFurnitureLayer({
         if (row.type === 'surah') {
           const ch = row.surah ? chapters[row.surah] : undefined
           return (
-            <div key={row.line} className="absolute" style={{ top: (row.line - 1) * rowH, left: hPad, right: hPad, height: rowH }}>
+            <div key={row.line} className="absolute" style={{ top: (row.line - 1) * rowH, left: padX, right: padX, height: rowH }}>
               <SurahHeaderCartouche
                 nameArabic={ch?.name_arabic ?? ''}
                 nameTranslated={ch?.translated_name?.name}
-                width={width - hPad * 2}
+                width={width - padX * 2}
                 height={rowH}
                 dark={dark}
               />
@@ -153,7 +165,7 @@ export function MushafFurnitureLayer({
         }
         if (row.type === 'basmala') {
           return (
-            <div key={row.line} className="absolute flex items-center justify-center" style={{ top: (row.line - 1) * rowH, left: hPad, right: hPad, height: rowH }}>
+            <div key={row.line} className="absolute flex items-center justify-center" style={{ top: (row.line - 1) * rowH, left: padX, right: padX, height: rowH }}>
               <span className="quran-rtl" style={{ fontFamily: "'Scheherazade New', serif", fontSize: rowH * 0.66, color: ink, lineHeight: 1.4 }}>
                 {BASMALA_UTHMANI}
               </span>
@@ -164,12 +176,12 @@ export function MushafFurnitureLayer({
       })}
 
       {model.marks.map((m, i) => (
-        <div key={`${m.kind}-${m.n}-${i}`} className="absolute" style={{ right: 1, top: (m.line - 1) * rowH }}>
+        <div key={`${m.kind}-${m.n}-${i}`} className="absolute" style={{ right: 1, top: (m.line - 1) * rowH + rowH * 0.1 }}>
           <MarginMark kind={m.kind} n={m.n} dark={dark} size={Math.min(rowH * 0.8, m.kind === 'juz' ? 30 : 20)} />
         </div>
       ))}
 
-      <div className="absolute left-0 right-0 flex justify-center" style={{ bottom: -4 }}>
+      <div className="absolute left-0 right-0 flex justify-center" style={{ bottom: folioBottom }}>
         <PageNumberFrame page={model.page} dark={dark} />
       </div>
     </div>
