@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
-import type { AnnouncementContent, AnnouncementDTO } from '@/api'
+import type { AnnouncementDTO } from '@/api'
 import { fetchAnnouncements } from '@/api'
 import { pickAnnouncement, markDailyClosed, resolveContent, resolveImageUrl } from '@/lib/announcements'
 
@@ -9,7 +9,9 @@ import { pickAnnouncement, markDailyClosed, resolveContent, resolveImageUrl } fr
 // on mount, picks at most ONE unseen announcement (frequency rules in
 // src/lib/announcements.ts) and shows it. Any failure (offline, old API
 // without the endpoint, empty table) is silent. The landing never mounts it.
-type Shown = { announcement: AnnouncementDTO; content: AnnouncementContent }
+// Only the announcement DTO is frozen in state — its content re-resolves from
+// the live `lang` on every render, so a language change swaps the popup's
+// language instead of leaving stale copy.
 
 // Web has no in-app donation page — the CTA lands on the landing's Support
 // section (id="dukung", src/routes/landing/Support.tsx).
@@ -17,7 +19,7 @@ const LANDING_SUPPORT_URL = 'https://sohibna.com/#dukung'
 
 export function AnnouncementPopup() {
   const { lang, t } = useI18n()
-  const [shown, setShown] = useState<Shown | null>(null)
+  const [shown, setShown] = useState<AnnouncementDTO | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -25,10 +27,7 @@ export function AnnouncementPopup() {
       try {
         const list = await fetchAnnouncements()
         const picked = await pickAnnouncement(list, lang)
-        if (!cancelled && picked) {
-          const content = resolveContent(picked, lang)
-          if (content) setShown({ announcement: picked, content })
-        }
+        if (!cancelled && picked) setShown(picked)
       } catch {
         /* offline / endpoint not deployed yet — nothing to announce */
       }
@@ -36,7 +35,8 @@ export function AnnouncementPopup() {
     return () => {
       cancelled = true
     }
-    // lang is read on load only; a live language switch re-picks next load.
+    // lang is read for PICKING on load only (frequency bookkeeping runs once);
+    // the displayed language follows the live value via resolveContent below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -50,7 +50,9 @@ export function AnnouncementPopup() {
   }, [shown])
 
   if (!shown) return null
-  const { announcement, content } = shown
+  const announcement = shown
+  const content = resolveContent(shown, lang)
+  if (!content) return null
 
   // Backdrop/Escape: temporary — a daily announcement returns on the next
   // page load. Only the explicit decline ("Mungkin Nanti") or tapping the
