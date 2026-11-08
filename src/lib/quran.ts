@@ -310,9 +310,10 @@ export type StreakInfo = {
 // NOT stored here — it's derived server-side from the reading log and fetched via
 // /quran/me/goals/progress (see GoalProgress). type=daily resets each day; type=
 // duration splits the target across [startAt,endAt] with auto-adjusting portions.
-// unit: time=minutes, page=mushaf pages, range=verses in [rangeFrom,rangeTo].
+// unit: time=minutes, page=mushaf pages, verse=distinct ayat anywhere in the
+// Qur'an, range=verses in [rangeFrom,rangeTo].
 export type GoalType = 'daily' | 'duration';
-export type GoalUnit = 'time' | 'page' | 'range';
+export type GoalUnit = 'time' | 'page' | 'range' | 'verse';
 export type KhatmGoal = {
   id: string;
   type: GoalType;

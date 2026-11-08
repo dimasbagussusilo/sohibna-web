@@ -536,7 +536,7 @@ export const patchSetting = (deviceId: string, key: string, value: unknown) =>
   });
 
 export type GoalType = 'daily' | 'duration';
-export type GoalUnit = 'time' | 'page' | 'range';
+export type GoalUnit = 'time' | 'page' | 'range' | 'verse';
 
 export const postReadingLog = (
   deviceId: string,
@@ -547,6 +547,7 @@ export const postReadingLog = (
     toVerse: string;
     seconds: number;
     pages: number;
+    at?: number; // epoch ms, session-happened-at (guest backfill; server clamps to 7d)
   },
 ) =>
   syncFetch<{ ok: boolean }>(deviceId, '/quran/me/reading-log', {
@@ -590,6 +591,29 @@ export const fetchGoalsProgress = (deviceId: string) =>
       done: boolean;
     }[]
   >(deviceId, '/quran/me/goals/progress');
+
+// ReadingToday is the goal-independent "reading today" rollup served by
+// GET /quran/me/reading/today — distinct verses + summed pages/minutes plus
+// live goal progress in one call (dashboard card parity with the app's Home).
+export type ReadingToday = {
+  day: string; // user-TZ YYYY-MM-DD
+  verses: number; // distinct ayat read today
+  pages: number; // summed mushaf pages (the streak metric)
+  minutes: number;
+  goals: {
+    id: string;
+    type: GoalType;
+    unit: GoalUnit;
+    periodProgress: number;
+    periodTarget: number;
+    todayProgress: number;
+    todayTarget: number;
+    done: boolean;
+  }[];
+};
+
+export const fetchReadingToday = (deviceId: string) =>
+  syncFetch<ReadingToday>(deviceId, '/quran/me/reading/today');
 
 export const patchTZ = (deviceId: string, tz: string) =>
   syncFetch<{ ok: boolean }>(deviceId, '/quran/me/tz', {

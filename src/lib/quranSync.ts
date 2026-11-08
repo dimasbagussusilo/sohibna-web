@@ -395,7 +395,15 @@ export type Op =
   | { kind: 'setting'; key: string; value: unknown }
   | {
       kind: 'readingLog';
-      entry: { id: string; surah: number; fromVerse: string; toVerse: string; seconds: number; pages: number };
+      entry: {
+        id: string;
+        surah: number;
+        fromVerse: string;
+        toVerse: string;
+        seconds: number;
+        pages: number;
+        at?: number; // epoch ms, session-happened-at (guest backfill)
+      };
     }
   | {
       kind: 'khatm';

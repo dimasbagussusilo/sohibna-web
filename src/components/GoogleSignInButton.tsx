@@ -30,6 +30,7 @@ export function GoogleSignInButton({ onDone }: { onDone?: () => void }) {
   return (
     <div>
       <button
+        type="button"
         onClick={click}
         disabled={busy}
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-ink disabled:opacity-50 dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
@@ -52,8 +53,13 @@ export function GoogleSignInButton({ onDone }: { onDone?: () => void }) {
             d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
           />
         </svg>
-        {busy ? '…' : t('auth.google.continue')}
+        {busy ? '…' : t('auth.google.signIn')}
       </button>
+      {/* Unregistered users often assume Google login needs a prior account —
+          spell out that sign-in auto-creates one. */}
+      <p className="mt-1.5 text-center text-[10px] leading-snug text-ink/50 dark:text-cream/50">
+        {t('auth.google.hint')}
+      </p>
       {error ? <p className="mt-2 text-center text-xs text-red-500">{error}</p> : null}
     </div>
   )

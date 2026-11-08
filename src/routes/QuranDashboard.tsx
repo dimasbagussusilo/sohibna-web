@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Search, ChevronRight } from 'lucide-react'
 import { fetchChapters, type Chapter } from '@/lib/quran'
+import { fetchReadingToday, type ReadingToday } from '@/api'
 import { useQuranData } from '@/context/QuranDataContext'
+import { useAuth } from '@/context/AuthContext'
+import { getDeviceId } from '@/lib/deviceId'
 import { useI18n } from '@/context/I18nContext'
 
 // Quran tab (web, P0): continue-reading card + searchable surah list. The RN
@@ -15,7 +18,11 @@ export function QuranDashboard() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const { ud, reload } = useQuranData()
+  const { token } = useAuth()
   const [chapters, setChapters] = useState<Chapter[]>([])
+  // Today's reading rollup (in-memory only — refetched on mount) so the goals
+  // quick card can surface live verse-goal progress like the app's Home card.
+  const [today, setToday] = useState<ReadingToday | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -27,6 +34,17 @@ export function QuranDashboard() {
       alive = false
     }
   }, [reload])
+
+  useEffect(() => {
+    if (!token) return
+    let alive = true
+    fetchReadingToday(getDeviceId())
+      .then((s) => alive && setToday(s))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [token, ud.khatmGoals.length])
 
   // Continue reading: the most recently stamped lastRead slot/entry.
   const continueReading = useMemo(() => {
@@ -128,10 +146,30 @@ export function QuranDashboard() {
           className="rounded-2xl bg-white px-4 py-4 shadow-sm dark:bg-[#122A1F]"
         >
           <div className="text-sm font-bold text-ink dark:text-cream">{t('goals.title')}</div>
-          <div className="text-[11px] text-ink/50 dark:text-cream/50">
-            {t('quranHome.goalsCount', { n: ud.khatmGoals.length })}
-            {ud.streak ? ` · ${t('quranHome.streakShort', { n: ud.streak.current })}` : ''}
-          </div>
+          {/* Live verse-goal progress when the snapshot has one (Home-card
+              parity); otherwise the goals-count + streak line. */}
+          {(() => {
+            const vg = today?.goals.find((g) => g.unit === 'verse' && g.type === 'daily') ?? today?.goals.find((g) => g.unit === 'verse')
+            if (vg && vg.todayTarget > 0) {
+              return (
+                <div className="text-[11px] text-ink/50 dark:text-cream/50">
+                  {vg.todayProgress >= vg.todayTarget
+                    ? t('goals.homeDone')
+                    : t('goals.homeToday', {
+                        progress: vg.todayProgress,
+                        target: vg.todayTarget,
+                        unit: t('goals.verses'),
+                      })}
+                </div>
+              )
+            }
+            return (
+              <div className="text-[11px] text-ink/50 dark:text-cream/50">
+                {t('quranHome.goalsCount', { n: ud.khatmGoals.length })}
+                {ud.streak ? ` · ${t('quranHome.streakShort', { n: ud.streak.current })}` : ''}
+              </div>
+            )
+          })()}
         </Link>
       </div>
 

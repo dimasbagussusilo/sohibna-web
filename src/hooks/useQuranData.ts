@@ -13,7 +13,7 @@
 // PUT to scoped per-resource PATCHes.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@/lib/storage';
-import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type RulingsChatEntryData, type AppLang, type Appearance } from '@/lib/quran';
+import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markTs, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type RulingsChatEntryData, type AppLang, type Appearance } from '@/lib/quran';
 import { clearLegacyGuestData } from '@/lib/quranStorage';
 import {
   mergeRemote,
@@ -98,6 +98,45 @@ const backfillFlagKey = (userId: string) => `sohibna.quran.backfill.${userId}`;
 const BACKFILL_PRAYER_CHUNK = 100;
 const BACKFILL_REFLECTION_CHUNK = 20;
 
+// Guest reading sessions (logged while logged out) wait here until the next
+// login uploads them — reading done before signup still counts toward the
+// account's streak and goals. Capped so a long guest stint can't flood the
+// FIFO on login; each entry carries its own uuid + happened-at, so a crash
+// mid-drain re-uploads harmlessly (the server dedups on the id and clamps the
+// timestamp to 7 days back).
+const PENDING_SESSIONS_KEY = 'sohibna.quran.pendingSessions';
+const PENDING_SESSIONS_MAX = 100;
+const PENDING_SESSIONS_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // mirrors the server's at-clamp
+
+type PendingSession = {
+  id: string;
+  surah: number;
+  fromVerse: string;
+  toVerse: string;
+  seconds: number;
+  pages: number;
+  at: number; // epoch ms — when the session happened, not when it uploads
+};
+
+async function loadPendingSessions(): Promise<PendingSession[]> {
+  try {
+    const raw = await AsyncStorage.getItem(PENDING_SESSIONS_KEY);
+    return raw ? (JSON.parse(raw) as PendingSession[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function queueGuestSession(entry: PendingSession): Promise<void> {
+  try {
+    const list = await loadPendingSessions();
+    list.push(entry);
+    await AsyncStorage.setItem(PENDING_SESSIONS_KEY, JSON.stringify(list.slice(-PENDING_SESSIONS_MAX)));
+  } catch {
+    /* storage full/unavailable → the session just isn't backfilled */
+  }
+}
+
 // Legacy local prayer-tracker keys ('prayed:<YYYY-MM-DD>') store CAPITALIZED
 // prayer names; the synced PrayerDay shape is lowercase.
 const PRAYER_NAME_MAP: Record<string, keyof PrayerDay> = {
@@ -109,14 +148,47 @@ const PRAYER_NAME_MAP: Record<string, keyof PrayerDay> = {
 };
 
 // collectBackfillOps scans the device's local-only progress (legacy
-// 'prayed:<day>' keys, 'reflection:<date>:<mood>' entries, and app prefs the
-// account doesn't have yet) and returns the ops that would upload them.
-// ACCOUNT WINS: any key the server snapshot already has is skipped silently —
-// this protects an existing account from being clobbered by another device's
-// local data, and a re-login from re-uploading days the user changed elsewhere.
+// 'prayed:<day>' keys, 'reflection:<date>:<mood>' entries, the guest document's
+// reader progress, and app prefs the account doesn't have yet) and returns the
+// ops that would upload them. ACCOUNT WINS: any key the server snapshot already
+// has is skipped silently — this protects an existing account from being
+// clobbered by another device's local data, and a re-login from re-uploading
+// days the user changed elsewhere.
 async function collectBackfillOps(snapshot: UserData): Promise<Op[]> {
   const ops: Op[] = [];
   const keys = await AsyncStorage.getAllKeys();
+
+  // Guest reader progress (favorites, per-surah lastRead, named marks,
+  // memorized ayat from the guest document) — offered once per account.
+  // ACCOUNT WINS: favorites/memorized rows the snapshot already has are
+  // skipped; lastRead/mark writes ride the server's ts-guard (an older guest
+  // stamp no-ops against the account's). Capped so a heavy guest history
+  // can't flood the FIFO queue (per-verse ops, no batch endpoint).
+  const GUEST_PROGRESS_MAX = 200;
+  const guestRaw = await AsyncStorage.getItem(LOCAL_UD_KEY);
+  if (guestRaw) {
+    try {
+      const guest = { ...DEFAULT_USER_DATA, ...(JSON.parse(guestRaw) as UserData) };
+      for (const vk of guest.favorites.slice(-GUEST_PROGRESS_MAX)) {
+        if (!snapshot.favorites.includes(vk)) ops.push({ kind: 'favorite', verseKey: vk, deleted: false });
+      }
+      for (const [sidStr, e] of Object.entries(guest.lastRead)) {
+        const sid = parseInt(sidStr, 10);
+        if (Number.isFinite(sid) && sid >= 1 && e?.verseKey) {
+          ops.push({ kind: 'lastRead', surah: sid, verseKey: e.verseKey, ts: e.timestamp });
+        }
+      }
+      for (const [slot, m] of Object.entries(guest.lastReadSlots)) {
+        const vk = markVerseKey(m);
+        if (vk) ops.push({ kind: 'lastReadSlot', slot, verseKey: vk, ts: markTs(m) });
+      }
+      for (const v of Object.values(guest.memorized).slice(0, GUEST_PROGRESS_MAX)) {
+        if (!(v.verseKey in snapshot.memorized)) ops.push({ kind: 'memorizedVerse', verse: v });
+      }
+    } catch {
+      /* malformed guest document → skip its progress */
+    }
+  }
 
   // Prayer days the server doesn't have yet.
   const prayerItems: { day: string; data: PrayerDay }[] = [];
@@ -345,6 +417,29 @@ export function useQuranDataSync() {
     [enqueueOp],
   );
 
+  // drainPendingSessions uploads reading sessions logged while logged out
+  // (guest or between logout and login). Runs on BOTH fullPull outcomes — the
+  // op queue is durable, so an offline login still parks them for the next
+  // flush. Entries older than the server's clamp window are dropped (their
+  // days can't be reconstructed anyway). Not flag-gated: every login may carry
+  // fresh sessions.
+  const drainPendingSessions = useCallback(
+    async () => {
+      if (!tokenRef.current) return;
+      try {
+        const now = Date.now();
+        const sessions = (await loadPendingSessions()).filter(
+          (s) => now - s.at <= PENDING_SESSIONS_MAX_AGE_MS,
+        );
+        for (const s of sessions) enqueueOp({ kind: 'readingLog', entry: s });
+        if (sessions.length) await AsyncStorage.removeItem(PENDING_SESSIONS_KEY);
+      } catch {
+        /* best-effort — undrained sessions retry on the next login */
+      }
+    },
+    [enqueueOp],
+  );
+
   // deltaPull fetches changes since the cursor and merges them, looping while the
   // feed signals more pages. This is what keeps a second device in sync.
   const deltaPull = useCallback(async () => {
@@ -417,6 +512,9 @@ export function useQuranDataSync() {
         // the snapshot is the only way to know which keys the server already
         // has.
         await backfillLocalProgress(merged);
+        // Upload reading sessions parked while logged out (carries their
+        // happened-at; the server clamps to 7 days back).
+        await drainPendingSessions();
         // Best-effort: tell the server our timezone so streak day boundaries
         // are computed in the reader's local day, not UTC.
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -441,12 +539,15 @@ export function useQuranDataSync() {
         const base = reapplyAppSettings(cached ?? { ...DEFAULT_USER_DATA }, queuedAtStart);
         setUdState(base);
         setLoaded(true);
+        // Offline login: still park the guest sessions as ops — the queue is
+        // durable and the next foreground flush uploads them.
+        void drainPendingSessions();
       }
     } finally {
       pullingRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deviceId, enqueueOp, flush, logout]);
+  }, [deviceId, enqueueOp, flush, logout, drainPendingSessions]);
 
   // (Re)load when the auth token settles or changes. Authed → full pull; guest →
   // local load. Gated on authLoading so the initial load uses the resolved token.
@@ -747,7 +848,13 @@ export function useQuranDataSync() {
       seconds: number;
       pages: number;
     }) => {
-      if (!tokenRef.current) return;
+      // Logged out: park the session locally — the next login's fullPull
+      // uploads it (with its happened-at) so pre-signup reading still counts
+      // toward the account's streak/goals.
+      if (!tokenRef.current) {
+        void queueGuestSession({ ...entry, id: entry.id ?? uuidv4(), at: Date.now() })
+        return
+      }
       enqueueOp({
         kind: 'readingLog',
         entry: { id: entry.id ?? uuidv4(), surah: entry.surah, fromVerse: entry.fromVerse, toVerse: entry.toVerse, seconds: entry.seconds, pages: entry.pages },

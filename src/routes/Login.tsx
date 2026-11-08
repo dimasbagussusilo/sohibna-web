@@ -143,6 +143,16 @@ export function Register() {
           onSubmit={submit}
           className="space-y-3 rounded-3xl bg-white p-5 shadow-sm dark:bg-[#122A1F]"
         >
+          <GoogleSignInButton onDone={() => navigate('/home', { replace: true })} />
+
+          <div className="flex items-center gap-3 py-1">
+            <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+            <span className="text-[10px] uppercase tracking-widest text-ink/40 dark:text-cream/40">
+              {t('auth.or')}
+            </span>
+            <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+          </div>
+
           <input
             required
             value={name}
