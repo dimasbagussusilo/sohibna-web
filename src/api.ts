@@ -37,8 +37,15 @@ export type IslamicEventDTO = {
   updated_at: string;
 };
 
-async function getJSON<T>(path: string): Promise<T> {
-  const res = await fetch(API_BASE_URL + path);
+// Default request timeout: without one, a wedged connection hangs every
+// caller forever (an authed fetch that never resolves also blocks behind the
+// same inflight refresh). AI-generation endpoints get the longer budget.
+// 30s so a big sync pull (/state) on a slow mobile connection still completes.
+const REQUEST_TIMEOUT_MS = 30_000;
+const AI_TIMEOUT_MS = 60_000;
+
+async function getJSON<T>(path: string, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<T> {
+  const res = await fetch(API_BASE_URL + path, { signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) {
     throw new Error(`Request failed: ${res.status} ${res.statusText}`);
   }
@@ -59,7 +66,7 @@ export const askRulingsChat = (messages: RulingsChatMessage[], lang: string, sco
     messages,
     lang,
     ...(scope ? { scope } : {}),
-  });
+  }, AI_TIMEOUT_MS);
 
 // Chat-with-reference pick-list: GET /ai/sources. Kitab series grouped from
 // the corpus's source_names ("Series" + its Jilid/Bagian parts) plus the
@@ -102,7 +109,7 @@ export const askReflection = (
   verse: ReflectionVersePayload,
   messages: ReflectionMessage[],
   lang: string,
-) => postJSON<ReflectionChatResult>('/reflection/chat', { mood, verse, messages, lang });
+) => postJSON<ReflectionChatResult>('/reflection/chat', { mood, verse, messages, lang }, AI_TIMEOUT_MS);
 
 // Verse-range meaning summary: POST /quran/summarize. The backend fetches the
 // translation text for every verse in [fromKey, toKey] and asks the model to
@@ -118,7 +125,7 @@ export const summarizeRange = (fromKey: string, toKey: string, lang: string) =>
     from_verse: fromKey,
     to_verse: toKey,
     lang,
-  });
+  }, AI_TIMEOUT_MS);
 
 // AI "find related verses": POST /quran/related. Given a topic/theme, the model
 // returns thematically related verses — the backend validates every verse key
@@ -135,7 +142,7 @@ export type RelatedVerse = {
 };
 export type RelatedResult = { related: RelatedVerse[] };
 export const findRelatedVerses = (topic: string, lang: string) =>
-  postJSON<RelatedResult>('/quran/related', { topic, lang });
+  postJSON<RelatedResult>('/quran/related', { topic, lang }, AI_TIMEOUT_MS);
 export const fetchEvents = () => getJSON<IslamicEventDTO[]>('/events');
 
 // Pop-up announcements (donation invitations, news) — GET /announcements.
@@ -176,11 +183,12 @@ export type AuthResponse = {
   user: User;
 };
 
-async function postJSON<T>(path: string, body: unknown): Promise<T> {
+async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<T> {
   const res = await fetch(API_BASE_URL + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -256,11 +264,21 @@ async function authedRequest<T>(
   });
 
   const tok = await getAccessToken();
-  let res = await fetch(API_BASE_URL + path, { ...init, headers: buildHeaders(tok) });
+  // Each attempt gets its own timeout signal (the retry must not inherit the
+  // aborted signal of a wedged first attempt).
+  let res = await fetch(API_BASE_URL + path, {
+    ...init,
+    headers: buildHeaders(tok),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   if (res.status === 401) {
     // Access token expired/invalid mid-flight — refresh and retry exactly once.
     const next = await refreshNow();
-    res = await fetch(API_BASE_URL + path, { ...init, headers: buildHeaders(next.accessToken) });
+    res = await fetch(API_BASE_URL + path, {
+      ...init,
+      headers: buildHeaders(next.accessToken),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
   }
 
   const data = await res.json().catch(() => ({}));

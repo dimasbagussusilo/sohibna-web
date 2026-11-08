@@ -43,17 +43,29 @@ export function QuranSearch() {
       return
     }
     setSearching(true)
+    // Stale-result guard: the cleanup flips `cancelled` when the query (or
+    // language) changes, so a slow older response can never overwrite the
+    // results of a newer one.
+    let cancelled = false
     const id = setTimeout(() => {
       const cl = contentLangFor(lang)
       searchVerses(q, cl)
         .then((r) => {
+          if (cancelled) return
           setVerseHits(r.hits)
           setVerseTotal(r.total)
         })
-        .catch(() => setVerseHits([]))
-        .finally(() => setSearching(false))
+        .catch(() => {
+          if (!cancelled) setVerseHits([])
+        })
+        .finally(() => {
+          if (!cancelled) setSearching(false)
+        })
     }, 450)
-    return () => clearTimeout(id)
+    return () => {
+      cancelled = true
+      clearTimeout(id)
+    }
   }, [query, tab, lang])
 
   const runAi = async (e: React.FormEvent) => {

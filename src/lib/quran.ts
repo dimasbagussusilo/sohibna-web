@@ -622,7 +622,10 @@ export const parseParagraphs = (html: string): string[] =>
 export const invalidateVerses = (src: Source) => versesCache.delete(`${src.kind}:${src.id}`);
 
 async function getJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+  // Bounded fetch (web): a wedged content request must reject, not hang the
+  // read-through cache layer forever. Same change is web-only — the RN twin
+  // keeps the bare fetch.
+  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!res.ok) throw new Error(`Quran API ${res.status}: ${url}`);
   return (await res.json()) as T;
 }

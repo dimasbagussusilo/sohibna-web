@@ -400,18 +400,22 @@ function ReviewQueue({
   const [verse, setVerse] = useState<Verse | null>(null)
   const [revealed, setRevealed] = useState(false)
   const current = queue[i]
+  // Primitive deps: reload when the queue advances, without re-running on
+  // unrelated renders of the parent.
+  const currentKey = current?.verseKey
+  const currentSurah = current?.surah
 
   useEffect(() => {
-    if (!current) return
+    if (!currentKey || currentSurah == null) return
     setVerse(null)
     setRevealed(false)
-    loadVerses({ kind: 'surah', id: current.surah })
+    loadVerses({ kind: 'surah', id: currentSurah })
       .then((vs) => {
-        const v = vs.find((x) => x.verse_key === current.verseKey)
+        const v = vs.find((x) => x.verse_key === currentKey)
         if (v) setVerse(v)
       })
       .catch(() => {})
-  }, [current?.verseKey])
+  }, [currentKey, currentSurah])
 
   if (!current) {
     return (

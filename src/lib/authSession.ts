@@ -70,10 +70,14 @@ async function doRefresh(): Promise<Session> {
   const rt = session?.refreshToken;
   if (!rt) throw new AuthError('no refresh token');
 
+  // Bounded refresh: without a timeout, one wedged request pins `inflight`
+  // forever and every authed call queues behind it indefinitely. A timeout
+  // rejection propagates to those callers (and clears `inflight`) instead.
   const res = await fetch(API_BASE_URL + '/auth/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh_token: rt }),
+    signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) throw new AuthError('refresh failed');
 

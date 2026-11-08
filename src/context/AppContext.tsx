@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import storage from '@/lib/storage'
 import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/context/QuranDataContext'
@@ -147,10 +147,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // One live toast at a time: clear the previous timer so a quick second
+  // toast isn't cut short by the first one's expiry.
+  const toastTimerRef = useRef<number | undefined>(undefined)
   const toast = useCallback((msg: string) => {
     setToastMsg(msg)
-    setTimeout(() => setToastMsg(''), 3000)
+    window.clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = window.setTimeout(() => setToastMsg(''), 3000)
   }, [])
+  useEffect(() => () => window.clearTimeout(toastTimerRef.current), [])
 
   // Global confirm dialog. The pending request lives in a ref so a second
   // askConfirm can dismiss (resolve false) a still-open one without side
@@ -205,10 +210,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAppearance(darkMode ? 'light' : 'dark')
   }, [darkMode, setAppearance])
 
+  // Memoized value: every consumer (the whole app tree) otherwise re-rendered
+  // on any provider re-render (e.g. the minute-tick while in 'auto').
+  const value = useMemo(
+    () => ({
+      loading,
+      toastMsg,
+      toast,
+      appearance,
+      setAppearance,
+      darkMode,
+      toggleDarkMode,
+      confirmReq,
+      askConfirm,
+      settleConfirm,
+    }),
+    [loading, toastMsg, toast, appearance, setAppearance, darkMode, toggleDarkMode, confirmReq, askConfirm, settleConfirm],
+  )
+
   return (
-    <AppContext.Provider
-      value={{ loading, toastMsg, toast, appearance, setAppearance, darkMode, toggleDarkMode, confirmReq, askConfirm, settleConfirm }}
-    >
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   )

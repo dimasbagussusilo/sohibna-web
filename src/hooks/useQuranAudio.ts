@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ensureAudio, type RepeatMode, type Verse } from '@/lib/quran'
-import { downloadAudioFile } from '@/lib/quranCache'
 
 export interface RepeatConfig {
   mode: RepeatMode
@@ -10,22 +9,26 @@ export interface RepeatConfig {
 }
 
 // useQuranAudio (web) — one verse-recitation player for the reader, ported
-// from the RN expo-audio version to a module-level HTMLAudioElement.
+// from the RN expo-audio version to a per-instance HTMLAudioElement.
 // Same behavior: per-verse playback from the cached surah audio map,
 // play/seek/prev/next, speed control (preservesPitch), and the
 // quran.com-style repeat scheduler (none / single / range / surah, ∞ count).
 //
-// Web-specific: downloaded verse audio lives in Cache Storage under
-// /__qa/* URLs — the SW's quran-audio runtime cache also caches the CDN, so
-// streaming a verse caches it for offline automatically.
+// Web-specific: playback position is NOT React state — timeupdate fires ~4×/s
+// and a setState there would re-render the whole reader (verse list included).
+// Consumers subscribe via subscribePos (the progress bar + the word-highlight
+// sync), so ticks re-render nothing by default. Duration stays state (it
+// changes once per track). The SW's quran-audio runtime cache stores the CDN
+// responses, so streaming a verse already makes it offline-capable — no extra
+// cache warm needed here.
 export function useQuranAudio(
   verses: Verse[],
   reciterId: number,
   rate: number = 1,
   repeat: RepeatConfig = { mode: 'none', count: 0, rangeFrom: null, rangeTo: null },
 ) {
-  // One shared element (module scope — navigating away unmounts the hook but
-  // the element survives so playback state is consistent).
+  // One element per hook instance; torn down on unmount (below) so leaving
+  // the reader can never leave an orphaned <audio> playing.
   const playerRef = useRef<HTMLAudioElement | null>(null)
   if (!playerRef.current && typeof Audio !== 'undefined') {
     playerRef.current = new Audio()
@@ -34,12 +37,14 @@ export function useQuranAudio(
   const player = playerRef.current!
 
   const [currentVk, setCurrentVk] = useState<string | null>(null)
-  const currentVkRef = useRef<string | null>(currentVk)
+  const currentVkRef = useRef<string | null>(null)
   currentVkRef.current = currentVk
 
   const [playing, setPlaying] = useState(false)
-  const [pos, setPos] = useState(0)
   const [dur, setDur] = useState(0)
+
+  // Live-position fan-out (the player bar + word sync subscribe; no state).
+  const posListenersRef = useRef(new Set<(pos: number) => void>())
 
   const versesRef = useRef(verses)
   versesRef.current = verses
@@ -56,11 +61,14 @@ export function useQuranAudio(
   const lastFinishedVkRef = useRef<string | null>(null)
   const loopRepsRef = useRef(0)
 
-  // Attach element listeners once.
+  // Attach element listeners once; tear the element down on unmount.
   useEffect(() => {
     const onPlay = () => setPlaying(true)
     const onPause = () => setPlaying(false)
-    const onTime = () => setPos(player.currentTime)
+    const onTime = () => {
+      const pos = player.currentTime
+      for (const cb of posListenersRef.current) cb(pos)
+    }
     const onMeta = () => setDur(player.duration || 0)
     player.addEventListener('play', onPlay)
     player.addEventListener('pause', onPause)
@@ -71,8 +79,23 @@ export function useQuranAudio(
       player.removeEventListener('pause', onPause)
       player.removeEventListener('timeupdate', onTime)
       player.removeEventListener('loadedmetadata', onMeta)
+      // Orphaned-audio teardown: there is no global mini-player, so leaving
+      // the reader must stop playback AND drop the source (aborts any
+      // in-flight media download).
+      player.pause()
+      player.removeAttribute('src')
+      player.load()
     }
   }, [player])
+
+  // Subscribe to playback-position ticks (~4×/s while playing). Returns an
+  // unsubscribe. Keep the work per tick tiny — this runs outside React.
+  const subscribePos = useCallback((cb: (pos: number) => void) => {
+    posListenersRef.current.add(cb)
+    return () => {
+      posListenersRef.current.delete(cb)
+    }
+  }, [])
 
   const applyRate = useCallback(() => {
     const r = rateRef.current || 1
@@ -101,8 +124,6 @@ export function useQuranAudio(
       } catch {
         /* autoplay policy or network — bar shows the state it has */
       }
-      // Warm the cache so the next play of this verse is offline-capable.
-      void downloadAudioFile(remote, reciter, vk).catch(() => {})
     },
     [player, applyRate],
   )
@@ -244,8 +265,8 @@ export function useQuranAudio(
   return {
     currentVk,
     isPlaying: playing,
-    pos,
     dur,
+    subscribePos,
     playVerse,
     togglePlay,
     pause,

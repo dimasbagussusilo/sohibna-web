@@ -94,6 +94,9 @@ const MARK_COLOR: Record<string, string> = {
   label: '#8B5CF6',
 }
 
+// Builder lives next to its renderer by design (shared types/palettes);
+// only ever changed together.
+// eslint-disable-next-line react/only-export-components
 export function buildIndonesianHtml(
   verses: Verse[],
   fontSize: number,

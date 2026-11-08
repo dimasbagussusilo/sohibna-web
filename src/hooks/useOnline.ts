@@ -7,11 +7,6 @@ export function useOnlineStatus(): { online: boolean; pendingOps: number } {
   const [pendingOps, setPendingOps] = useState(0)
 
   useEffect(() => {
-    const update = () => setOnline(navigator.onLine)
-    window.addEventListener('online', update)
-    window.addEventListener('offline', update)
-
-    // Poll queued ops every few seconds while offline (cheap localStorage read).
     const readQueue = () => {
       let n = 0
       for (let i = 0; i < localStorage.length; i++) {
@@ -27,12 +22,37 @@ export function useOnlineStatus(): { online: boolean; pendingOps: number } {
       }
       setPendingOps(n)
     }
-    readQueue()
-    const id = setInterval(readQueue, 4000)
+
+    // Poll queued ops every few seconds, but ONLY while offline (the banner
+    // hides the count when online anyway) — no idle timer while connected.
+    let pollId: number | undefined
+    const startPolling = () => {
+      if (pollId === undefined) {
+        readQueue()
+        pollId = setInterval(readQueue, 4000)
+      }
+    }
+    const stopPolling = () => {
+      if (pollId !== undefined) {
+        clearInterval(pollId)
+        pollId = undefined
+      }
+    }
+    const onConnectivityChange = () => {
+      setOnline(navigator.onLine)
+      if (navigator.onLine) stopPolling()
+      else startPolling()
+    }
+    window.addEventListener('online', onConnectivityChange)
+    window.addEventListener('offline', onConnectivityChange)
+
+    readQueue() // one initial read to seed the count
+    if (!navigator.onLine) startPolling()
+
     return () => {
-      window.removeEventListener('online', update)
-      window.removeEventListener('offline', update)
-      clearInterval(id)
+      window.removeEventListener('online', onConnectivityChange)
+      window.removeEventListener('offline', onConnectivityChange)
+      stopPolling()
     }
   }, [])
 

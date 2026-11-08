@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -195,8 +196,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Memoized value — all functions are stable useCallbacks, so consumers only
+  // re-render when the session state (user/token/loading) actually changes.
+  const value = useMemo(
+    () => ({ user, token, loading, login, register, loginGoogle, logout, updateUser }),
+    [user, token, loading, login, register, loginGoogle, logout, updateUser],
+  )
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, loginGoogle, logout, updateUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

@@ -43,8 +43,16 @@ export function KitabAI() {
   const [localChats, setLocalChats] = useState<RulingsChatEntry[]>([])
   const [drafts, setDrafts] = useState<RulingsChatEntry[]>([])
   useEffect(() => {
-    listRulingsChats().then(setLocalChats).catch(() => {})
-    listRulingsDrafts().then(setDrafts).catch(() => {})
+    let alive = true
+    listRulingsChats()
+      .then((c) => alive && setLocalChats(c))
+      .catch(() => {})
+    listRulingsDrafts()
+      .then((d) => alive && setDrafts(d))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [])
 
   const chatSessions = useMemo(() => {

@@ -4,7 +4,7 @@
 // mount — a silent fix only runs when permission is already granted (checked
 // via navigator.permissions). The prompt happens only when the user explicitly
 // requests a fix (requestAuto).
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import storage from '@/lib/storage'
 
 const CACHE_KEY = 'sohibna:last_location'
@@ -81,6 +81,15 @@ export function useLocation(): LocationState {
   const [coords, setCoords] = useState<Coords | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<LocationErrorCode | null>(null)
+  // refresh/requestAuto are callback-driven (no effect cleanup), so an
+  // unmounted-after-await guard needs this flag.
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   // Silent fix: only if permission is ALREADY granted. Never prompts.
   const fetchAuto = useCallback(async (): Promise<Coords | null> => {
@@ -115,7 +124,7 @@ export function useLocation(): LocationState {
       try {
         const c = await fetchAuto()
         if (!cancelled && c) setCoords(c)
-      } catch (e) {
+      } catch {
         if (!cancelled) setError('failed')
       } finally {
         if (!cancelled) setLoading(false)
@@ -128,6 +137,7 @@ export function useLocation(): LocationState {
 
   const refresh = useCallback(async () => {
     const s = await loadSettings()
+    if (!mountedRef.current) return
     setSettings(s)
     if (s.mode === 'manual' && s.manual) {
       setCoords(s.manual)
@@ -139,12 +149,12 @@ export function useLocation(): LocationState {
     setError(null)
     try {
       const c = await fetchAuto()
-      if (c) setCoords(c)
+      if (mountedRef.current && c) setCoords(c)
     } catch (e) {
       console.warn('location failed:', e)
-      setError('failed')
+      if (mountedRef.current) setError('failed')
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }, [fetchAuto])
 
@@ -156,16 +166,17 @@ export function useLocation(): LocationState {
       const pos = await getPos()
       const c: Coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
       await storage.setItem(CACHE_KEY, JSON.stringify(c))
-      setSettings({ mode: 'auto', manual: null })
       await saveSettings({ mode: 'auto', manual: null })
+      if (!mountedRef.current) return true
+      setSettings({ mode: 'auto', manual: null })
       setCoords(c)
       return true
     } catch (e) {
       console.warn('location denied/failed:', e)
-      setError('denied')
+      if (mountedRef.current) setError('denied')
       return false
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }, [])
 

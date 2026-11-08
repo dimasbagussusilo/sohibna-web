@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
-import { BookOpenText, ChevronLeft, Download, List, Search, Settings, Star, Tag } from 'lucide-react'
+import { BookOpenText, ChevronLeft, Download, List, Search, Settings, Tag } from 'lucide-react'
 import {
   ensureSegments,
   fetchChapters,
@@ -43,6 +43,10 @@ const SCRIPTS: { id: Script; label: string }[] = [
   { id: 'indopak', label: 'IndoPak' },
   { id: 'indonesian', label: "Imla'i" },
 ]
+
+// Stable empty labels array — keeps the memoized VerseCards' `labels` prop
+// referentially unchanged when a verse has none.
+const EMPTY_LABELS: string[] = []
 
 export function SurahReader() {
   const { id } = useParams()
@@ -93,7 +97,6 @@ export function SurahReader() {
   const [showDash, setShowDash] = useState(false)
   const [sideQuery, setSideQuery] = useState('')
   const [showDownload, setShowDownload] = useState(false)
-  const enteredAtRef = useRef<number>(Date.now())
   const lastReadVkRef = useRef<string | null>(null)
 
   const topRef = useRef<HTMLDivElement>(null)
@@ -161,6 +164,9 @@ export function SurahReader() {
     rangeFrom: ud.repeatRangeFrom,
     rangeTo: ud.repeatRangeTo,
   })
+  // Stable subscription handle (useQuranAudio memoizes it) — referenced
+  // directly below so the tick subscription doesn't re-create on re-renders.
+  const subscribeAudioPos = audio.subscribePos
 
   // Word-by-word sync: load the reciter's per-word timing map when audio starts.
   useEffect(() => {
@@ -178,6 +184,9 @@ export function SurahReader() {
   }, [audio.currentVk, surahId, ud.reciterId, ud.wordHighlight])
 
   // Map playback position → the active word span key (verse-idx format).
+  // Position arrives via the audio subscription (NOT reader state — a tick
+  // must never re-render the verse list); React bails out unless the
+  // highlighted word actually changes.
   useEffect(() => {
     const vk = audio.currentVk
     if (!vk || !ud.wordHighlight || !audio.isPlaying) {
@@ -186,31 +195,30 @@ export function SurahReader() {
     }
     const seg = segments.get(vk)
     if (!seg) return
+    const verse = verses.find((v) => v.verse_key === vk)
+    if (!verse) return
     // Segment shape: [wordPosition(1-based within WORDS), start_ms, end_ms] —
-    // see lib/quran.ts VerseSegments. Find the word covering pos.
-    const t = audio.pos * 1000
-    for (const row of seg.segs) {
-      const wp = row[1]
-      const start = row[2]
-      const end = row[3]
-      if (t >= start && t <= end) {
-        const verse = verses.find((v) => v.verse_key === vk)
-        if (!verse) return
-        // Count word-type entries up to the segment's word position.
-        let n = 0
-        for (let i = 0; i < verse.words.length; i++) {
-          if (verse.words[i].char_type_name === 'word') {
-            n++
-            if (n === wp) {
-              setActiveWordKey(`${vk}-${i}`)
-              return
-            }
-          }
-        }
-        return
+    // see lib/quran.ts VerseSegments. Pre-map word positions → span keys once
+    // per verse instead of walking the word list on every tick.
+    const keyByWordPos = new Map<number, string>()
+    let n = 0
+    for (let i = 0; i < verse.words.length; i++) {
+      if (verse.words[i].char_type_name === 'word') {
+        n++
+        keyByWordPos.set(n, `${vk}-${i}`)
       }
     }
-  }, [audio.pos, audio.currentVk, audio.isPlaying, segments, ud.wordHighlight, verses])
+    return subscribeAudioPos((pos) => {
+      const t = pos * 1000
+      for (const row of seg.segs) {
+        if (t >= row[2] && t <= row[3]) {
+          const key = keyByWordPos.get(row[1]) ?? null
+          setActiveWordKey((prev) => (prev === key ? prev : key))
+          return
+        }
+      }
+    })
+  }, [audio.currentVk, audio.isPlaying, subscribeAudioPos, segments, ud.wordHighlight, verses])
 
 
   const chapter = useMemo(() => chapters.find((c) => c.id === surahId), [chapters, surahId])
@@ -316,7 +324,6 @@ export function SurahReader() {
   useEffect(() => {
     const entered = Date.now()
     const sid = surahId
-    enteredAtRef.current = entered
     return () => {
       const seconds = Math.round((Date.now() - entered) / 1000)
       const toVk = lastReadVkRef.current
@@ -341,16 +348,25 @@ export function SurahReader() {
     })
   }, [])
 
-  const marksForVerse = useCallback(
-    (vk: string) => {
-      const hasMark = Object.entries(ud.lastReadSlots || {}).some(
-        ([, v]) => markVerseKey(v) === vk,
-      )
-      const labels = ud.labels[vk] || []
-      return { hasMark, labels, isFav: ud.favorites.includes(vk) }
-    },
-    [ud],
-  )
+  // Per-verse mark state as memoized set lookups, so every VerseCard prop
+  // stays referentially stable between renders (the card memo only breaks on
+  // a real change for that verse).
+  const markedVks = useMemo(() => {
+    const s = new Set<string>()
+    for (const slot of Object.values(ud.lastReadSlots || {})) {
+      const vk = markVerseKey(slot)
+      if (vk) s.add(vk)
+    }
+    return s
+  }, [ud.lastReadSlots])
+  const favVks = useMemo(() => new Set(ud.favorites), [ud.favorites])
+
+  // Stable per-verse sheet openers (inline arrows would defeat VerseCard memo).
+  const openLabelSheet = useCallback((vk: string) => {
+    setLabelSheetVk(vk)
+    setLabelDraft('')
+  }, [])
+  const openMarkSheet = useCallback((vk: string) => setMarkSheetVk(vk), [])
 
   // Reader-local desktop shortcuts (see ShortcutsOverlay for the cheat sheet).
   const focusVkRef = useRef<string | null>(null)
@@ -532,49 +548,41 @@ export function SurahReader() {
           ) : null}
 
           {/* Verse cards — content-visibility keeps long surahs cheap. */}
-          {verses.map((v) => {
-            const m = marksForVerse(v.verse_key)
-            return (
-              <div
-                key={v.verse_key}
-                id={`verse-${v.verse_key}`}
-                style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}
-              >
-                <VerseCard
-                  verse={v}
-                  script={ud.script}
-                  fontSize={ud.fontSize}
-                  darkMode={darkMode}
-                  showEnglish={ud.showEnglish}
-                  showIndonesian={ud.showIndonesian}
-                  showTurkish={ud.showTurkish}
-                  showUrdu={ud.showUrdu}
-                  showEnglishTafsir={ud.showEnglishTafsir}
-                  showIndoTafsir={ud.showIndoTafsir}
-                  showTurkishTafsir={ud.showTurkishTafsir}
-                  showUrduTafsir={ud.showUrduTafsir}
-                  fallbackTafsirLang={fallbackTafsirLang}
-                  isFav={m.isFav}
-                  labels={m.labels}
-                  hasMark={m.hasMark}
-                  isPlaying={audio.currentVk === v.verse_key && audio.isPlaying}
-                  onToggleFav={(vk) => {
-                    toggleFav(vk)
-                  }}
-                  onPlayVerse={(vk) => audio.playVerse(vk)}
-                  onPause={audio.pause}
-                  activeWordKey={audio.currentVk === v.verse_key ? activeWordKey : null}
-                  tafsirOpen={expandedTafsir.has(v.verse_key)}
-                  onToggleTafsir={toggleTafsir}
-                  onOpenLabelSheet={(vk) => {
-                    setLabelSheetVk(vk)
-                    setLabelDraft('')
-                  }}
-                  onOpenMarkSheet={(vk) => setMarkSheetVk(vk)}
-                />
-              </div>
-            )
-          })}
+          {verses.map((v) => (
+            <div
+              key={v.verse_key}
+              id={`verse-${v.verse_key}`}
+              style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}
+            >
+              <VerseCard
+                verse={v}
+                script={ud.script}
+                fontSize={ud.fontSize}
+                darkMode={darkMode}
+                showEnglish={ud.showEnglish}
+                showIndonesian={ud.showIndonesian}
+                showTurkish={ud.showTurkish}
+                showUrdu={ud.showUrdu}
+                showEnglishTafsir={ud.showEnglishTafsir}
+                showIndoTafsir={ud.showIndoTafsir}
+                showTurkishTafsir={ud.showTurkishTafsir}
+                showUrduTafsir={ud.showUrduTafsir}
+                fallbackTafsirLang={fallbackTafsirLang}
+                isFav={favVks.has(v.verse_key)}
+                labels={ud.labels[v.verse_key] ?? EMPTY_LABELS}
+                hasMark={markedVks.has(v.verse_key)}
+                isPlaying={audio.currentVk === v.verse_key && audio.isPlaying}
+                onToggleFav={toggleFav}
+                onPlayVerse={audio.playVerse}
+                onPause={audio.pause}
+                activeWordKey={audio.currentVk === v.verse_key ? activeWordKey : null}
+                tafsirOpen={expandedTafsir.has(v.verse_key)}
+                onToggleTafsir={toggleTafsir}
+                onOpenLabelSheet={openLabelSheet}
+                onOpenMarkSheet={openMarkSheet}
+              />
+            </div>
+          ))}
         </main>
         </div>
       )}
@@ -661,21 +669,14 @@ export function SurahReader() {
 
       {/* Scroll-to-top FAB (visible after scrolling) */}
       {/* Audio playback bar */}
-      <AudioPlayerBar
+      <AudioBarWithProgress
+        audio={audio}
         title={
           audio.currentVk
             ? `${chapter?.name_simple ?? ''} · ${audio.currentVk}${reciterName ? ` · ${reciterName}` : ''}`
             : null
         }
-        isPlaying={audio.isPlaying}
-        pos={audio.pos}
-        dur={audio.dur}
         rate={ud.audioRate !== 1 ? ud.audioRate : undefined}
-        onToggle={audio.togglePlay}
-        onSeek={audio.seekTo}
-        onClose={audio.stop}
-        onPrev={audio.prev}
-        onNext={audio.next}
         onOpenSettings={() => setShowAudioSettings(true)}
       />
 
@@ -719,6 +720,39 @@ function ScrollTopFab({ topRef }: { topRef: React.RefObject<HTMLDivElement | nul
     >
       ↑
     </button>
+  )
+}
+
+// The playback bar is the only consumer of per-tick position — subscribe HERE
+// so timeupdate re-renders this small component instead of the verse list.
+function AudioBarWithProgress({
+  audio,
+  title,
+  rate,
+  onOpenSettings,
+}: {
+  audio: ReturnType<typeof useQuranAudio>
+  title: string | null
+  rate?: number
+  onOpenSettings: () => void
+}) {
+  const [pos, setPos] = useState(0)
+  const { subscribePos, isPlaying, dur, togglePlay, seekTo, stop, prev, next } = audio
+  useEffect(() => subscribePos(setPos), [subscribePos])
+  return (
+    <AudioPlayerBar
+      title={title}
+      isPlaying={isPlaying}
+      pos={pos}
+      dur={dur}
+      rate={rate}
+      onToggle={togglePlay}
+      onSeek={seekTo}
+      onClose={stop}
+      onPrev={prev}
+      onNext={next}
+      onOpenSettings={onOpenSettings}
+    />
   )
 }
 
@@ -897,7 +931,6 @@ function ReaderSettings({
         </div>
         {/* Preview */}
         <div className="quran-rtl mt-4 rounded-xl bg-black/5 px-4 py-4 text-center text-xl dark:bg-white/10">
-          <Star size={0} className="hidden" />
           بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
         </div>
       </div>

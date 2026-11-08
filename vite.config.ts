@@ -11,7 +11,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['offline.html', 'fonts/*.ttf', 'fonts/*.woff2', 'icons/*.png'],
+      // No includeAssets: workbox's globPatterns below already precaches every
+      // matching public/ asset — listing them again duplicated the manifest.
       manifest: {
         name: 'Sohibna',
         short_name: 'Sohibna',

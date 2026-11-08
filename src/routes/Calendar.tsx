@@ -22,9 +22,13 @@ export function Calendar() {
   const [selected, setSelected] = useState(() => new Date())
 
   useEffect(() => {
+    let alive = true
     loadEventCatalog()
-      .then(setCatalog)
-      .catch(() => setCatalog([]))
+      .then((c) => alive && setCatalog(c))
+      .catch(() => alive && setCatalog([]))
+    return () => {
+      alive = false
+    }
   }, [])
 
   const days = useMemo(() => {

@@ -21,6 +21,9 @@ export function QuranDataProvider({ children }: { children: ReactNode }) {
   return <QuranDataContext.Provider value={value}>{children}</QuranDataContext.Provider>;
 }
 
+// Canonical provider+consumer-hook pair; splitting the file would hurt
+// cohesion more than fast-refresh gains.
+// eslint-disable-next-line react/only-export-components
 export function useQuranData(): QuranDataValue {
   const ctx = useContext(QuranDataContext);
   if (!ctx) {

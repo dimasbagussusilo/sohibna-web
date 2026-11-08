@@ -43,9 +43,20 @@ export function Rulings() {
   // guests). Merged with the synced copies — mirrors the RN screens.
   const [localChats, setLocalChats] = useState<RulingsChatEntry[]>([])
   const [drafts, setDrafts] = useState<RulingsChatEntry[]>([])
+  // Storage reads are async and also re-run after a delete — guard the
+  // setStates against a component that unmounted mid-await.
+  const mountedRef = useRef(true)
   useEffect(() => {
-    listRulingsChats().then(setLocalChats).catch(() => {})
-    listRulingsDrafts().then(setDrafts).catch(() => {})
+    mountedRef.current = true
+    listRulingsChats()
+      .then((c) => mountedRef.current && setLocalChats(c))
+      .catch(() => {})
+    listRulingsDrafts()
+      .then((d) => mountedRef.current && setDrafts(d))
+      .catch(() => {})
+    return () => {
+      mountedRef.current = false
+    }
   }, [])
 
   const chatSessions = useMemo(() => {
@@ -178,8 +189,12 @@ export function Rulings() {
                         deleteRemoteChat(thread.id)
                         // Refresh both device-local lists so rows disappear
                         // immediately.
-                        listRulingsChats().then(setLocalChats).catch(() => {})
-                        listRulingsDrafts().then(setDrafts).catch(() => {})
+                        listRulingsChats()
+                          .then((c) => mountedRef.current && setLocalChats(c))
+                          .catch(() => {})
+                        listRulingsDrafts()
+                          .then((d) => mountedRef.current && setDrafts(d))
+                          .catch(() => {})
                       }}
                       aria-label={t('rulings.deleteChatTitle')}
                       className="shrink-0 rounded-full p-1.5 text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"

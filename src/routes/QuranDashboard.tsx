@@ -16,8 +16,6 @@ export function QuranDashboard() {
   const navigate = useNavigate()
   const { ud, reload } = useQuranData()
   const [chapters, setChapters] = useState<Chapter[]>([])
-  const [query, setQuery] = useState('')
-  void setQuery
 
   useEffect(() => {
     let alive = true
@@ -49,17 +47,6 @@ export function QuranDashboard() {
       : null
   }, [ud.lastRead, chapters])
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return chapters
-    return chapters.filter(
-      (c) =>
-        c.name_simple.toLowerCase().includes(q) ||
-        (c.translated_name?.name || '').toLowerCase().includes(q) ||
-        String(c.id) === q,
-    )
-  }, [chapters, query])
-
   const popular = useMemo(
     () => POPULAR_IDS.map((id) => chapters.find((c) => c.id === id)).filter(Boolean) as Chapter[],
     [chapters],
@@ -81,7 +68,7 @@ export function QuranDashboard() {
       </Link>
 
       {/* Continue reading */}
-      {continueReading && !query ? (
+      {continueReading ? (
         <Link
           to={`/surah/${continueReading.surah}?v=${encodeURIComponent(continueReading.verseKey)}`}
           className="mb-5 flex items-center gap-3 rounded-3xl bg-night px-5 py-4 text-cream dark:bg-[#163024]"
@@ -102,7 +89,7 @@ export function QuranDashboard() {
       ) : null}
 
       {/* Popular surahs */}
-      {!query && popular.length ? (
+      {popular.length ? (
         <div className="mb-5">
           <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-ink/40 dark:text-cream/40">
             {t('quranHome.popularSurah')}
@@ -150,7 +137,7 @@ export function QuranDashboard() {
 
       {/* Surah list */}
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm dark:bg-[#122A1F]">
-        {filtered.map((c, i) => (
+        {chapters.map((c, i) => (
           <button
             key={c.id}
             onClick={() => navigate(`/surah/${c.id}`)}
@@ -176,15 +163,15 @@ export function QuranDashboard() {
             <ChevronRight size={14} className="rtl-flip shrink-0 text-ink/30 dark:text-cream/30" />
           </button>
         ))}
-        {filtered.length === 0 ? (
+        {chapters.length === 0 ? (
           <div className="px-4 py-10 text-center text-sm text-ink/50 dark:text-cream/50">
-            {t('quranHome.noMatch', { query })}
+            {t('quranHome.noMatch', { query: '' })}
           </div>
         ) : null}
       </div>
 
       <div className="py-4 text-center text-[10px] text-ink/30 dark:text-cream/30">
-        {filtered.length} / {TOTAL_SURAHS}
+        {chapters.length} / {TOTAL_SURAHS}
       </div>
     </div>
   )

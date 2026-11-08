@@ -151,10 +151,11 @@ function RulesVolume({
   speak: (id: string, text: string) => void
   speaking: string | null
 }) {
-  // Lazy-import to keep the bundle lean
+  // Lazy-import the (heavy) rules datasets — they only download when a
+  // rules volume is actually opened; the light V1/V2 data above is static.
   const [rules, setRules] = useState<{ id: string; arab: string; name: string; desc: unknown; example?: unknown }[]>([])
   useState(() => {
-    import('@/iqro/data').then((m) => {
+    import('@/iqro/rules').then((m) => {
       const set =
         vol === 3 ? m.V3_RULES : vol === 4 ? m.V4_RULES : m.HARAKAT_SIGNS
       setRules(set as never)

@@ -1,15 +1,4 @@
-import { useMemo } from 'react';
-import { useI18n } from '@/context/I18nContext';
 import type { Bi, Lang, Resolved } from './types';
-import {
-  V1_FAMILIES,
-  V2_WORDS,
-  V3_RULES,
-  V4_RULES,
-  HARAKAT_SIGNS,
-  LONG_VOWELS,
-  HAMZAH_FORMS,
-} from './data';
 
 // A Bi value has exactly these three keys. Used to detect translatable leaves
 // during the deep resolve walk.
@@ -43,21 +32,4 @@ export function resolve<T>(node: T, lang: Lang): Resolved<T> {
     return out as Resolved<T>;
   }
   return node as Resolved<T>;
-}
-
-/** All Iqro datasets resolved to the current app language. */
-export function useIqroContent() {
-  const { lang } = useI18n();
-  return useMemo(
-    () => ({
-      families: resolve(V1_FAMILIES, lang),
-      joinWords: resolve(V2_WORDS, lang),
-      signRules: resolve(V3_RULES, lang),
-      tajwidRules: resolve(V4_RULES, lang),
-      harakatSigns: resolve(HARAKAT_SIGNS, lang),
-      longVowels: resolve(LONG_VOWELS, lang),
-      hamzahForms: resolve(HAMZAH_FORMS, lang),
-    }),
-    [lang],
-  );
 }

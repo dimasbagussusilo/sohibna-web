@@ -7,13 +7,18 @@ import { useReflectionChat } from '@/reflection/useReflectionChat'
 import { useI18n } from '@/context/I18nContext'
 import { useAuth } from '@/context/AuthContext'
 import { useQuranData } from '@/context/QuranDataContext'
-import { reflectionDateKey, type ReflectionEntry } from '@/reflection/history'
+import {
+  reflectionDateKey,
+  listReflections,
+  mergeReflectionLists,
+  type ReflectionEntry,
+} from '@/reflection/history'
 import { MarkdownText } from '@/components/MarkdownText'
 
 // Daily Reflection (web port): pick a mood → a mood-specific ayah of the day →
 // chat with the AI companion grounded in that verse. Per-day local history.
 export function DailyReflection() {
-  const { t, lang } = useI18n()
+  const { t, lang, dict } = useI18n()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const pastDate = searchParams.get('date')
@@ -168,7 +173,7 @@ export function DailyReflection() {
         {/* Suggestion chips (first turn only) */}
         {messages.length <= 1 && !pastDate ? (
           <div className="flex flex-wrap justify-end gap-2">
-            {(dictChips(mood) as string[]).slice(0, 2).map((chip) => (
+            {(dictChips(dict, mood) as string[]).slice(0, 2).map((chip) => (
               <button
                 key={chip}
                 onClick={() => void send(chip)}
@@ -214,9 +219,9 @@ export function DailyReflection() {
 }
 
 // The suggestion chips are ARRAYS in the dictionary — t() only resolves string
-// leaves, so read them from the raw dict for the active language.
-function dictChips(mood: MoodId): unknown {
-  const { dict } = useI18n()
+// leaves, so read them from the raw dict for the active language. Takes the
+// dict as a parameter (a plain function must not call the useI18n hook).
+function dictChips(dict: unknown, mood: MoodId): unknown {
   const chips = (dict as unknown as { reflection: { chips: Record<string, unknown> } }).reflection
     .chips[mood]
   return Array.isArray(chips) ? chips : []
@@ -233,15 +238,18 @@ export function ReflectionHistory() {
 
   const remote = user ? ud.reflections : null
   useEffect(() => {
-    import('@/reflection/history').then(async ({ listReflections, mergeReflectionLists }) => {
+    let alive = true
+    void (async () => {
       const local = await listReflections()
       const merged = mergeReflectionLists(local, remote ? Object.values(remote) : []).sort((a, b) => {
         if (a.date !== b.date) return a.date < b.date ? 1 : -1
         return (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
       })
-      setEntries(merged)
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (alive) setEntries(merged)
+    })()
+    return () => {
+      alive = false
+    }
   }, [remote])
 
   return (

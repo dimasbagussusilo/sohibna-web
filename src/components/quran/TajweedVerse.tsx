@@ -45,6 +45,8 @@ const MARK_COLOR: Record<string, string> = {
 
 // Build the verse body fragment (no <html> wrapper on web — this lands inside
 // the app's own DOM). Includes the per-page font-faces + palettes + classes.
+// Builder lives next to its renderer by design (shared types/palettes).
+// eslint-disable-next-line react/only-export-components
 export function buildTajweedHtml(
   verses: Verse[],
   fontSize: number,

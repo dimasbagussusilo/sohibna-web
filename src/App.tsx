@@ -1,8 +1,7 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router'
 import { I18nProvider, useI18n } from '@/context/I18nContext'
 import { isLandingOrigin, appUrl } from '@/origins'
-import { Landing } from '@/routes/landing/Landing'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { QuranDataProvider, useQuranData } from '@/context/QuranDataContext'
 import { AppProvider } from '@/context/AppContext'
@@ -13,23 +12,64 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
 import { GlobalHotkeys } from '@/components/ShortcutsOverlay'
 import { OfflineBanner } from '@/components/OfflineBanner'
-import { Home } from '@/routes/Home'
-import { QuranDashboard } from '@/routes/QuranDashboard'
-import { QuranSearch } from '@/routes/QuranSearch'
-import { Rulings } from '@/routes/Rulings'
-import { Calendar } from '@/routes/Calendar'
-import { Dzikir } from '@/routes/Dzikir'
-import { DailyReflection, ReflectionHistory } from '@/routes/DailyReflection'
-import { Shalat } from '@/routes/Shalat'
-import { Iqro } from '@/routes/Iqro'
-import { Qibla, NearbyMasjid, AlarmsUnavailable } from '@/routes/QiblaMasjid'
-import { QuranGoals } from '@/routes/QuranGoals'
-import { Hafalan } from '@/routes/Hafalan'
-import { KitabAI } from '@/routes/KitabAI'
-import { SurahReader } from '@/routes/SurahReader'
-import { Login, Register } from '@/routes/Login'
-import { VerifyCode, ForgotPassword, ResetPassword } from '@/routes/AuthRecovery'
-import { Me } from '@/routes/Me'
+
+// Every screen is lazy: each route's code (and its heavy content tables —
+// mushaf layout, shalat recitations, iqro curriculum, …) downloads only when
+// that route is first visited. Landing visitors never fetch app-route chunks
+// and vice-versa. Named exports → remap onto lazy's default-component slot.
+const Landing = lazy(() => import('@/routes/landing/Landing').then((m) => ({ default: m.Landing })))
+const Home = lazy(() => import('@/routes/Home').then((m) => ({ default: m.Home })))
+const QuranDashboard = lazy(() =>
+  import('@/routes/QuranDashboard').then((m) => ({ default: m.QuranDashboard })),
+)
+const QuranSearch = lazy(() =>
+  import('@/routes/QuranSearch').then((m) => ({ default: m.QuranSearch })),
+)
+const Rulings = lazy(() => import('@/routes/Rulings').then((m) => ({ default: m.Rulings })))
+const Calendar = lazy(() => import('@/routes/Calendar').then((m) => ({ default: m.Calendar })))
+const Dzikir = lazy(() => import('@/routes/Dzikir').then((m) => ({ default: m.Dzikir })))
+const DailyReflection = lazy(() =>
+  import('@/routes/DailyReflection').then((m) => ({ default: m.DailyReflection })),
+)
+const ReflectionHistory = lazy(() =>
+  import('@/routes/DailyReflection').then((m) => ({ default: m.ReflectionHistory })),
+)
+const Shalat = lazy(() => import('@/routes/Shalat').then((m) => ({ default: m.Shalat })))
+const Iqro = lazy(() => import('@/routes/Iqro').then((m) => ({ default: m.Iqro })))
+const Qibla = lazy(() => import('@/routes/QiblaMasjid').then((m) => ({ default: m.Qibla })))
+const NearbyMasjid = lazy(() =>
+  import('@/routes/QiblaMasjid').then((m) => ({ default: m.NearbyMasjid })),
+)
+const AlarmsUnavailable = lazy(() =>
+  import('@/routes/QiblaMasjid').then((m) => ({ default: m.AlarmsUnavailable })),
+)
+const QuranGoals = lazy(() => import('@/routes/QuranGoals').then((m) => ({ default: m.QuranGoals })))
+const Hafalan = lazy(() => import('@/routes/Hafalan').then((m) => ({ default: m.Hafalan })))
+const KitabAI = lazy(() => import('@/routes/KitabAI').then((m) => ({ default: m.KitabAI })))
+const SurahReader = lazy(() =>
+  import('@/routes/SurahReader').then((m) => ({ default: m.SurahReader })),
+)
+const Login = lazy(() => import('@/routes/Login').then((m) => ({ default: m.Login })))
+const Register = lazy(() => import('@/routes/Login').then((m) => ({ default: m.Register })))
+const VerifyCode = lazy(() =>
+  import('@/routes/AuthRecovery').then((m) => ({ default: m.VerifyCode })),
+)
+const ForgotPassword = lazy(() =>
+  import('@/routes/AuthRecovery').then((m) => ({ default: m.ForgotPassword })),
+)
+const ResetPassword = lazy(() =>
+  import('@/routes/AuthRecovery').then((m) => ({ default: m.ResetPassword })),
+)
+const Me = lazy(() => import('@/routes/Me').then((m) => ({ default: m.Me })))
+
+// Chunk-load placeholder, matching the in-route loading spinners.
+function RouteFallback() {
+  return (
+    <div className="flex justify-center py-24">
+      <div className="h-8 w-8 animate-pulse rounded-full bg-sage/40" />
+    </div>
+  )
+}
 
 // Applies the account's synced UI language once the store has it (0008). Inner
 // consumer by design — I18nProvider is outermost for pre-paint RTL, so the
@@ -70,16 +110,18 @@ export function App() {
 
 function LandingRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing lang="id" />} />
-      <Route path="/en" element={<Landing lang="en" />} />
-      <Route path="/ar" element={<Landing lang="ar" />} />
-      <Route path="/tr" element={<Landing lang="tr" />} />
-      <Route path="/ur" element={<Landing lang="ur" />} />
-      {/* Deep apex links never reach the SPA in prod (nginx landing mode 301s
-          them to the app origin first) — this is the dev safety net. */}
-      <Route path="*" element={<GoToAppOrigin />} />
-    </Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/" element={<Landing lang="id" />} />
+        <Route path="/en" element={<Landing lang="en" />} />
+        <Route path="/ar" element={<Landing lang="ar" />} />
+        <Route path="/tr" element={<Landing lang="tr" />} />
+        <Route path="/ur" element={<Landing lang="ur" />} />
+        {/* Deep apex links never reach the SPA in prod (nginx landing mode 301s
+            them to the app origin first) — this is the dev safety net. */}
+        <Route path="*" element={<GoToAppOrigin />} />
+      </Routes>
+    </Suspense>
   )
 }
 
@@ -97,6 +139,7 @@ function MainAppRoutes() {
         <QuranDataProvider>
           <AppProvider>
             <AccountLangApply />
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/login" element={<Login />} />
@@ -135,6 +178,7 @@ function MainAppRoutes() {
               <Route path="/alarms" element={<AlarmsUnavailable />} />
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
+            </Suspense>
             <TabBar />
             <GlobalHotkeys />
             <OfflineBanner />

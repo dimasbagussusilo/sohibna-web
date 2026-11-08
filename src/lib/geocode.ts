@@ -37,7 +37,12 @@ export async function reverseGeocode(
 ): Promise<PlaceName> {
   const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=${lang}`;
   try {
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    // Short budget: this is cosmetic (coords are the offline fallback), so a
+    // slow geocoder must not pin the prayer header for long.
+    const res = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) throw new Error(`geocode ${res.status}`);
     const d = (await res.json()) as BDCResponse;
     const city = d.city || d.locality || undefined;

@@ -31,6 +31,9 @@ const TABS = [
 // The five (tabs) routes — everything else is a stack screen.
 const TAB_PATHS = new Set(['/home', '/calendar', '/quran', '/rulings', '/me'])
 
+// Hook + component are one unit (the hook reads this file's tab table);
+// deliberate co-export.
+// eslint-disable-next-line react/only-export-components
 export function useIsTabRoute(): boolean {
   const { pathname } = useLocation()
   return TAB_PATHS.has(pathname)

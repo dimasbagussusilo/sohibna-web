@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { appUrl } from '@/origins'
 import { StoreBadge } from './StoreBadge'
@@ -7,8 +8,35 @@ import { StoreBadge } from './StoreBadge'
 // cream sections below. Kept deliberately lean: the badge carries the
 // gratis/offline message, the store badges carry the "coming soon" story.
 
+// navigator.connection (Network Information API) — Chrome-only, optional.
+type NavigatorConnection = Navigator & { connection?: { saveData?: boolean } }
+
 export function Hero() {
   const { t } = useI18n()
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  // The ~2MB promo video autoplays ONLY when the user allows motion, isn't on
+  // a save-data connection, and the phone frame is actually on screen;
+  // everyone else gets the (light) poster. Evaluated once at mount — an OS
+  // reduced-motion flip takes effect on the next load.
+  const autoplayAllowed =
+    typeof window !== 'undefined' &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    (navigator as NavigatorConnection).connection?.saveData !== true
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v || !autoplayAllowed) return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) v.play().catch(() => {})
+        else v.pause()
+      },
+      { threshold: 0.25 },
+    )
+    io.observe(v)
+    return () => io.disconnect()
+  }, [autoplayAllowed])
 
   return (
     <section className="relative overflow-hidden bg-night text-cream">
@@ -72,13 +100,13 @@ export function Hero() {
           />
           <div className="w-[300px] rounded-[2.4rem] border-[10px] border-[#122A1F] bg-[#122A1F] shadow-2xl shadow-black/35 ring-1 ring-white/10 lg:w-[330px]">
             <video
+              ref={videoRef}
               className="aspect-[9/16] w-full rounded-[1.8rem] object-cover"
               poster="/promo-poster.jpg"
-              autoPlay
               muted
               loop
               playsInline
-              preload="metadata"
+              preload={autoplayAllowed ? 'metadata' : 'none'}
               aria-label={t('landing.hero.promoAlt')}
             >
               <source src="/promo.av1.mp4" type='video/mp4; codecs="av01.0.05M.08"' />
