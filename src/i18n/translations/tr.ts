@@ -519,6 +519,13 @@ export const translations: Translation = {
     labelCountN: '{{n}} ayet',
     createLabel: '"{{label}}" oluştur',
     createMark: '"{{name}}" oluştur',
+    suggestions: 'Öneriler',
+    markPreset: { tadarus: 'Tilavet' },
+    labelPreset: {
+      tadabbur: 'Tefekkür',
+      review: 'Tekrar edilecek',
+      important: 'Önemli ayet',
+    },
   },
 
   dashboard: {

@@ -521,6 +521,13 @@ export const translations: Translation = {
     labelCountN: '{{n}} آية',
     createLabel: 'إنشاء «{{label}}»',
     createMark: 'إنشاء «{{name}}»',
+    suggestions: 'مقترحات',
+    markPreset: { tadarus: 'تلاوة' },
+    labelPreset: {
+      tadabbur: 'تدبّر',
+      review: 'للمراجعة',
+      important: 'آية مهمة',
+    },
   },
 
   dashboard: {

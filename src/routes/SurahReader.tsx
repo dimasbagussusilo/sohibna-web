@@ -15,6 +15,7 @@ import {
   type VerseSegments,
 } from '@/lib/quran'
 import { surahStartPage } from '@/lib/mushafLayout'
+import { labelPresetNames } from '@/lib/quranPresets'
 import { useQuranFonts } from '@/lib/qcfFonts'
 import { MushafPager } from '@/components/quran/mushaf/MushafPager'
 import type { MushafPageModel } from '@/lib/mushafPage'
@@ -56,7 +57,7 @@ export function SurahReader() {
   const navigate = useNavigate()
   const { t, lang } = useI18n()
   const { darkMode } = useApp()
-  const { ud, loaded: udLoaded, setUD, toggleFav, addLabel, recordLastRead, logReadingSession } =
+  const { ud, loaded: udLoaded, setUD, toggleFav, addLabel, addCustomLabel, recordLastRead, logReadingSession } =
     useQuranData()
 
   // ── Quran content language follows the app language ──────────────────────
@@ -90,6 +91,14 @@ export function SurahReader() {
   const [expandedTafsir, setExpandedTafsir] = useState<Set<string>>(new Set())
   const [labelSheetVk, setLabelSheetVk] = useState<string | null>(null)
   const [labelDraft, setLabelDraft] = useState('')
+  // Built-in one-tap labels — hidden once known (applied to this verse or
+  // already in the library).
+  const knownLabels = labelSheetVk
+    ? [...(ud.labels[labelSheetVk] ?? []), ...ud.labelLibrary]
+    : []
+  const labelSuggestions = labelPresetNames(t).filter(
+    (l) => !knownLabels.some((x) => x.toLowerCase() === l.toLowerCase()),
+  )
   const [showAudioSettings, setShowAudioSettings] = useState(false)
   const [segments, setSegments] = useState<Map<string, VerseSegments>>(new Map())
   const [activeWordKey, setActiveWordKey] = useState<string | null>(null)
@@ -635,11 +644,36 @@ export function SurahReader() {
                 ))}
               </div>
             ) : null}
+
+            {/* Built-in one-tap labels — the input below stays for custom ones. */}
+            {labelSuggestions.length ? (
+              <div className="mb-3">
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {t('verseCard.suggestions')}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {labelSuggestions.map((l) => (
+                    <button
+                      key={`preset-${l}`}
+                      onClick={() => {
+                        if (!labelSheetVk) return
+                        addCustomLabel(labelSheetVk, l)
+                        setLabelSheetVk(null)
+                      }}
+                      className="rounded-full bg-[#8B5CF6]/10 px-2.5 py-1 text-xs font-semibold text-[#8B5CF6]"
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault()
                 if (!labelDraft.trim() || !labelSheetVk) return
-                addLabel(labelSheetVk, labelDraft.trim())
+                addCustomLabel(labelSheetVk, labelDraft.trim())
                 setLabelSheetVk(null)
               }}
               className="flex gap-2"

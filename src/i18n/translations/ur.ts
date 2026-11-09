@@ -519,6 +519,13 @@ export const translations: Translation = {
     labelCountN: '{{n}} آیات',
     createLabel: '“{{label}}” بنائیں',
     createMark: '“{{name}}” بنائیں',
+    suggestions: 'تجاویز',
+    markPreset: { tadarus: 'تلاوت' },
+    labelPreset: {
+      tadabbur: 'تدبر',
+      review: 'نظرثانی',
+      important: 'اہم آیت',
+    },
   },
 
   dashboard: {

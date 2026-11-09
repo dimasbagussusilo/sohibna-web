@@ -4,6 +4,7 @@ import { useI18n } from '@/context/I18nContext'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useApp } from '@/context/AppContext'
 import { markVerseKey, markTs } from '@/lib/quran'
+import { markPresetNames } from '@/lib/quranPresets'
 import { Sheet } from './AudioSettingsSheet'
 
 // ReadingMarkSheet (web port): name a verse pin. Each mark name holds ONE
@@ -21,6 +22,12 @@ export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: 
   const marks = Object.entries(ud.lastReadSlots)
     .map(([name, v]) => ({ name, verseKey: markVerseKey(v), ts: markTs(v) }))
     .sort((a, b) => b.ts - a.ts)
+
+  // Built-in one-tap names — hidden once used (the name already exists as a
+  // normal mark); tapping pins this verse exactly like typing the name would.
+  const suggestions = markPresetNames(t).filter(
+    (n) => !marks.some((m) => m.name.toLowerCase() === n.toLowerCase()),
+  )
 
   const pin = (name: string) => {
     const range = setLastReadSlot(name, vk)
@@ -47,6 +54,26 @@ export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: 
               </span>
             </button>
           ))}
+        </div>
+      ) : null}
+
+      {/* Built-in one-tap names — the input below stays for custom ones. */}
+      {suggestions.length ? (
+        <div className="mb-4">
+          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            {t('verseCard.suggestions')}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.map((name) => (
+              <button
+                key={name}
+                onClick={() => pin(name)}
+                className="rounded-full bg-[#3b82f6]/10 px-2.5 py-1 text-xs font-semibold text-[#3b82f6]"
+              >
+                {name}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 

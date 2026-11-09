@@ -512,6 +512,13 @@ export const translations: Translation = {
     labelCountN: '{{n}} verses',
     createLabel: 'Create "{{label}}"',
     createMark: 'Create "{{name}}"',
+    suggestions: 'Suggestions',
+    markPreset: { tadarus: 'Recitation' },
+    labelPreset: {
+      tadabbur: 'Reflection',
+      review: 'To review',
+      important: 'Key verse',
+    },
   },
 
   dashboard: {
