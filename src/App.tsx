@@ -18,6 +18,10 @@ import { OfflineBanner } from '@/components/OfflineBanner'
 // that route is first visited. Landing visitors never fetch app-route chunks
 // and vice-versa. Named exports → remap onto lazy's default-component slot.
 const Landing = lazy(() => import('@/routes/landing/Landing').then((m) => ({ default: m.Landing })))
+// Legal pages live on both origins: canonical on the apex (lang-prefixed, the
+// URLs Play/privacy checks hit) and on the app origin with the account's
+// persisted language. Lazy so the 5-language content chunks load per route.
+const LegalPage = lazy(() => import('@/routes/legal/LegalPage').then((m) => ({ default: m.LegalPage })))
 const Home = lazy(() => import('@/routes/Home').then((m) => ({ default: m.Home })))
 const QuranDashboard = lazy(() =>
   import('@/routes/QuranDashboard').then((m) => ({ default: m.QuranDashboard })),
@@ -117,6 +121,18 @@ function LandingRoutes() {
         <Route path="/ar" element={<Landing lang="ar" />} />
         <Route path="/tr" element={<Landing lang="tr" />} />
         <Route path="/ur" element={<Landing lang="ur" />} />
+        {/* Legal pages — carved out of the nginx 301 catch-all so they serve
+            directly on the apex origin (canonical URLs for Play/policy). */}
+        <Route path="/privacy" element={<LegalPage doc="privacy" lang="id" />} />
+        <Route path="/en/privacy" element={<LegalPage doc="privacy" lang="en" />} />
+        <Route path="/ar/privacy" element={<LegalPage doc="privacy" lang="ar" />} />
+        <Route path="/tr/privacy" element={<LegalPage doc="privacy" lang="tr" />} />
+        <Route path="/ur/privacy" element={<LegalPage doc="privacy" lang="ur" />} />
+        <Route path="/terms" element={<LegalPage doc="terms" lang="id" />} />
+        <Route path="/en/terms" element={<LegalPage doc="terms" lang="en" />} />
+        <Route path="/ar/terms" element={<LegalPage doc="terms" lang="ar" />} />
+        <Route path="/tr/terms" element={<LegalPage doc="terms" lang="tr" />} />
+        <Route path="/ur/terms" element={<LegalPage doc="terms" lang="ur" />} />
         {/* Deep apex links never reach the SPA in prod (nginx landing mode 301s
             them to the app origin first) — this is the dev safety net. */}
         <Route path="*" element={<GoToAppOrigin />} />
@@ -150,6 +166,10 @@ function MainAppRoutes() {
               <Route path="/verify-code" element={<VerifyCode />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              {/* Legal pages, account-language variant (canonical lives on the
+                  apex origin; this keeps in-app links same-origin). */}
+              <Route path="/privacy" element={<LegalPage doc="privacy" />} />
+              <Route path="/terms" element={<LegalPage doc="terms" />} />
               <Route
                 element={
                   <AppShell>

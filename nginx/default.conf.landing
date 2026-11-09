@@ -124,6 +124,13 @@ server {
         return 404;
     }
 
+    # Legal pages (SPA routes on the apex origin — the canonical URLs that
+    # Google Play / privacy checks hit: sohibna.com/privacy, /en/terms, …).
+    # Must precede the catch-all 301 below or they'd redirect to the app origin.
+    location ~ ^/(en|ar|tr|ur)?/?(privacy|terms)/?$ {
+        try_files /index.html =404;
+    }
+
     # Everything else lives on the app origin (midwifery apex pattern).
     location / {
         return 301 ${APP_ORIGIN}$request_uri;

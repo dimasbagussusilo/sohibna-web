@@ -1273,6 +1273,8 @@ export const translations: Translation = {
       disclaimer:
         'صحبنا أداة معينة على العبادة، وفي مسائل الفقه يُرجع إلى العلماء والكتب المعتمدة.',
       rights: '© {{year}} صحبنا',
+      privacy: 'سياسة الخصوصية',
+      terms: 'الشروط والأحكام',
     },
   },
 };

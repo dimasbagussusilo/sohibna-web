@@ -1273,6 +1273,8 @@ export const translations: Translation = {
       disclaimer:
         'Sohibna bir ibadet yardımcısıdır. Fıkıh meselelerinde güvenilir âlimlere ve kitaplara başvurun.',
       rights: '© {{year}} Sohibna',
+      privacy: 'Gizlilik Politikası',
+      terms: 'Hizmet Şartları',
     },
   },
 };

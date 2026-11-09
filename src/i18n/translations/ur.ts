@@ -1273,6 +1273,8 @@ export const translations: Translation = {
       disclaimer:
         'Sohibna عبادات میں مددگار آلہ ہے۔ فقہی امور کے لیے قابلِ اعتماد علما اور کتابوں سے رجوع کریں۔',
       rights: '© {{year}} Sohibna',
+      privacy: 'پرائیویسی پالیسی',
+      terms: 'شرائط و ضوابط',
     },
   },
 };

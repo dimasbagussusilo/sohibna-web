@@ -1275,6 +1275,8 @@ export const translations = {
       disclaimer:
         'Sohibna adalah alat bantu ibadah. Untuk persoalan fikih, tetap rujuk ulama dan kitab yang dipercaya.',
       rights: '© {{year}} Sohibna',
+      privacy: 'Kebijakan Privasi',
+      terms: 'Syarat & Ketentuan',
     },
   },
 } as const;

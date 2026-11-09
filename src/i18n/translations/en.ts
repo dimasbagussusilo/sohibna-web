@@ -1261,6 +1261,8 @@ export const translations: Translation = {
       disclaimer:
         'Sohibna is a worship aid. For matters of fiqh, consult trusted scholars and books.',
       rights: '© {{year}} Sohibna',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
     },
   },
 };
