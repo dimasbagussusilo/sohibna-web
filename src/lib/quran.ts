@@ -646,10 +646,10 @@ export const fetchChapters = (): Promise<Chapter[]> =>
 // Disk-cached per key so a seen verse renders offline. Drives the Daily
 // Recitation banner.
 export async function fetchVerseByKey(key: string): Promise<Verse> {
-  // `ayah4_` — bumped from `ayah3_` when the UR translation (97) joined the
-  // request (old blobs lack it; left on disk as harmless dead weight until
-  // the SW cache cycles).
-  return cachedContent<Verse>(`ayah4_${key}`, async () => {
+  // `ayah6_` — bumped from `ayah5_` with the 2026-11-13 placement RESTORE (the
+  // 11-11 re-sync had moved words to a different print's layout; old blobs place
+  // verses per that wrong layout — e.g. mushaf pages 589-591 render miscomposed).
+  return cachedContent<Verse>(`ayah6_${key}`, async () => {
     const params = new URLSearchParams({
       language: 'en',
       words: 'true',
@@ -812,10 +812,11 @@ export async function loadVerses(src: Source): Promise<Verse[]> {
   const l1 = versesCache.get(key);
   if (l1) return l1;
 
-  // `verses4_` — bumped from `verses3_` when the UR translation (97) joined
-  // the request (old blobs lack it; left on disk as harmless dead weight until
-  // the SW cache cycles).
-  const verses = await cachedContent<Verse[]>(`verses4_${key}`, async () => {
+  // `verses6_` — bumped from `verses5_` with the 2026-11-13 placement RESTORE:
+  // the 2026-11-11 re-sync had moved words to a different print's layout
+  // (zonetecde classic Madinah) than the QCF fonts + our layout index follow;
+  // `verses5_` blobs compose pages per that wrong layout (e.g. p590/591/600).
+  const verses = await cachedContent<Verse[]>(`verses6_${key}`, async () => {
     // Lembar = two consecutive mushaf pages. `by_page` returns every verse that
     // has ANY word on that page, so a verse straddling the page boundary appears
     // in BOTH responses → dedupe by id, then sort into mushaf order.

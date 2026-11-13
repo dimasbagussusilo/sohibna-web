@@ -8,11 +8,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MushafPage } from './MushafPage'
-import type { Chapter } from '@/lib/quran'
+import { PAGE_COUNT, type Chapter } from '@/lib/quran'
 import { pageSide, type MushafPageModel } from '@/lib/mushafPage'
 import { useI18n } from '@/context/I18nContext'
 
-const TOTAL = 604
+const TOTAL = PAGE_COUNT
 const WINDOW = 2 // pages mounted on each side of the current one
 
 export function MushafPager({

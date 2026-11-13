@@ -362,20 +362,78 @@ const compareVk = (a: string, b: string) => {
   return sa === sb ? aa - ab : sa - sb;
 };
 
+// Derive a page's furniture directly from its word placement — the same rules
+// as scripts/gen-mushaf-layout.mjs (band directly above the basmala above a
+// surah's first word; At-Tawbah and Al-Fatihah have no basmala). Used as the
+// SELF-HEALING fallback when the bundled index and the placement disagree (a
+// word lands on a furniture row): re-deriving from the live data keeps the
+// page coherent instead of cramming the stray words into another row — the
+// 2026-11 "mushaf nightmare" was exactly that cram amplifying a mixed state.
+function deriveRowsFromWords(
+  lineCount: number,
+  firstWordRows: Map<number, number>, // surah → row of its first word on THIS page
+): MushafRow[] {
+  const rows: MushafRow[] = [];
+  for (let l = 1; l <= lineCount; l++) rows.push({ line: l, type: 'text', surah: null, words: [] });
+  const bands: { line: number; surah: number }[] = [];
+  for (const [surah, r] of [...firstWordRows.entries()].sort((a, b) => a[1] - b[1])) {
+    const noBasmala = surah === 1 || surah === 9;
+    const bandLine = noBasmala ? r - 1 : r - 2;
+    if (bandLine >= 1 && bandLine <= lineCount && rows[bandLine - 1].type === 'text') {
+      rows[bandLine - 1].type = 'surah';
+      bands.push({ line: bandLine, surah });
+    }
+    const basmalaLine = r - 1;
+    if (!noBasmala && basmalaLine >= 1 && basmalaLine <= lineCount && rows[basmalaLine - 1].type === 'text')
+      rows[basmalaLine - 1].type = 'basmala';
+  }
+  for (const b of bands.sort((a, b) => a.line - b.line)) rows[b.line - 1].surah = b.surah;
+  return rows;
+}
+
 /**
  * Build the page model. `verses` may include straddling verses (whole-verse
  * objects from by_page); only their words with page_number === page are used.
  */
 export function buildMushafPage(verses: Verse[], page: number): MushafPageModel {
-  const lineCount = pageLineCount(page) || 15;
-  const headers = [...pageSurahHeaders(page)];
-  const rows: MushafRow[] = [];
+  let lineCount = pageLineCount(page) || 15;
+  let headers = [...pageSurahHeaders(page)];
+  let rows: MushafRow[] = [];
   for (let l = 1; l <= lineCount; l++) {
     const type = lineType(page, l);
     rows.push({ line: l, type, surah: type === 'surah' ? (headers.shift() ?? null) : null, words: [] });
   }
 
   const sorted = [...verses].sort((a, b) => compareVk(a.verse_key, b.verse_key));
+
+  // Pre-scan: which row carries each surah's first word, and does ANY word land
+  // on a furniture row (index/data disagreement)? If so, rebuild the page's
+  // furniture from the placement itself (deriveRowsFromWords) — the page stays
+  // visually correct whatever the bundled index says.
+  const firstWordRows = new Map<number, number>();
+  let collision = false;
+  const seenSurahs = new Set<number>();
+  for (const v of sorted) {
+    const onPage = v.words.filter((w) => w.page_number === page);
+    if (onPage.length === 0) continue;
+    const surah = Number(v.verse_key.split(':')[0]);
+    for (const w of onPage) {
+      if (w.line_number == null) continue;
+      if (!seenSurahs.has(surah)) {
+        seenSurahs.add(surah);
+        firstWordRows.set(surah, w.line_number);
+      }
+      const row = rows[w.line_number - 1];
+      if (row && row.type !== 'text') collision = true;
+      if (w.line_number > lineCount) collision = true;
+    }
+  }
+  if (collision) {
+    rows = deriveRowsFromWords(lineCount, firstWordRows);
+    headers = [];
+    for (const r of rows) if (r.type === 'surah' && r.surah != null) headers.push(r.surah);
+  }
+
   const marks: MushafMark[] = [];
   let firstVk: string | null = null;
   let lastVk: string | null = null;
