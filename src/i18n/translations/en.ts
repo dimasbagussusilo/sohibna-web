@@ -512,6 +512,10 @@ export const translations: Translation = {
     labelCountN: '{{n}} verses',
     createLabel: 'Create "{{label}}"',
     createMark: 'Create "{{name}}"',
+    moveMarkTitle: 'Move reading mark?',
+    moveMarkMsg: 'Move "{{name}}" from {{from}} to {{to}}?',
+    clearMarkTitle: 'Delete reading mark?',
+    clearMarkMsg: '"{{name}}" ({{at}}) will be deleted.',
     suggestions: 'Suggestions',
     markPreset: { tadarus: 'Recitation' },
     labelPreset: {

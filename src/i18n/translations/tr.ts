@@ -519,6 +519,10 @@ export const translations: Translation = {
     labelCountN: '{{n}} ayet',
     createLabel: '"{{label}}" oluştur',
     createMark: '"{{name}}" oluştur',
+    moveMarkTitle: 'Okuma imi taşınsın mı?',
+    moveMarkMsg: '"{{name}}" {{from}} konumundan {{to}} konumuna taşınsın mı?',
+    clearMarkTitle: 'Okuma imi silinsin mi?',
+    clearMarkMsg: '"{{name}}" ({{at}}) silinecek.',
     suggestions: 'Öneriler',
     markPreset: { tadarus: 'Tilavet' },
     labelPreset: {

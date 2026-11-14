@@ -12,7 +12,7 @@ import { Sheet } from './AudioSettingsSheet'
 // My Data dashboard, and jump straight back to the verse.
 export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: () => void }) {
   const { t } = useI18n()
-  const { toast } = useApp()
+  const { toast, askConfirm } = useApp()
   const { ud, setLastReadSlot } = useQuranData()
   const navigate = useNavigate()
   const [draft, setDraft] = useState('')
@@ -29,7 +29,18 @@ export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: 
     (n) => !marks.some((m) => m.name.toLowerCase() === n.toLowerCase()),
   )
 
-  const pin = (name: string) => {
+  // Pinning a name that already points elsewhere OVERWRITES it — the same
+  // silent-overwrite trap the app sheet guards with a confirm (users tapping
+  // the row to "see" their mark re-pinned it to whatever surah was open).
+  const pin = async (name: string) => {
+    const existing = marks.find((m) => m.name.toLowerCase() === name.toLowerCase())
+    if (existing && existing.verseKey !== vk) {
+      const ok = await askConfirm({
+        title: t('verseCard.moveMarkTitle'),
+        message: t('verseCard.moveMarkMsg', { name, from: existing.verseKey, to: vk }),
+      })
+      if (!ok) return
+    }
     const range = setLastReadSlot(name, vk)
     toast(t('reader.tapToClose').split(' ')[0]) // lightweight confirmation
     onClose()
@@ -45,7 +56,7 @@ export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: 
           {marks.map((m) => (
             <button
               key={m.name}
-              onClick={() => pin(m.name)}
+              onClick={() => void pin(m.name)}
               className="flex w-full items-center justify-between rounded-xl bg-black/5 px-3 py-2.5 text-start dark:bg-white/10"
             >
               <span className="text-sm font-semibold text-[#3b82f6]">{m.name}</span>
@@ -67,7 +78,7 @@ export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: 
             {suggestions.map((name) => (
               <button
                 key={name}
-                onClick={() => pin(name)}
+                onClick={() => void pin(name)}
                 className="rounded-full bg-[#3b82f6]/10 px-2.5 py-1 text-xs font-semibold text-[#3b82f6]"
               >
                 {name}
@@ -81,7 +92,7 @@ export function ReadingMarkSheet({ vk, onClose }: { vk: string | null; onClose: 
         onSubmit={(e) => {
           e.preventDefault()
           if (!draft.trim()) return
-          pin(draft.trim())
+          void pin(draft.trim())
         }}
         className="flex gap-2"
       >

@@ -519,6 +519,10 @@ export const translations = {
     labelCountN: '{{n}} ayat',
     createLabel: 'Buat "{{label}}"',
     createMark: 'Buat "{{name}}"',
+    moveMarkTitle: 'Pindahkan tanda baca?',
+    moveMarkMsg: 'Pindahkan "{{name}}" dari {{from}} ke {{to}}?',
+    clearMarkTitle: 'Hapus tanda baca?',
+    clearMarkMsg: '"{{name}}" ({{at}}) akan dihapus.',
     suggestions: 'Saran',
     markPreset: { tadarus: 'Tadarus' },
     labelPreset: {

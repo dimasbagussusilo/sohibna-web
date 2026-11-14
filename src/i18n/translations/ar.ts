@@ -521,6 +521,10 @@ export const translations: Translation = {
     labelCountN: '{{n}} آية',
     createLabel: 'إنشاء «{{label}}»',
     createMark: 'إنشاء «{{name}}»',
+    moveMarkTitle: 'نقل علامة القراءة؟',
+    moveMarkMsg: 'نقل «{{name}}» من {{from}} إلى {{to}}؟',
+    clearMarkTitle: 'حذف علامة القراءة؟',
+    clearMarkMsg: 'سيُحذف «{{name}}» ({{at}}).',
     suggestions: 'مقترحات',
     markPreset: { tadarus: 'تلاوة' },
     labelPreset: {

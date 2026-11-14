@@ -519,6 +519,10 @@ export const translations: Translation = {
     labelCountN: '{{n}} آیات',
     createLabel: '“{{label}}” بنائیں',
     createMark: '“{{name}}” بنائیں',
+    moveMarkTitle: 'مطالعہ نشان منتقل کریں؟',
+    moveMarkMsg: '“{{name}}” کو {{from}} سے {{to}} منتقل کریں؟',
+    clearMarkTitle: 'مطالعہ نشان حذف کریں؟',
+    clearMarkMsg: '“{{name}}” ({{at}}) حذف ہو جائے گا۔',
     suggestions: 'تجاویز',
     markPreset: { tadarus: 'تلاوت' },
     labelPreset: {
