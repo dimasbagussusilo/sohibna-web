@@ -621,6 +621,74 @@ export const patchTZ = (deviceId: string, tz: string) =>
     body: JSON.stringify({ tz }),
   });
 
+// ── Fastabiqul Khairat leaderboard + achievements (0019) — app-mirrored ─────
+
+// AchievementState is one DERIVED badge: the server computes only
+// id/unlocked/current/threshold — names + descriptions live in the clients'
+// i18n keyed off the stable ids (dict.achievements.items.<id>).
+export type AchievementState = {
+  id: string;
+  unlocked: boolean;
+  current: number;
+  threshold: number;
+};
+
+export type LeaderboardEntry = {
+  rank: number;
+  name: string;
+  imageUrl: string | null;
+  points: number;
+  verses: number;
+  days: number;
+  isMe: boolean;
+};
+
+// LeaderboardResponse is the weekly opt-in board: top 50 entries plus the
+// requester's own rank (over the FULL list, so it exists beyond the top 50)
+// and the displayed week bounds (requester-TZ; points windows are per-user-TZ).
+export type LeaderboardResponse = {
+  weekStart: string; // requester-TZ Monday YYYY-MM-DD
+  nextReset: string; // RFC3339 — the countdown target
+  entries: LeaderboardEntry[];
+  me: LeaderboardEntry | null; // null = not opted in
+  joined: boolean;
+  myName: string;
+};
+
+// The board is a CROSS-USER read mounted at the root (no device header).
+export const fetchLeaderboard = () => authedFetch<LeaderboardResponse>('/leaderboard');
+
+// Join/update (nickname, 1..30 chars) or leave (null) the board.
+export const patchLeaderboard = (deviceId: string, name: string | null) =>
+  syncFetch<{ ok: boolean }>(deviceId, '/quran/me/leaderboard', {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+  });
+
+export const fetchAchievements = (deviceId: string) =>
+  syncFetch<AchievementState[]>(deviceId, '/quran/me/achievements')
+
+// XpSummary is the lifetime XP + level rollup (GET /quran/me/xp) — the
+// permanent progression axis; WeekPoints is the requester's own weekly-board
+// points (personal, no opt-in needed). All derived server-side.
+export type XpBreakdown = {
+  verses: number
+  days: number
+  hafalan: number
+  goals: number
+}
+
+export type XpSummary = {
+  total: number
+  level: number
+  levelFloor: number
+  levelCeiling: number
+  breakdown: XpBreakdown
+  weekPoints: number
+}
+
+export const fetchXp = (deviceId: string) => syncFetch<XpSummary>(deviceId, '/quran/me/xp')
+
 // ── Hafalan (memorization) — targets + per-verse memorized records ──────────
 
 export const upsertHafalanTarget = (

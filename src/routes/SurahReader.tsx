@@ -7,6 +7,7 @@ import {
   fetchReciters,
   loadVerses,
   markVerseKey,
+  pageCount,
   resolveVersePage,
   type Chapter,
   type Reciter,
@@ -107,6 +108,38 @@ export function SurahReader() {
   const [sideQuery, setSideQuery] = useState('')
   const [showDownload, setShowDownload] = useState(false)
   const lastReadVkRef = useRef<string | null>(null)
+  // First verse the visit actually recorded (scroll-tracker or mushaf settle)
+  // — the reading session's fromVerse. Previously the session always claimed
+  // from surah:1, so the server's range expansion credited verses never shown
+  // (holding j from verse 1 farmed the whole surah).
+  const sessionFirstVkRef = useRef<string | null>(null)
+  // True once the user genuinely interacted (wheel/touch/keydown) or followed a
+  // deep link — mirrors the app's userScrolledRef. Programmatic scrolls (the
+  // deep-link landing, layout shifts) must not write lastRead/session data on
+  // their own; without this gate merely ARRIVING at a surah recorded its
+  // verses. Re-armed by every gesture; the mushaf settle consumes it so audio
+  // auto-page-turns after an earlier interaction still record nothing.
+  const userInteractedRef = useRef(false)
+  useEffect(() => {
+    const arm = () => {
+      userInteractedRef.current = true
+    }
+    window.addEventListener('wheel', arm, { passive: true })
+    window.addEventListener('touchmove', arm, { passive: true })
+    window.addEventListener('keydown', arm)
+    return () => {
+      window.removeEventListener('wheel', arm)
+      window.removeEventListener('touchmove', arm)
+      window.removeEventListener('keydown', arm)
+    }
+  }, [])
+  // Verse list for the session-flush cleanup — the cleanup must resolve
+  // from/to in the list of the surah being LEFT, which a stale effect closure
+  // can't guarantee.
+  const versesRef = useRef(verses)
+  useEffect(() => {
+    versesRef.current = verses
+  }, [verses])
 
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -138,11 +171,17 @@ export function SurahReader() {
   }, [])
 
   // Mushaf settle: record lastRead at the page's last verse + feed the session
-  // tracker (mirrors the scroll-driven recording of verse mode).
+  // tracker (mirrors the scroll-driven recording of verse mode). Gated on real
+  // interaction — the INITIAL landing (and audio-driven page turns, which never
+  // arm the interaction ref) must not stamp a fresh latest-activity-wins ts on
+  // a page nobody read (the 0011 regression the verse-mode tracker avoids).
   const onMushafSettle = useCallback(
     (_page: number, model: MushafPageModel | null) => {
       if (!model?.lastVk) return
+      if (!userInteractedRef.current) return
+      userInteractedRef.current = false // consume: one gesture arms one page
       lastReadVkRef.current = model.lastVk
+      if (!sessionFirstVkRef.current) sessionFirstVkRef.current = model.firstVk ?? model.lastVk
       recordLastRead(parseInt(model.lastVk.split(':')[0], 10), model.lastVk)
     },
     [recordLastRead],
@@ -265,11 +304,15 @@ export function SurahReader() {
   const fontRev = useQuranFonts(verses, ud.script)
   void fontRev
 
-  // Consume a deep-link ayah jump (?v=2:255) once verses arrive.
+  // Consume a deep-link ayah jump (?v=2:255) once verses arrive. A deep link
+  // is deliberate navigation (like the app's): it arms the interaction gate so
+  // the landing position records honestly — but the auto-scroll itself is not
+  // user scrolling.
   const jumpedRef = useRef(false)
   useEffect(() => {
     if (verses.length === 0 || jumpedRef.current || !jumpVk) return
     jumpedRef.current = true
+    userInteractedRef.current = true // deliberate navigation
     const el = document.getElementById(`verse-${CSS.escape(jumpVk)}`)
     el?.scrollIntoView({ block: 'center' })
     focusVkRef.current = jumpVk
@@ -290,6 +333,9 @@ export function SurahReader() {
   useEffect(() => {
     if (verses.length === 0) return
     const recordTopVerse = () => {
+      // Only after genuine interaction (see userInteractedRef) — the deep-link
+      // auto-scroll and layout-shift scroll events must not record.
+      if (!userInteractedRef.current) return
       // Verse cards are stacked in document order, so their absolute tops are
       // monotonic — binary search for the last card starting above the line.
       const line = window.scrollY + 96
@@ -308,6 +354,7 @@ export function SurahReader() {
         }
       }
       lastReadVkRef.current = verses[idx].verse_key
+      if (!sessionFirstVkRef.current) sessionFirstVkRef.current = verses[idx].verse_key
       recordLastRead(surahId, verses[idx].verse_key)
     }
     let lastRun = 0
@@ -328,24 +375,46 @@ export function SurahReader() {
     }
   }, [verses, surahId, recordLastRead])
 
-  // Log a reading session when leaving the surah (≥15s). Sessions recompute
-  // the server-side streak + goal progress.
+  // Log a reading session when leaving the surah. Only VISIBLE time counts (a
+  // background tab accrues nothing), the range is the real first/last recorded
+  // verses, and pages is the REAL count of distinct mushaf pages spanned — the
+  // old shape (wall-clock seconds, fabricated fromVerse s:1, hardcoded pages:1)
+  // both undercounted real reading and let idle tabs / held hotkeys farm
+  // page/time goals. Sessions recompute the server-side streak + goal progress.
   useEffect(() => {
-    const entered = Date.now()
-    const sid = surahId
+    let visibleMs = 0
+    let lastTick = Date.now()
+    let visible = document.visibilityState === 'visible'
+    const onVis = () => {
+      const now = Date.now()
+      if (visible) visibleMs += now - lastTick
+      lastTick = now
+      visible = document.visibilityState === 'visible'
+    }
+    document.addEventListener('visibilitychange', onVis)
     return () => {
-      const seconds = Math.round((Date.now() - entered) / 1000)
+      document.removeEventListener('visibilitychange', onVis)
+      onVis() // fold the final stretch in
+      const seconds = Math.round(visibleMs / 1000)
+      const fromVk = sessionFirstVkRef.current
       const toVk = lastReadVkRef.current
-      if (seconds < 15 || !toVk || parseInt(toVk.split(':')[0], 10) !== sid) return
+      if (seconds < 15 || !fromVk || !toVk) return
+      if (parseInt(fromVk.split(':')[0], 10) !== surahId) return
+      const list = versesRef.current
+      const i1 = list.findIndex((v) => v.verse_key === fromVk)
+      const i2 = list.findIndex((v) => v.verse_key === toVk)
+      if (i1 < 0 || i2 < 0) return
+      const [lo, hi] = i1 <= i2 ? [i1, i2] : [i2, i1]
       logReadingSession({
         id: uuidv4(),
-        surah: sid,
-        fromVerse: `${sid}:1`,
+        surah: surahId,
+        fromVerse: fromVk,
         toVerse: toVk,
-        seconds,
-        pages: 1,
+        seconds: Math.max(1, seconds),
+        pages: Math.max(1, pageCount(list.slice(lo, hi + 1))),
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surahId, logReadingSession])
 
   const toggleTafsir = useCallback((vk: string) => {

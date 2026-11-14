@@ -1290,4 +1290,83 @@ export const translations = {
       terms: 'Syarat & Ketentuan',
     },
   },
+
+  // Streak milestone / achievement celebration popup (CelebrationDialog).
+  celebration: {
+    streakTitle: 'Hari Beruntun!',
+    streakBody: 'Masya Allah, istiqamah membaca Al-Qur\'an. Semoga Allah mudahkan langkahmu terus konsisten.',
+    streakToast: 'Streak {{n}} hari — Alhamdulillah!',
+    achievementTitle: 'Pencapaian Baru!',
+    achievementBody: 'Kamu membuka lencana “{{name}}”.',
+    cta: 'Alhamdulillah',
+  },
+
+  // Derived badges (GET /quran/me/achievements). The server sends only the
+  // stable ids; names/descriptions live here.
+  achievements: {
+    title: 'Pencapaian',
+    rowLabel: 'Pencapaian',
+    summary: '{{unlocked}} dari {{total}} terbuka',
+    progress: '{{current}} / {{threshold}}',
+    unlocked: 'Terbuka',
+    locked: 'Terkunci',
+    items: {
+      first_step: { name: 'Langkah Pertama', desc: 'Membaca ayat pertamamu' },
+      verses_50: { name: '50 Ayat', desc: 'Membaca 50 ayat berbeda' },
+      verses_200: { name: '200 Ayat', desc: 'Membaca 200 ayat berbeda' },
+      verses_1000: { name: '1.000 Ayat', desc: 'Membaca 1.000 ayat berbeda' },
+      verses_5000: { name: '5.000 Ayat', desc: 'Membaca 5.000 ayat berbeda' },
+      khatm: { name: 'Khatam', desc: 'Membaca seluruh 6.236 ayat Al-Qur\'an' },
+      streak_3: { name: '3 Hari', desc: 'Membaca 3 hari beruntun' },
+      streak_7: { name: '7 Hari', desc: 'Membaca 7 hari beruntun' },
+      streak_30: { name: '30 Hari', desc: 'Membaca 30 hari beruntun' },
+      streak_100: { name: '100 Hari', desc: 'Membaca 100 hari beruntun' },
+      streak_365: { name: 'Setahun', desc: 'Membaca 365 hari beruntun' },
+      surahs_10: { name: 'Penjelajah', desc: 'Membaca di 10 surah berbeda' },
+      surahs_50: { name: 'Kelana', desc: 'Membaca di 50 surah berbeda' },
+      pages_604: { name: 'Satu Mushaf', desc: 'Total bacaan setara 604 halaman' },
+      hafalan_50: { name: 'Hafiz Cilik', desc: 'Menghafal 50 ayat' },
+    },
+  },
+
+  // Opt-in weekly board (GET /leaderboard). Copy keeps the fastabiqul-khairat
+  // framing: competing in goodness, never "beating" others.
+  leaderboard: {
+    title: 'Fastabiqul Khairat',
+    rowLabel: 'Papan Peringkat Mingguan',
+    subtitle: '“…Maka berlombalah dalam kebaikan.” (QS 2:148) — saling menyemangati membaca.',
+    weekOf: 'Minggu {{date}}',
+    resetsIn: 'Reset {{duration}}',
+    joinTitle: 'Ikut Papan Peringkat',
+    joinBody: 'Kumpulkan poin dari bacaan mingguanmu: 1 poin per ayat + 5 poin per hari membaca.',
+    nicknameLabel: 'Nama tampilan',
+    nicknamePlaceholder: 'Nama panggilanmu',
+    joinCta: 'Gabung',
+    privacyNote: 'Opsional — hanya nama tampilan dan poinmu yang tampil. Bisa keluar kapan saja.',
+    points: '{{n}} poin',
+    verses: '{{n}} ayat',
+    days: '{{n}} hari',
+    you: 'Kamu',
+    rank: 'Peringkat {{n}}',
+    editName: 'Ubah nama',
+    save: 'Simpan',
+    leave: 'Keluar papan',
+    leaveConfirmTitle: 'Keluar papan peringkat?',
+    leaveConfirmBody: 'Namamu dan poin minggu ini dihapus dari papan. Kamu bisa bergabung lagi kapan saja.',
+    loadError: 'Gagal memuat papan. Tarik ke bawah untuk mencoba lagi.',
+    nameRequired: 'Nama 1–30 karakter.',
+    empty: 'Belum ada yang membaca minggu ini.',
+  },
+
+  // Lifetime XP + levels (gamification v2) — derived from reading + hafalan +
+  // completed goals (deliberately NOT salat: poin untuk ibadah inti bisa
+  // mengganggu niat/ikhlas).
+  xp: {
+    level: 'Level {{n}}',
+    progress: '{{cur}} / {{next}} XP',
+    weekPoints: 'Minggu ini: {{n}} poin',
+    pointsToast: '+{{n}} poin — Alhamdulillah!',
+    levelUpTitle: 'Naik Level!',
+    levelUpBody: 'Masya Allah, kamu mencapai Level {{n}}. Terus berlomba dalam kebaikan.',
+  },
 } as const;

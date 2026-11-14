@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router'
-import { LogOut, Globe, ChevronRight } from 'lucide-react'
+import { LogOut, Globe, ChevronRight, Trophy, Medal } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
@@ -104,11 +104,22 @@ export function Me() {
         </div>
       </Section>
 
-      {/* Placeholder rows for P2 screens */}
+      {/* Fastabiqul Khairat + achievements (reading-data surfaces) */}
       <Section title={t('me.more')}>
-        <div className="px-4 pb-2 text-xs text-ink/40 dark:text-cream/40">
-          {t('quranHome.progressGuestPrompt')}
-        </div>
+        <Link to="/leaderboard" className="flex items-center gap-3 px-1 py-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/15">
+            <Trophy size={18} className="text-amber-500" />
+          </span>
+          <span className="flex-1 text-sm font-medium text-ink dark:text-cream">{t('leaderboard.rowLabel')}</span>
+          <ChevronRight size={18} className="text-ink/40 dark:text-cream/40" />
+        </Link>
+        <Link to="/achievements" className="flex items-center gap-3 px-1 py-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/15">
+            <Medal size={18} className="text-amber-500" />
+          </span>
+          <span className="flex-1 text-sm font-medium text-ink dark:text-cream">{t('achievements.rowLabel')}</span>
+          <ChevronRight size={18} className="text-ink/40 dark:text-cream/40" />
+        </Link>
       </Section>
 
       {/* Logout */}

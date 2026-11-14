@@ -712,6 +712,7 @@ export const translations: Translation = {
   },
 
   a11y: {
+
     back: 'Geri',
     next: 'Sonraki',
     previous: 'Önceki',
@@ -1287,5 +1288,81 @@ export const translations: Translation = {
       privacy: 'Gizlilik Politikası',
       terms: 'Hizmet Şartları',
     },
+  },
+
+
+  // Streak milestone / achievement celebration popup (CelebrationDialog).
+  celebration: {
+    streakTitle: 'Gün Serisi!',
+    streakBody: "Maşa Allah, Kur'an okumaya devam ediyorsun. Allah istikametini daim kılsın.",
+    streakToast: '{{n}} günlük seri — Elhamdülillah!',
+    achievementTitle: 'Yeni Başarı!',
+    achievementBody: '“{{name}}” rozetini açtın.',
+    cta: 'Elhamdülillah',
+  },
+
+  // Derived badges (GET /quran/me/achievements); names keyed off stable ids.
+  achievements: {
+    title: 'Başarımlar',
+    rowLabel: 'Başarımlar',
+    summary: '{{total}} başarımdan {{unlocked}} tanesi açık',
+    progress: '{{current}} / {{threshold}}',
+    unlocked: 'Açık',
+    locked: 'Kilitli',
+    items: {
+      first_step: { name: 'İlk Adım', desc: 'İlk ayetini oku' },
+      verses_50: { name: '50 Ayet', desc: '50 farklı ayet oku' },
+      verses_200: { name: '200 Ayet', desc: '200 farklı ayet oku' },
+      verses_1000: { name: '1.000 Ayet', desc: '1.000 farklı ayet oku' },
+      verses_5000: { name: '5.000 Ayet', desc: '5.000 farklı ayet oku' },
+      khatm: { name: 'Hatim', desc: "Kur'an'ın 6.236 ayetinin tamamını oku" },
+      streak_3: { name: '3 Gün', desc: 'Üst üste 3 gün oku' },
+      streak_7: { name: '7 Gün', desc: 'Üst üste 7 gün oku' },
+      streak_30: { name: '30 Gün', desc: 'Üst üste 30 gün oku' },
+      streak_100: { name: '100 Gün', desc: 'Üst üste 100 gün oku' },
+      streak_365: { name: 'Bir Yıl', desc: 'Üst üste 365 gün oku' },
+      surahs_10: { name: 'Kaşif', desc: '10 farklı surede oku' },
+      surahs_50: { name: 'Gezgin', desc: '50 farklı surede oku' },
+      pages_604: { name: 'Bir Mushaf', desc: 'Toplam okuman 604 sayfaya ulaşsın' },
+      hafalan_50: { name: 'Küçük Hafız', desc: '50 ayet ezberle' },
+    },
+  },
+
+  // Opt-in weekly board (GET /leaderboard) — competing in goodness.
+  leaderboard: {
+    title: 'Fastabiqul Khairat',
+    rowLabel: 'Haftalık Sıralama',
+    subtitle: '“…Hayırlı işlerde yarışın.” (Bakara 148) — birbirimizi okumaya teşvik.',
+    weekOf: '{{date}} haftası',
+    resetsIn: '{{duration}} içinde yenilenir',
+    joinTitle: 'Sıralamaya Katıl',
+    joinBody: 'Haftalık okumandan puan kazan: ayet başına 1 + okuma günü başına 5 puan.',
+    nicknameLabel: 'Görünen ad',
+    nicknamePlaceholder: 'Takma adın',
+    joinCta: 'Katıl',
+    privacyNote: 'İsteğe bağlı — yalnızca görünen adın ve puanların görünür. İstediğin zaman ayrıl.',
+    points: '{{n}} puan',
+    verses: '{{n}} ayet',
+    days: '{{n}} gün',
+    you: 'Sen',
+    rank: 'Sıra {{n}}',
+    editName: 'Adı değiştir',
+    save: 'Kaydet',
+    leave: 'Sıralamadan ayrıl',
+    leaveConfirmTitle: 'Sıralamadan ayrılın mı?',
+    leaveConfirmBody: 'Adın ve bu haftaki puanların sıralamadan kaldırılır. İstediğin zaman tekrar katılabilirsin.',
+    loadError: 'Sıralama yüklenemedi. Yeniden denemek için aşağı çek.',
+    nameRequired: 'Ad 1–30 karakter olmalı.',
+    empty: 'Bu hafta henüz kimse okumadı.',
+  },
+
+  // Lifetime XP + levels (gamification v2).
+  xp: {
+    level: 'Seviye {{n}}',
+    progress: '{{cur}} / {{next}} XP',
+    weekPoints: 'Bu hafta: {{n}} puan',
+    pointsToast: '+{{n}} puan — Elhamdülillah!',
+    levelUpTitle: 'Seviye Atladın!',
+    levelUpBody: 'Maşa Allah, Seviye {{n}}’ye ulaştın. Hayırda yarışmaya devam et.',
   },
 };

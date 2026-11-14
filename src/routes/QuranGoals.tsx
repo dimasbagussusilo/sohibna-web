@@ -16,7 +16,7 @@ import {
   Timer,
   X,
 } from 'lucide-react'
-import { fetchGoalsProgress, type GoalType, type GoalUnit } from '@/api'
+import { fetchGoalsProgress, fetchXp, type GoalType, type GoalUnit, type XpSummary } from '@/api'
 import { fetchChapters, type Chapter, type KhatmGoal } from '@/lib/quran'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useAuth } from '@/context/AuthContext'
@@ -56,12 +56,28 @@ type Draft = {
   rangeTo: string
 }
 
-const todayStr = () => new Date().toISOString().slice(0, 10)
+// LOCAL wall-clock day (toISOString() is the UTC day and drifts a day in
+// evening timezones — a "starts today" goal must start today, local).
+const todayStr = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 const addDays = (iso: string, n: number) => {
   const d = new Date(iso + 'T00:00:00')
   d.setDate(d.getDate() + n)
-  return d.toISOString().slice(0, 10)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
+// RFC3339 at LOCAL midnight with the local offset — new Date(...).toISOString()
+// would re-anchor to UTC (17:00 the previous day for UTC+7) and shift the
+// goal's whole window.
+const localOffset = () => {
+  const off = -new Date().getTimezoneOffset()
+  const sign = off >= 0 ? '+' : '-'
+  const hh = String(Math.floor(Math.abs(off) / 60)).padStart(2, '0')
+  const mm = String(Math.abs(off) % 60).padStart(2, '0')
+  return `${sign}${hh}:${mm}`
+}
+const localMidnightRFC = (iso: string) => `${iso}T00:00:00${localOffset()}`
 
 const newDraft = (): Draft => ({
   type: 'daily',
@@ -104,9 +120,8 @@ function draftToGoal(d: Draft, chapters: Chapter[]) {
     target,
     rangeFrom: isRange ? `${surah}:${from}` : null,
     rangeTo: isRange ? `${surah}:${to}` : null,
-    startAt:
-      d.type === 'duration' && d.startAt ? new Date(d.startAt + 'T00:00:00').toISOString() : undefined,
-    endAt: d.type === 'duration' && d.endAt ? new Date(d.endAt + 'T00:00:00').toISOString() : null,
+    startAt: d.type === 'duration' && d.startAt ? localMidnightRFC(d.startAt) : undefined,
+    endAt: d.type === 'duration' && d.endAt ? localMidnightRFC(d.endAt) : null,
   }
 }
 
@@ -130,8 +145,8 @@ const PRESETS: Preset[] = [
   { id: 'daily1Juz', titleKey: 'goals.templates.daily1Juz', icon: BookMarked, pagesPerDay: 20, build: () => ({ ...newDraft(), target: '20' }) },
   { id: 'daily15Min', titleKey: 'goals.templates.daily15Min', icon: Timer, build: () => ({ ...newDraft(), unit: 'time', target: '15' }) },
   { id: 'daily30Min', titleKey: 'goals.templates.daily30Min', icon: Clock, build: () => ({ ...newDraft(), unit: 'time', target: '30' }) },
-  { id: 'khatm30', titleKey: 'goals.templates.khatm30', icon: Calendar, pagesPerDay: 20, build: () => ({ ...newDraft(), type: 'duration', target: '604', endAt: addDays(todayStr(), 29) }) },
-  { id: 'khatm60', titleKey: 'goals.templates.khatm60', icon: CalendarCheck, pagesPerDay: 10, build: () => ({ ...newDraft(), type: 'duration', target: '604', endAt: addDays(todayStr(), 59) }) },
+  { id: 'khatm30', titleKey: 'goals.templates.khatm30', icon: Calendar, pagesPerDay: 21, build: () => ({ ...newDraft(), type: 'duration', target: '604', endAt: addDays(todayStr(), 29) }) },
+  { id: 'khatm60', titleKey: 'goals.templates.khatm60', icon: CalendarCheck, pagesPerDay: 11, build: () => ({ ...newDraft(), type: 'duration', target: '604', endAt: addDays(todayStr(), 59) }) },
   { id: 'khatm90', titleKey: 'goals.templates.khatm90', icon: CalendarCheck, pagesPerDay: 7, build: () => ({ ...newDraft(), type: 'duration', target: '604', endAt: addDays(todayStr(), 89) }) },
   { id: 'mulk', titleKey: 'goals.templates.mulk', icon: Moon, build: () => ({ ...newDraft(), unit: 'range' }) },
 ]
@@ -169,15 +184,20 @@ export function QuranGoals() {
   const { user, token } = useAuth()
   const { ud, upsertKhatmGoal, removeKhatmGoal } = useQuranData()
   const [progress, setProgress] = useState<Progress[] | null>(null)
+  const [xp, setXp] = useState<XpSummary | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [picking, setPicking] = useState(false)
   const [draft, setDraft] = useState<Draft | null>(null)
 
+  const streakDay = ud.streak?.lastReadDate ?? ''
   const refresh = useCallback(() => {
     if (!token) return
     fetchGoalsProgress(getDeviceId())
       .then(setProgress)
       .catch(() => setProgress([]))
+    fetchXp(getDeviceId())
+      .then(setXp)
+      .catch(() => {}) // old API / offline — the level chip just hides
   }, [token])
 
   useEffect(() => {
@@ -185,7 +205,7 @@ export function QuranGoals() {
     fetchChapters()
       .then(setChapters)
       .catch(() => {})
-  }, [refresh, ud.khatmGoals.length])
+  }, [refresh, ud.khatmGoals.length, streakDay])
 
   const save = () => {
     if (!draft) return
@@ -279,6 +299,40 @@ export function QuranGoals() {
               {t('quranHome.streakTotalPages', { n: ud.streak.totalPages })} ·{' '}
               {t('quranHome.streakLongest', { n: ud.streak.longest })}
             </div>
+            {xp ? (
+              <Link
+                to="/leaderboard"
+                className="mt-3 block rounded-2xl bg-black/20 px-3 py-2 dark:bg-black/30"
+              >
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-xs font-bold">✨ {t('xp.level', { n: xp.level })}</span>
+                  <span className="text-[10px] text-cream/60">
+                    {t('xp.progress', { cur: xp.total, next: xp.levelCeiling })}
+                  </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-black/30">
+                  <div
+                    className="h-full rounded-full bg-amber-500"
+                    style={{
+                      width: `${Math.round(
+                        Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            ((xp.total - xp.levelFloor) /
+                              Math.max(1, xp.levelCeiling - xp.levelFloor)) *
+                              100,
+                          ),
+                        ),
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <span className="mt-1 block text-[10px] text-cream/60">
+                  {t('xp.weekPoints', { n: xp.weekPoints })}
+                </span>
+              </Link>
+            ) : null}
           </div>
         ) : null}
 
@@ -575,6 +629,7 @@ function GoalEditor({
             <input
               type="date"
               value={d.startAt}
+              min={todayStr()}
               onChange={(e) => onChange({ ...d, startAt: e.target.value })}
               className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
             />

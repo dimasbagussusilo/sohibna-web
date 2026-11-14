@@ -33,7 +33,7 @@ export function GoogleSignInButton({ onDone }: { onDone?: () => void }) {
         type="button"
         onClick={click}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-ink disabled:opacity-50 dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white py-3 text-sm font-semibold text-ink shadow-sm transition-all hover:border-gray-400 hover:shadow-md active:scale-[0.99] disabled:opacity-50 dark:border-white/20 dark:bg-[#0D1F17] dark:text-cream dark:hover:border-white/30"
       >
         <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
           <path

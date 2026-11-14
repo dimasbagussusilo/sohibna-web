@@ -108,11 +108,19 @@ export function memorizedCountInScope(
 }
 
 // Verses first marked memorized today (the daily_rate target's numerator).
-export function todayNewMemorized(memorized: Record<string, MemorizedVerse>): number {
-  const today = new Date().toISOString().slice(0, 10);
+// LOCAL day on both sides — toISOString().slice(0,10) is the UTC day and
+// drifted a day off in the evenings (same convention as reminderPlan).
+const ymdLocal = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+export function todayNewMemorized(
+  memorized: Record<string, MemorizedVerse>,
+  now: Date = new Date(),
+): number {
+  const today = ymdLocal(now);
   let n = 0;
   for (const v of Object.values(memorized)) {
-    if (v.status === 'memorized' && v.memorizedAt && v.memorizedAt.slice(0, 10) === today) n++;
+    if (v.status === 'memorized' && v.memorizedAt && ymdLocal(new Date(v.memorizedAt)) === today) n++;
   }
   return n;
 }

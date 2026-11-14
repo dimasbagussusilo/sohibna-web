@@ -712,6 +712,7 @@ export const translations: Translation = {
   },
 
   a11y: {
+
     back: 'واپس',
     next: 'اگلا',
     previous: 'پچھلا',
@@ -1287,5 +1288,81 @@ export const translations: Translation = {
       privacy: 'پرائیویسی پالیسی',
       terms: 'شرائط و ضوابط',
     },
+  },
+
+
+  // Streak milestone / achievement celebration popup (CelebrationDialog).
+  celebration: {
+    streakTitle: 'دن کا سلسلہ!',
+    streakBody: 'ماشاء اللہ، قرآن پڑھنے پر قائم رہے۔ اللہ آپ کو استقامت عطا فرمائے۔',
+    streakToast: '{{n}} دن کا سلسلہ — الحمدللہ!',
+    achievementTitle: 'نیا کارنامہ!',
+    achievementBody: 'آپ نے «{{name}}» بیج کھول لیا۔',
+    cta: 'الحمدللہ',
+  },
+
+  // Derived badges (GET /quran/me/achievements); names keyed off stable ids.
+  achievements: {
+    title: 'کارنامے',
+    rowLabel: 'کارنامے',
+    summary: '{{total}} میں سے {{unlocked}} کھلے',
+    progress: '{{current}} / {{threshold}}',
+    unlocked: 'کھلا',
+    locked: 'بند',
+    items: {
+      first_step: { name: 'پہلا قدم', desc: 'اپنی پہلی آیت پڑھیں' },
+      verses_50: { name: '50 آیات', desc: '50 مختلف آیاتیں پڑھیں' },
+      verses_200: { name: '200 آیات', desc: '200 مختلف آیاتیں پڑھیں' },
+      verses_1000: { name: '1000 آیات', desc: '1000 مختلف آیاتیں پڑھیں' },
+      verses_5000: { name: '5000 آیات', desc: '5000 مختلف آیاتیں پڑھیں' },
+      khatm: { name: 'ختم', desc: 'قرآن کی تمام 6236 آیاتیں پڑھیں' },
+      streak_3: { name: '3 دن', desc: 'مسلسل 3 دن قرآن پڑھیں' },
+      streak_7: { name: '7 دن', desc: 'مسلسل 7 دن قرآن پڑھیں' },
+      streak_30: { name: '30 دن', desc: 'مسلسل 30 دن قرآن پڑھیں' },
+      streak_100: { name: '100 دن', desc: 'مسلسل 100 دن قرآن پڑھیں' },
+      streak_365: { name: 'ایک سال', desc: 'مسلسل 365 دن قرآن پڑھیں' },
+      surahs_10: { name: 'متجسس', desc: '10 مختلف سورتوں میں پڑھیں' },
+      surahs_50: { name: 'سیاح', desc: '50 مختلف سورتوں میں پڑھیں' },
+      pages_604: { name: 'ایک مصحف', desc: 'کل مطالعہ 604 صفحات کے برابر' },
+      hafalan_50: { name: 'ننھا حافظ', desc: '50 آیات حفظ کریں' },
+    },
+  },
+
+  // Opt-in weekly board (GET /leaderboard) — competing in goodness.
+  leaderboard: {
+    title: 'فاستابقوا الخیرات',
+    rowLabel: 'ہفتہ وار درجہ بندی',
+    subtitle: '«…نیکیوں میں ایک دوسرے سے آگے بڑھو» (البقرہ 148) — مطالعہ پر ایک دوسرے کی حوصلہ افزائی۔',
+    weekOf: 'ہفتہ {{date}}',
+    resetsIn: '{{duration}} میں ری سیٹ',
+    joinTitle: 'درجہ بندی میں شامل ہوں',
+    joinBody: 'اپنے ہفتہ وار مطالعے سے پوائنٹس حاصل کریں: ہر آیت پر 1 + ہر پڑھنے کے دن پر 5 پوائنٹس۔',
+    nicknameLabel: 'ظاہر ہونے والا نام',
+    nicknamePlaceholder: 'آپ کا نام',
+    joinCta: 'شامل ہوں',
+    privacyNote: 'اختیاری — صرف آپ کا نام اور پوائنٹس دکھائی دیتے ہیں۔ کسی بھی وقت نکل سکتے ہیں۔',
+    points: '{{n}} پوائنٹس',
+    verses: '{{n}} آیات',
+    days: '{{n}} دن',
+    you: 'آپ',
+    rank: 'درجہ {{n}}',
+    editName: 'نام بدلیں',
+    save: 'محفوظ کریں',
+    leave: 'درجہ بندی چھوڑیں',
+    leaveConfirmTitle: 'درجہ بندی چھوڑ دیں؟',
+    leaveConfirmBody: 'آپ کا نام اور اس ہفتے کے پوائنٹس بورڈ سے ہٹ جائیں گے۔ آپ کسی بھی وقت دوبارہ شامل ہو سکتے ہیں۔',
+    loadError: 'بورڈ لوڈ نہیں ہو سکا۔ دوبارہ کوشش کے لیے نیچے کھینچیں۔',
+    nameRequired: 'نام 1–30 حروف کا ہونا چاہیے۔',
+    empty: 'اس ہفتے ابھی کوئی نہیں پڑھا۔',
+  },
+
+  // Lifetime XP + levels (gamification v2).
+  xp: {
+    level: 'لیول {{n}}',
+    progress: '{{cur}} / {{next}} ایکس پی',
+    weekPoints: 'اس ہفتے: {{n}} پوائنٹس',
+    pointsToast: '+{{n}} پوائنٹس — الحمدللہ!',
+    levelUpTitle: 'لیول اپ!',
+    levelUpBody: 'ماشاء اللہ، آپ لیول {{n}} تک پہنچ گئے۔ نیکیوں میں آگے بڑھتے رہیں۔',
   },
 };

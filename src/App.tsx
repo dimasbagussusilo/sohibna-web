@@ -10,6 +10,7 @@ import { TabBar } from '@/components/TabBar'
 import { Toast } from '@/components/Toast'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
+import { CelebrationPopup } from '@/components/CelebrationPopup'
 import { GlobalHotkeys } from '@/components/ShortcutsOverlay'
 import { OfflineBanner } from '@/components/OfflineBanner'
 
@@ -49,6 +50,8 @@ const AlarmsUnavailable = lazy(() =>
 )
 const QuranGoals = lazy(() => import('@/routes/QuranGoals').then((m) => ({ default: m.QuranGoals })))
 const Hafalan = lazy(() => import('@/routes/Hafalan').then((m) => ({ default: m.Hafalan })))
+const Leaderboard = lazy(() => import('@/routes/Leaderboard').then((m) => ({ default: m.Leaderboard })))
+const Achievements = lazy(() => import('@/routes/Achievements').then((m) => ({ default: m.Achievements })))
 const KitabAI = lazy(() => import('@/routes/KitabAI').then((m) => ({ default: m.KitabAI })))
 const SurahReader = lazy(() =>
   import('@/routes/SurahReader').then((m) => ({ default: m.SurahReader })),
@@ -187,6 +190,8 @@ function MainAppRoutes() {
               <Route path="/quran-search" element={<QuranSearch />} />
               <Route path="/quran-goals" element={<QuranGoals />} />
               <Route path="/hafalan" element={<Hafalan />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/achievements" element={<Achievements />} />
               <Route path="/kitab-ai" element={<KitabAI />} />
               <Route path="/dzikir" element={<Dzikir />} />
               <Route path="/daily-reflection" element={<DailyReflection />} />
@@ -205,6 +210,7 @@ function MainAppRoutes() {
             <Toast />
             <ConfirmDialog />
             <AnnouncementPopup />
+            <CelebrationPopup />
           </AppProvider>
         </QuranDataProvider>
       </AuthProvider>

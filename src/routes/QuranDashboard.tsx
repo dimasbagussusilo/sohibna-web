@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Search, ChevronRight } from 'lucide-react'
-import { fetchChapters, type Chapter } from '@/lib/quran'
+import { continueEntryFor, fetchChapters, type Chapter } from '@/lib/quran'
 import { fetchReadingToday, type ReadingToday } from '@/api'
 import { useQuranData } from '@/context/QuranDataContext'
 import { useAuth } from '@/context/AuthContext'
@@ -46,24 +46,20 @@ export function QuranDashboard() {
     }
   }, [token, ud.khatmGoals.length])
 
-  // Continue reading: the most recently stamped lastRead slot/entry.
+  // Continue reading: the newest reading MARK (falling back to lastRead) via
+  // the shared continueEntryFor — app-parity, and it previously ignored marks.
   const continueReading = useMemo(() => {
-    const entries = Object.entries(ud.lastRead)
-    if (!entries.length) return null
-    entries.sort((a, b) => (b[1].timestamp ?? 0) - (a[1].timestamp ?? 0))
-    const [surahStr, info] = entries[0]
-    const surah = parseInt(surahStr, 10)
-    const ch = chapters.find((c) => c.id === surah)
-    return ch
-      ? {
-          surah,
-          name: ch.name_simple,
-          arabic: ch.name_arabic,
-          translated: ch.translated_name?.name,
-          verseKey: info.verseKey,
-        }
-      : null
-  }, [ud.lastRead, chapters])
+    const entry = continueEntryFor(ud)
+    if (!entry) return null
+    const ch = chapters.find((c) => c.id === entry.surahId)
+    return {
+      surah: entry.surahId,
+      name: ch?.name_simple,
+      arabic: ch?.name_arabic,
+      translated: ch?.translated_name?.name,
+      verseKey: entry.verseKey,
+    }
+  }, [ud, chapters])
 
   const popular = useMemo(
     () => POPULAR_IDS.map((id) => chapters.find((c) => c.id === id)).filter(Boolean) as Chapter[],

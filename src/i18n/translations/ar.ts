@@ -714,6 +714,7 @@ export const translations: Translation = {
   },
 
   a11y: {
+
     back: 'رجوع',
     next: 'التالي',
     previous: 'السابق',
@@ -1287,5 +1288,81 @@ export const translations: Translation = {
       privacy: 'سياسة الخصوصية',
       terms: 'الشروط والأحكام',
     },
+  },
+
+
+  // Streak milestone / achievement celebration popup (CelebrationDialog).
+  celebration: {
+    streakTitle: 'أيام متتالية!',
+    streakBody: 'ما شاء الله، واظبت على قراءة القرآن. نسأل الله أن يثبّتك على الاستقامة.',
+    streakToast: 'مواصلة {{n}} يومًا — الحمد لله!',
+    achievementTitle: 'إنجاز جديد!',
+    achievementBody: 'فتحت وسام «{{name}}».',
+    cta: 'الحمد لله',
+  },
+
+  // Derived badges (GET /quran/me/achievements); names keyed off stable ids.
+  achievements: {
+    title: 'الإنجازات',
+    rowLabel: 'الإنجازات',
+    summary: 'فتحت {{unlocked}} من {{total}}',
+    progress: '{{current}} / {{threshold}}',
+    unlocked: 'مفتوح',
+    locked: 'مغلق',
+    items: {
+      first_step: { name: 'الخطوة الأولى', desc: 'قراءة أول آية' },
+      verses_50: { name: '50 آية', desc: 'قراءة 50 آية مختلفة' },
+      verses_200: { name: '200 آية', desc: 'قراءة 200 آية مختلفة' },
+      verses_1000: { name: '1000 آية', desc: 'قراءة 1000 آية مختلفة' },
+      verses_5000: { name: '5000 آية', desc: 'قراءة 5000 آية مختلفة' },
+      khatm: { name: 'الختم', desc: 'قراءة آيات القرآن الـ6236 كاملة' },
+      streak_3: { name: '3 أيام', desc: 'القراءة 3 أيام متتالية' },
+      streak_7: { name: '7 أيام', desc: 'القراءة 7 أيام متتالية' },
+      streak_30: { name: '30 يومًا', desc: 'القراءة 30 يومًا متتالية' },
+      streak_100: { name: '100 يوم', desc: 'القراءة 100 يوم متتالية' },
+      streak_365: { name: 'سنة كاملة', desc: 'القراءة 365 يومًا متتالية' },
+      surahs_10: { name: 'المستكشف', desc: 'القراءة في 10 سور مختلفة' },
+      surahs_50: { name: 'الرحّالة', desc: 'القراءة في 50 سورة مختلفة' },
+      pages_604: { name: 'مصحف كامل', desc: 'مجموع قراءتك يعادل 604 صفحات' },
+      hafalan_50: { name: 'حافظ صغير', desc: 'حفظ 50 آية' },
+    },
+  },
+
+  // Opt-in weekly board (GET /leaderboard) — competing in goodness.
+  leaderboard: {
+    title: 'فاستابقوا الخيرات',
+    rowLabel: 'لوحة المتصدرين الأسبوعية',
+    subtitle: '«…فاستبقوا الخيرات» (البقرة 148) — تحفيز متبادل على القراءة.',
+    weekOf: 'أسبوع {{date}}',
+    resetsIn: 'يتجدد {{duration}}',
+    joinTitle: 'انضم إلى لوحة المتصدرين',
+    joinBody: 'اجمع نقاطًا من قراءتك الأسبوعية: نقطة لكل آية + 5 نقاط لكل يوم قراءة.',
+    nicknameLabel: 'اسم العرض',
+    nicknamePlaceholder: 'اسمك المستعار',
+    joinCta: 'انضم',
+    privacyNote: 'اختياري — يظهر اسم العرض والنقاط فقط. يمكنك الخروج متى شئت.',
+    points: '{{n}} نقطة',
+    verses: '{{n}} آية',
+    days: '{{n}} أيام',
+    you: 'أنت',
+    rank: 'المرتبة {{n}}',
+    editName: 'تغيير الاسم',
+    save: 'حفظ',
+    leave: 'مغادرة اللوحة',
+    leaveConfirmTitle: 'مغادرة لوحة المتصدرين؟',
+    leaveConfirmBody: 'سيُحذف اسمك ونقاط هذا الأسبوع من اللوحة. يمكنك الانضمام مجددًا في أي وقت.',
+    loadError: 'تعذّر تحميل اللوحة. اسحب للأسفل للمحاولة مجددًا.',
+    nameRequired: 'الاسم بين 1 و30 حرفًا.',
+    empty: 'لم يقرأ أحد هذا الأسبوع بعد.',
+  },
+
+  // Lifetime XP + levels (gamification v2).
+  xp: {
+    level: 'المستوى {{n}}',
+    progress: '{{cur}} / {{next}} نقطة',
+    weekPoints: 'هذا الأسبوع: {{n}} نقطة',
+    pointsToast: '+{{n}} نقطة — الحمد لله!',
+    levelUpTitle: 'ترقية مستوى!',
+    levelUpBody: 'ما شاء الله، وصلت إلى المستوى {{n}}. واصل التسابق في الخيرات.',
   },
 };

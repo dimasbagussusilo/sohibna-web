@@ -703,6 +703,7 @@ export const translations: Translation = {
   },
 
   a11y: {
+
     back: 'Back',
     next: 'Next',
     previous: 'Previous',
@@ -1275,5 +1276,81 @@ export const translations: Translation = {
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
     },
+  },
+
+
+  // Streak milestone / achievement celebration popup (CelebrationDialog).
+  celebration: {
+    streakTitle: 'Day Streak!',
+    streakBody: "Masya Allah, staying consistent with the Qur'an. May Allah keep your steps steady.",
+    streakToast: '{{n}}-day streak — Alhamdulillah!',
+    achievementTitle: 'New Achievement!',
+    achievementBody: 'You unlocked the "{{name}}" badge.',
+    cta: 'Alhamdulillah',
+  },
+
+  // Derived badges (GET /quran/me/achievements); names keyed off stable ids.
+  achievements: {
+    title: 'Achievements',
+    rowLabel: 'Achievements',
+    summary: '{{unlocked}} of {{total}} unlocked',
+    progress: '{{current}} / {{threshold}}',
+    unlocked: 'Unlocked',
+    locked: 'Locked',
+    items: {
+      first_step: { name: 'First Step', desc: 'Read your first verse' },
+      verses_50: { name: '50 Verses', desc: 'Read 50 distinct verses' },
+      verses_200: { name: '200 Verses', desc: 'Read 200 distinct verses' },
+      verses_1000: { name: '1,000 Verses', desc: 'Read 1,000 distinct verses' },
+      verses_5000: { name: '5,000 Verses', desc: 'Read 5,000 distinct verses' },
+      khatm: { name: 'Khatam', desc: "Read all 6,236 verses of the Qur'an" },
+      streak_3: { name: '3 Days', desc: 'Read 3 days in a row' },
+      streak_7: { name: '7 Days', desc: 'Read 7 days in a row' },
+      streak_30: { name: '30 Days', desc: 'Read 30 days in a row' },
+      streak_100: { name: '100 Days', desc: 'Read 100 days in a row' },
+      streak_365: { name: 'One Year', desc: 'Read 365 days in a row' },
+      surahs_10: { name: 'Explorer', desc: 'Read in 10 different surahs' },
+      surahs_50: { name: 'Wanderer', desc: 'Read in 50 different surahs' },
+      pages_604: { name: 'One Mushaf', desc: 'Lifetime reading equal to 604 pages' },
+      hafalan_50: { name: 'Young Hafiz', desc: 'Memorize 50 verses' },
+    },
+  },
+
+  // Opt-in weekly board (GET /leaderboard) — competing in goodness.
+  leaderboard: {
+    title: 'Fastabiqul Khairat',
+    rowLabel: 'Weekly Leaderboard',
+    subtitle: '"…So race to all that is good." (QS 2:148) — encouraging one another to read.',
+    weekOf: 'Week of {{date}}',
+    resetsIn: 'Resets {{duration}}',
+    joinTitle: 'Join the Leaderboard',
+    joinBody: 'Earn weekly points from your reading: 1 point per verse + 5 points per reading day.',
+    nicknameLabel: 'Display name',
+    nicknamePlaceholder: 'Your nickname',
+    joinCta: 'Join',
+    privacyNote: 'Optional — only your display name and points are shown. Leave anytime.',
+    points: '{{n}} pts',
+    verses: '{{n}} verses',
+    days: '{{n}} days',
+    you: 'You',
+    rank: 'Rank {{n}}',
+    editName: 'Change name',
+    save: 'Save',
+    leave: 'Leave board',
+    leaveConfirmTitle: 'Leave the leaderboard?',
+    leaveConfirmBody: "Your name and this week's points are removed from the board. You can rejoin anytime.",
+    loadError: 'Could not load the board. Pull down to retry.',
+    nameRequired: 'Name must be 1–30 characters.',
+    empty: 'No one has read this week yet.',
+  },
+
+  // Lifetime XP + levels (gamification v2).
+  xp: {
+    level: 'Level {{n}}',
+    progress: '{{cur}} / {{next}} XP',
+    weekPoints: 'This week: {{n}} pts',
+    pointsToast: '+{{n}} points — Alhamdulillah!',
+    levelUpTitle: 'Level Up!',
+    levelUpBody: 'Masya Allah, you reached Level {{n}}. Keep racing in goodness.',
   },
 };

@@ -141,6 +141,34 @@ export interface ReadingMark {
   ts: number;
 }
 export type ReadingMarkValue = ReadingMark | string;
+// ContinueEntry is the user's freshest reading position: the newest named
+// reading MARK (lastReadSlots by markTs) when one exists, else the latest
+// auto-tracked lastRead row. Shared by the Home speed-dial and the dashboard's
+// Continue Reading card (which previously ignored marks — app-parity fix).
+export type ContinueEntry = {
+  surahId: number
+  verseKey: string
+  timestamp: number
+  markName?: string
+}
+
+export function continueEntryFor(ud: UserData): ContinueEntry | null {
+  const markEntries = Object.entries(ud.lastReadSlots)
+  if (markEntries.length) {
+    markEntries.sort(([, a], [, b]) => markTs(b) - markTs(a))
+    const [name, m] = markEntries[0]
+    const vk = markVerseKey(m)
+    if (vk) {
+      return { surahId: parseInt(vk.split(':')[0], 10), verseKey: vk, timestamp: 0, markName: name }
+    }
+  }
+  const entries = Object.entries(ud.lastRead).sort(([, a], [, b]) => b.timestamp - a.timestamp)
+  const top = entries[0]
+  return top
+    ? { surahId: +top[0], verseKey: top[1].verseKey, timestamp: top[1].timestamp, markName: undefined }
+    : null
+}
+
 export const markVerseKey = (v: ReadingMarkValue): string =>
   typeof v === 'string' ? v : v?.verseKey ?? '';
 export const markTs = (v: ReadingMarkValue): number =>
