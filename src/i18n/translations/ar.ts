@@ -365,6 +365,7 @@ export const translations: Translation = {
     deleteBody: 'سيُحذف هذا الهدف، ويبقى سجل تلاوتك محفوظًا.',
     homeToday: '{{progress}}/{{target}} {{unit}} اليوم',
     homeDone: 'تحقق هدف اليوم. الحمد لله!',
+    homeCount: 'اكتمل اليوم {{done}}/{{total}} من الأهداف',
     templates: {
       chooseTitle: 'اختر قالبًا',
       chooseSub: 'ابدأ بسرعة، أو أنشئ هدفك الخاص',

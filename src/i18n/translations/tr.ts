@@ -363,6 +363,7 @@ export const translations: Translation = {
     deleteBody: 'Bu hedef kaldırılacak; okuma geçmişiniz kayıtlı kalır.',
     homeToday: 'Bugün {{progress}}/{{target}} {{unit}}',
     homeDone: 'Bugünlük hedef tamam. Elhamdülillah!',
+    homeCount: 'Bugün {{done}}/{{total}} hedef tamamlandı',
     templates: {
       chooseTitle: 'Şablon seçin',
       chooseSub: 'Hızlı başlayın ya da kendiniz oluşturun',

@@ -363,6 +363,7 @@ export const translations: Translation = {
     deleteBody: 'یہ ہدف ہٹا دیا جائے گا؛ آپ کے مطالعے کا ریکارڈ محفوظ رہے گا۔',
     homeToday: 'آج {{progress}}/{{target}} {{unit}}',
     homeDone: 'آج کا ہدف مکمل ہو گیا۔ الحمدللہ!',
+    homeCount: 'آج {{done}}/{{total}} اہداف مکمل ہوئے',
     templates: {
       chooseTitle: 'سانچہ منتخب کریں',
       chooseSub: 'فوری آغاز کریں، یا خود بنائیں',

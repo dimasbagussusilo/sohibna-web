@@ -356,6 +356,7 @@ export const translations: Translation = {
     deleteBody: 'This goal will be removed; your reading history stays saved.',
     homeToday: '{{progress}}/{{target}} {{unit}} today',
     homeDone: "Today's goal is complete. Alhamdulillah!",
+    homeCount: '{{done}}/{{total}} goals achieved today',
     templates: {
       chooseTitle: 'Choose a template',
       chooseSub: 'Start quickly, or build your own',

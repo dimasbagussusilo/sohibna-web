@@ -363,6 +363,7 @@ export const translations = {
     deleteBody: 'Target ini akan dihapus; kemajuan bacaanmu tetap tersimpan.',
     homeToday: '{{progress}}/{{target}} {{unit}} hari ini',
     homeDone: 'Target hari ini tercapai. Alhamdulillah!',
+    homeCount: '{{done}}/{{total}} target tercapai hari ini',
     templates: {
       chooseTitle: 'Pilih template',
       chooseSub: 'Mulai cepat, atau buat sendiri',
