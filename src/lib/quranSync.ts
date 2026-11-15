@@ -240,6 +240,7 @@ export function mergeRemote(
           rangeTo: c.payload.rangeTo ?? null,
           startAt: c.payload.startAt,
           endAt: c.payload.endAt,
+          groupId: c.payload.groupId ?? null,
         };
         if (c.deleted) {
           next.khatmGoals = next.khatmGoals.filter((g) => g.id !== goal.id);

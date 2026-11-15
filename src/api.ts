@@ -401,6 +401,7 @@ export interface KhatmChange extends BaseChange {
     rangeTo?: string | null;
     startAt: string;
     endAt: string; // '' = open-ended
+    groupId?: string | null; // set → community group owns this goal
   };
 }
 export interface StreakChange extends BaseChange {
@@ -589,6 +590,7 @@ export const fetchGoalsProgress = (deviceId: string) =>
       todayProgress: number;
       todayTarget: number;
       done: boolean;
+      groupId?: string | null; // set → community group goal
     }[]
   >(deviceId, '/quran/me/goals/progress');
 
@@ -609,6 +611,7 @@ export type ReadingToday = {
     todayProgress: number;
     todayTarget: number;
     done: boolean;
+    groupId?: string | null; // set → community group goal
   }[];
 };
 
@@ -688,6 +691,72 @@ export type XpSummary = {
 }
 
 export const fetchXp = (deviceId: string) => syncFetch<XpSummary>(deviceId, '/quran/me/xp')
+
+// ── Community: Lingkar Tilawah / Lingkar Keluarga (0020) — app-mirrored ────
+export type CommunityGroupKind = 'circle' | 'family'
+export type CommunityGoalUnit = 'verse' | 'page' | 'time' | 'range'
+export type CommunityGoalType = 'daily' | 'duration'
+export type CommunityPreset = 'barakallahu_fiik' | 'masyaallah' | 'semangat' | 'dua'
+
+export type CommunityGroupSummary = {
+  id: string
+  name: string
+  kind: CommunityGroupKind
+  goalType: CommunityGoalType
+  goalUnit: CommunityGoalUnit
+  goalTarget: number
+  goalRangeFrom: string | null
+  goalRangeTo: string | null
+  goalEndAt: string | null
+  role: string
+  memberCount: number
+  todayOnTarget: number
+  todayTotal: number
+  streak: number
+  myOnTargetToday: boolean
+}
+
+export type CommunityMember = {
+  userId: string
+  alias: string
+  imageUrl: string | null
+  role: string
+  joinedAt: string
+  onTargetToday: boolean
+  todayAmount: number
+  todayTarget: number // daily: target; duration: today's auto portion
+  windowAmount: number // duration: cumulative progress in the goal window
+  daysOnTargetWeek: number
+}
+
+export type CommunityBoardEntry = { userId: string; alias: string; imageUrl: string | null; daysMet: number; weekAmount: number; isMe: boolean }
+
+export type CommunityReaction = { fromUserId: string; toUserId: string; day: string; preset: CommunityPreset }
+
+export type CommunityGroupDetail = {
+  group: { id: string; name: string; kind: CommunityGroupKind; goalType: CommunityGoalType; goalUnit: CommunityGoalUnit; goalTarget: number; goalRangeFrom: string | null; goalRangeTo: string | null; goalEndAt: string | null; code: string; createdAt: string }
+  me: { userId: string; role: string; alias: string }
+  weekStart: string
+  quorumNeeded: number
+  streak: number
+  members: CommunityMember[]
+  board: CommunityBoardEntry[]
+  topEncourager: { userId: string; alias: string; count: number } | null
+  reactions: CommunityReaction[]
+}
+
+export const fetchCommunityGroups = () => authedFetch<{ groups: CommunityGroupSummary[] }>('/community/groups')
+
+export const fetchCommunityGroup = (id: string) => authedFetch<CommunityGroupDetail>(`/community/groups/${id}`)
+
+export const joinCommunityGroup = (code: string, alias: string | null) =>
+  authedFetch<CommunityGroupSummary>('/community/join', {
+    method: 'POST',
+    body: JSON.stringify({ code, alias: alias ?? undefined }),
+  })
+
+export const leaveCommunityGroup = (id: string) =>
+  authedFetch<{ ok: boolean }>(`/community/groups/${id}/leave`, { method: 'POST' })
 
 // ── Hafalan (memorization) — targets + per-verse memorized records ──────────
 

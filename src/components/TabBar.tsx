@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router'
-import { House, CalendarDays, Sparkles, UserCircle } from 'lucide-react'
+import { House, Users, Sparkles, UserCircle } from 'lucide-react'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
 import { QuranLogo, IqraLogo } from '@/components/QuranLogo'
@@ -22,14 +22,14 @@ import { QuranLogo, IqraLogo } from '@/components/QuranLogo'
 
 const TABS = [
   { path: '/home', icon: House, key: 'tabs.home' },
-  { path: '/calendar', icon: CalendarDays, key: 'tabs.calendar' },
+  { path: '/community', icon: Users, key: 'tabs.community' },
   // centre FAB slot (/quran)
   { path: '/rulings', icon: Sparkles, key: 'tabs.rulings' },
   { path: '/me', icon: UserCircle, key: 'tabs.me' },
 ] as const
 
 // The five (tabs) routes — everything else is a stack screen.
-const TAB_PATHS = new Set(['/home', '/calendar', '/quran', '/rulings', '/me'])
+const TAB_PATHS = new Set(['/home', '/community', '/quran', '/rulings', '/me'])
 
 // Hook + component are one unit (the hook reads this file's tab table);
 // deliberate co-export.

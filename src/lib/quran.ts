@@ -351,6 +351,7 @@ export type KhatmGoal = {
   rangeTo?: string | null;
   startAt: string; // RFC3339
   endAt: string; // RFC3339, '' = open-ended
+  groupId?: string | null; // set → community group owns this goal (badge, no edit/delete)
 };
 
 // GoalProgress is the live, derived progress for one goal (fetched fresh, never

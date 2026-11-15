@@ -14,6 +14,7 @@ import {
   Plus,
   SlidersHorizontal,
   Timer,
+  Users,
   X,
 } from 'lucide-react'
 import { fetchGoalsProgress, fetchXp, type GoalType, type GoalUnit, type XpSummary } from '@/api'
@@ -346,8 +347,19 @@ export function QuranGoals() {
               <div key={g.id} className="rounded-3xl bg-white p-4 shadow-sm dark:bg-[#122A1F]">
                 <div className="mb-3 flex items-start justify-between">
                   <div>
-                    <div className="text-sm font-bold text-ink dark:text-cream">
-                      {goalTitle(g.type, g.unit, g.target, t)}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-ink dark:text-cream">
+                        {goalTitle(g.type, g.unit, g.target, t)}
+                      </span>
+                      {g.groupId ? (
+                        <Link
+                          to={`/community/${g.groupId}`}
+                          className="flex items-center gap-1 rounded-full bg-[#8FBC8F]/15 px-2 py-0.5 text-[9px] font-bold text-[#8FBC8F]"
+                        >
+                          <Users size={10} />
+                          {t('community.groupGoalBadge')}
+                        </Link>
+                      ) : null}
                     </div>
                     <div className="text-[11px] text-ink/50 dark:text-cream/50">
                       {p
@@ -359,20 +371,32 @@ export function QuranGoals() {
                     ) : null}
                   </div>
                   <div className="flex items-center">
-                    <button
-                      onClick={() => setDraft(editDraft(g))}
-                      className="p-1 text-ink/30 dark:text-cream/30"
-                      aria-label={t('goals.edit')}
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => onDelete(g)}
-                      className="p-1 text-ink/30 dark:text-cream/30"
-                      aria-label={t('a11y.deleteGoal')}
-                    >
-                      <X size={14} />
-                    </button>
+                    {g.groupId ? (
+                      <Link
+                        to={`/community/${g.groupId}`}
+                        className="p-1 text-[#8FBC8F]"
+                        aria-label={t('community.groupGoalOpen')}
+                      >
+                        <Users size={15} />
+                      </Link>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setDraft(editDraft(g))}
+                          className="p-1 text-ink/30 dark:text-cream/30"
+                          aria-label={t('goals.edit')}
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(g)}
+                          className="p-1 text-ink/30 dark:text-cream/30"
+                          aria-label={t('a11y.deleteGoal')}
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 {/* Today ring-ish bar + period bar */}

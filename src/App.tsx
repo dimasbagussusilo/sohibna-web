@@ -50,6 +50,8 @@ const AlarmsUnavailable = lazy(() =>
 )
 const QuranGoals = lazy(() => import('@/routes/QuranGoals').then((m) => ({ default: m.QuranGoals })))
 const Hafalan = lazy(() => import('@/routes/Hafalan').then((m) => ({ default: m.Hafalan })))
+const Community = lazy(() => import('@/routes/Community').then((m) => ({ default: m.Community })))
+const CommunityGroup = lazy(() => import('@/routes/CommunityGroup').then((m) => ({ default: m.CommunityGroup })))
 const Leaderboard = lazy(() => import('@/routes/Leaderboard').then((m) => ({ default: m.Leaderboard })))
 const Achievements = lazy(() => import('@/routes/Achievements').then((m) => ({ default: m.Achievements })))
 const KitabAI = lazy(() => import('@/routes/KitabAI').then((m) => ({ default: m.KitabAI })))
@@ -181,7 +183,7 @@ function MainAppRoutes() {
                 }
               >
                 <Route path="/home" element={<Home />} />
-                <Route path="/calendar" element={<Calendar />} />
+              <Route path="/community" element={<Community />} />
                 <Route path="/quran" element={<QuranDashboard />} />
                 <Route path="/rulings" element={<Rulings />} />
                 <Route path="/me" element={<Me />} />
@@ -189,6 +191,8 @@ function MainAppRoutes() {
               <Route path="/surah/:id" element={<SurahReader />} />
               <Route path="/quran-search" element={<QuranSearch />} />
               <Route path="/quran-goals" element={<QuranGoals />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/community/:id" element={<CommunityGroup />} />
               <Route path="/hafalan" element={<Hafalan />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/achievements" element={<Achievements />} />

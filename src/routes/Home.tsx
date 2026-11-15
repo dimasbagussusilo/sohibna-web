@@ -165,6 +165,7 @@ export function Home() {
         <QuickLink to="/hafalan" icon="🧠" label={t('home.hafalan')} />
         <QuickLink to="/kitab-ai" icon="📚" label={t('home.kitabAi')} />
         <QuickLink to="/quran-goals" icon="🎯" label={t('goals.title')} />
+        <QuickLink to="/calendar" icon="📅" label={t('home.calendarRow')} />
       </div>
     </div>
   )
