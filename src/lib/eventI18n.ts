@@ -417,9 +417,9 @@ const EVENT_I18N: Record<string, Partial<Record<Lang, LocalizedEvent>>> = {
       rhythm: '13, 14 & 15 of every Hijri month',
     },
     id: {
-      title: 'Hari-hari Putih (Ayyamul Bidh)',
+      title: 'Ayyamul Bidh',
       short: '13–15 tiap bulan Hijriyah · puasa sunnah',
-      detail: '“Hari-hari putih”: berpuasa pada tanggal 13, 14, dan 15 setiap bulan Hijriyah.',
+      detail: 'Berpuasa pada tanggal 13, 14, dan 15 setiap bulan Hijriyah.',
       rhythm: '13, 14 & 15 tiap bulan Hijriyah',
     },
     ar: {
