@@ -1241,7 +1241,7 @@ export const translations: Translation = {
       iosT: 'App Store',
       iosD: 'iOS ورژن تیاری کے مرحلے میں ہے۔',
       pwaT: 'ویب ایپ (PWA)',
-      pwaD: 'بغیر ڈاؤن لوڈ، بغیر ایپ سٹور — براؤزر سے سیدھا کھولیں اور انسٹال کریں۔',
+      pwaD: 'بغیر ڈاؤن لوڈ ویب ایپ — تیاری جاری ہے، جلد براؤزر سے سیدھا دستیاب ہوگی۔',
       androidT: 'اینڈرائیڈ — Chrome',
       androidS1: 'Chrome میں {{appOrigin}} کھولیں۔',
       androidS2: 'اوپر دائیں کونے میں ⋮ مینیو ٹیپ کریں۔',

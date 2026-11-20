@@ -11,6 +11,15 @@ automatically via GitHub Actions.
 | `app.sohibna.com` | the app (SPA + PWA) | `sohibna-web-deployment` | `APP_MODE=app` (default) |
 | `sohibna.com` + `www.sohibna.com` | marketing landing (`/`, `/en`, `/ar`, `/tr`, `/ur`) | `sohibna-landing-deployment` | `APP_MODE=landing` |
 
+> **Temporarily deactivated (2026-11-20):** `APP_MODE=app` currently renders
+> a server-level `return 302 https://sohibna.com/;` — app.sohibna.com bounces
+> to the landing instead of serving the SPA. Nothing operational changes: the
+> kubelet probes accept the 302 (2xx–3xx), and CI still builds and rolls both
+> deployments. Meanwhile the landing's PWA card reads "Segera" and the
+> Hero/Nav CTAs scroll to `#unduh`. To reactivate: `git revert` the
+> deactivation commit (restores the SPA config, the install-steps PWA card,
+> and the cross-origin CTAs) and push.
+
 In landing mode nginx serves the SPA shell at `/`, `/en`, `/ar`, `/tr`, `/ur` (the landing
 routes in `src/App.tsx`), serves `/assets/` + fonts/icons/og-image, 404s
 `/sw.js` + `/manifest.webmanifest` (the landing origin is never installable),

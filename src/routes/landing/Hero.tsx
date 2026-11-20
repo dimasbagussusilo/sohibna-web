@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { useI18n } from '@/context/I18nContext'
-import { appUrl } from '@/origins'
 import { StoreBadge } from './StoreBadge'
 
 // Dark hero: layered sage glows + the khatam pattern, oversized display
@@ -70,8 +69,10 @@ export function Hero() {
           </p>
 
           <div className="fade-up fade-up-3 mt-8 flex flex-wrap items-center gap-3">
+            {/* In-page while the app origin is deactivated — restore
+                appUrl('/home') when app.sohibna.com returns. */}
             <a
-              href={appUrl('/home')}
+              href="#unduh"
               className="rounded-full bg-gradient-to-r from-[#7a9d7a] to-[#8FBC8F] px-7 py-3.5 text-sm font-bold text-night shadow-lg shadow-[#8FBC8F]/25 transition-transform hover:scale-[1.03]"
             >
               {t('landing.hero.cta')}
@@ -85,7 +86,8 @@ export function Hero() {
           </div>
 
           {/* Store badges — both "coming soon" until their listings are live;
-              the CTA above is the install path today. */}
+              with the app origin deactivated, so is the web app (Download
+              section below). */}
           <div className="fade-up fade-up-4 mt-5 flex flex-wrap items-center gap-3">
             <StoreBadge kind="play" />
             <StoreBadge kind="ios" />

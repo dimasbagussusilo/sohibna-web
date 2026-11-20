@@ -1,10 +1,10 @@
 import { useI18n } from '@/context/I18nContext'
 import type { Lang } from '@/i18n/types'
-import { appUrl } from '@/origins'
 
 // Floating glass pill nav — dark glass works over both the dark hero and the
 // cream sections below. Brand, in-page anchors, language switcher (real URL
-// paths for SEO), and the primary cross-origin CTA.
+// paths for SEO), and the primary CTA — in-page (#unduh) while the app
+// origin is deactivated; restore appUrl('/home') when it returns.
 
 const LANGS: { code: Lang; label: string }[] = [
   { code: 'id', label: 'ID' },
@@ -64,7 +64,7 @@ export function Nav() {
             ))}
           </div>
           <a
-            href={appUrl('/home')}
+            href="#unduh"
             className="hidden rounded-full bg-cream px-4 py-2 text-sm font-bold text-night transition-colors hover:bg-[#8FBC8F] sm:block"
           >
             {t('landing.nav.tryNow')}

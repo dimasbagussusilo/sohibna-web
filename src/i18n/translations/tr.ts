@@ -1241,7 +1241,7 @@ export const translations: Translation = {
       iosT: 'App Store',
       iosD: 'iOS sürümü geliştirme aşamasında.',
       pwaT: 'Web Uygulaması (PWA)',
-      pwaD: 'İndirme yok, uygulama mağazası yok — tarayıcıdan açın ve doğrudan kurun.',
+      pwaD: 'İndirmesiz web uygulaması — hazırlanıyor, yakında doğrudan tarayıcınızdan erişilebilecek.',
       androidT: 'Android — Chrome',
       androidS1: "Chrome'da {{appOrigin}} adresini açın.",
       androidS2: 'Sağ üst köşedeki ⋮ menüsüne dokunun.',

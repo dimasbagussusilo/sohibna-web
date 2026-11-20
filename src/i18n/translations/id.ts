@@ -1242,7 +1242,7 @@ export const translations = {
       iosT: 'App Store',
       iosD: 'Versi iOS sedang dikembangkan.',
       pwaT: 'Web App (PWA)',
-      pwaD: 'Tanpa unduh, tanpa toko aplikasi — buka dan pasang langsung dari browser.',
+      pwaD: 'Aplikasi web tanpa unduh dari toko aplikasi — sedang kami siapkan, segera tersedia dari browser.',
       androidT: 'Android — Chrome',
       androidS1: 'Buka {{appOrigin}} di Chrome.',
       androidS2: 'Ketuk menu ⋮ di pojok kanan atas.',

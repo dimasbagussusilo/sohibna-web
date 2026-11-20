@@ -15,7 +15,8 @@ import './landing.css'
 // The marketing landing — served on the apex origin (sohibna.com) at /, /en,
 // /ar, /tr, /ur by the same SPA build (nginx landing mode 301s every other
 // path to the app origin). Language is fixed per route, never persisted. The
-// "Buka Aplikasi" CTA points cross-origin at the app.
+// "Buka Aplikasi" CTA is in-page (#unduh) while the app origin is
+// deactivated — restore the cross-origin appUrl('/home') when it returns.
 
 const LANG_PATH: Record<Lang, string> = { id: '/', en: '/en', ar: '/ar', tr: '/tr', ur: '/ur' }
 const OG_LOCALE: Record<Lang, string> = {

@@ -1229,7 +1229,7 @@ export const translations: Translation = {
       iosT: 'App Store',
       iosD: 'The iOS version is in development.',
       pwaT: 'Web App (PWA)',
-      pwaD: 'No download, no app store — open and install straight from your browser.',
+      pwaD: 'The no-download web app — being prepared, available straight from your browser soon.',
       androidT: 'Android — Chrome',
       androidS1: 'Open {{appOrigin}} in Chrome.',
       androidS2: 'Tap the ⋮ menu in the top-right corner.',
