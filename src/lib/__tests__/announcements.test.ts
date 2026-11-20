@@ -27,9 +27,15 @@ type A = Parameters<typeof pickAnnouncement>[0][number]
 
 // Jakarta-ish coords (matches the app's primary audience; any location works).
 const JKT = { latitude: -6.2, longitude: 106.816666 }
-// Nov 6 2026 — Dhuhr in Jakarta ≈ 11:41 WIB, so Dhuhr − 30 ≈ 11:11 local.
-const AFTERNOON = new Date(2026, 10, 6, 13, 0)
-const MORNING = new Date(2026, 10, 6, 8, 0)
+// Nov 6 2026 — Dhuhr in Jakarta ≈ 11:41 WIB, so Dhuhr − 30 ≈ 11:11 WIB.
+// Pinned with an explicit +07:00 offset: bare `new Date(y, m, d, h)` builds
+// wall-clock times in the RUNNER's timezone, so on the UTC CI runner "8:00"
+// is 15:00 WIB — after Dhuhr − 30 — and the before/after premise of the
+// anchor tests breaks. With the offset the wall-clock semantics are
+// Jakarta's on any runner; the times also share a calendar day between UTC
+// and WIB, so adhan's local-date prayer computation stays on the right day.
+const AFTERNOON = new Date('2026-11-06T13:00:00+07:00')
+const MORNING = new Date('2026-11-06T08:00:00+07:00')
 
 const daily = (over: Partial<A> = {}): A =>
   ({
