@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { askRulingsChat, type RulingsChatMessage } from '@/api';
+import { askRulingsChat, isQuotaError, type RulingsChatMessage } from '@/api';
 import { useI18n } from '@/context/I18nContext';
 import { useAuth } from '@/context/AuthContext';
 import { useQuranData } from '@/context/QuranDataContext';
@@ -49,6 +49,9 @@ export function useRulingsChat({ chatId, scope: initialScope }: Options) {
   // Boolean, not the raw server message — the route renders the localized
   // failure string (rulings.noSummary); raw e.message is English/'error'.
   const [error, setError] = useState(false);
+  // AI daily-quota 429 (0037): surfaced separately so the UI can render the
+  // QuotaLimit card instead of the generic error line.
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
   const [scope, setScope] = useState<RulingsRefScope | null>(initialScope ?? null);
 
   // Mirrors the RN hook: once the user sends anything in this mount,
@@ -133,7 +136,8 @@ export function useRulingsChat({ chatId, scope: initialScope }: Options) {
         persist(withReply);
       } catch (e) {
         console.error(e);
-        setError(true);
+        setQuotaExceeded(isQuotaError(e));
+        setError(!isQuotaError(e));
       } finally {
         setLoading(false);
       }
@@ -141,5 +145,5 @@ export function useRulingsChat({ chatId, scope: initialScope }: Options) {
     [messages, loading, lang, persist, scope],
   );
 
-  return { messages, send, loading, error, scope };
+  return { messages, send, loading, error, quotaExceeded, scope };
 }

@@ -1,5 +1,6 @@
 // Typed client for the sohibna-api public content endpoints.
 import { API_BASE_URL } from '@/config';
+import { getDeviceId } from '@/lib/deviceId';
 import {
   AuthError,
   getAccessToken,
@@ -174,6 +175,10 @@ export type User = {
   email_verified?: boolean;
   created_at: string;
   updated_at: string;
+  // Monetization tier fields (0037) — enriched on /auth/me; absent on older
+  // APIs (= logged-out defaults).
+  supporter?: { active: boolean; productId?: string } | null;
+  plus?: { active: boolean; productId?: string } | null;
 };
 
 export type AuthResponse = {
@@ -183,30 +188,64 @@ export type AuthResponse = {
   user: User;
 };
 
+// postJSON throws ApiError on non-2xx so quota-429 callers can branch on
+// status/code (QuotaLimitSheet). AI paths also stamp X-Device-ID — the
+// guest-quota subject for signed-out users.
+function isAIPath(path: string): boolean {
+  return (
+    path.startsWith('/rulings/') ||
+    path.startsWith('/reflection/') ||
+    path.startsWith('/quran/summarize') ||
+    path.startsWith('/quran/related') ||
+    path.startsWith('/reports/ai')
+  );
+}
+
 async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<T> {
   const res = await fetch(API_BASE_URL + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(isAIPath(path) ? { 'X-Device-ID': getDeviceId() } : {}),
+    },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error((data as { error?: string })?.error || `Request failed: ${res.status}`);
+    const err = new ApiError(
+      res.status,
+      (data as { error?: string })?.error || `Request failed: ${res.status}`,
+    ) as ApiError & { code?: string };
+    err.code = (data as { code?: string })?.code;
+    throw err;
   }
   return data as T;
 }
 
-export const register = (name: string, email: string, password: string) =>
-  postJSON<AuthResponse>('/auth/register', { name, email, password });
+// register/loginWithGoogle take an OPTIONAL Program Mitra referral code
+// (0033). The key is included ONLY when set — the API rejects unknown JSON
+// fields, so an old server must never see it (deploy API first), and old
+// clients stay byte-identical to today.
+export const register = (name: string, email: string, password: string, referralCode?: string) =>
+  postJSON<AuthResponse>('/auth/register', {
+    name,
+    email,
+    password,
+    ...(referralCode ? { referral_code: referralCode } : {}),
+  });
 
 export const login = (email: string, password: string) =>
   postJSON<AuthResponse>('/auth/login', { email, password });
 
 // loginWithGoogle exchanges a verified Google ID token for a Sohibna session
-// (backend find-or-creates the user).
-export const loginWithGoogle = (idToken: string) =>
-  postJSON<AuthResponse>('/auth/google', { id_token: idToken });
+// (backend find-or-creates the user). The referral code only applies when a
+// brand-new account is created server-side.
+export const loginWithGoogle = (idToken: string, referralCode?: string) =>
+  postJSON<AuthResponse>('/auth/google', {
+    id_token: idToken,
+    ...(referralCode ? { referral_code: referralCode } : {}),
+  });
 
 // ── EMAIL VERIFICATION + PASSWORD RESET (OTP) ───────────────────────────────
 // verify-email is authed (the post-register code page runs inside the new
@@ -296,12 +335,95 @@ export async function authedFetch<T>(path: string, init?: RequestInit): Promise<
 
 export const getMe = () => authedFetch<User>('/auth/me', { method: 'GET' });
 
+// deleteAccount erases the signed-in user's OWN account server-side (0035):
+// one transaction removes the users row and every per-user table FK-cascades
+// with it. Typed {"confirm":"DELETE"} body defeats accidental clicks; 204.
+export const deleteAccount = () =>
+  authedFetch<void>('/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify({ confirm: 'DELETE' }),
+  });
+
+// ── Billing / entitlements (0037) ────────────────────────────────────────────
+// Web never SELLS digital goods (Play policy): these reads exist so the web
+// Me page can show status and link to the Play listing.
+
+// isQuotaError narrows the postJSON ApiError (status + code) for AI callers.
+export function isQuotaError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { status?: number }).status === 429 &&
+    (err as { code?: string }).code === 'ai_quota_exceeded'
+  );
+}
+
+export type BillingConfig = { plusEnabled: boolean; supporterCount: number };
+export const fetchBillingConfig = () => getJSON<BillingConfig>('/billing/config');
+export const fetchSupportersCount = () => getJSON<{ count: number }>('/supporters/count');
+
 // resendVerification re-mails the verification link (authed); 429 = cooldown.
 export const resendVerification = () =>
   authedFetch<{ ok: boolean }>('/auth/resend-verification', {
     method: 'POST',
     body: JSON.stringify({}),
   });
+
+// ── PROGRAM MITRA (0033, Phase 1: attribution + tracking, no money) ─────────
+// The click ping fires from the register page when ?ref= is present (public,
+// always 204 — it can never enumerate valid codes); the dashboard lists the
+// caller's OWN partner rows with aggregate-only stats.
+
+// pingPartnerClick counts one referral-link landing (fire-and-forget; errors
+// are swallowed — a failed count must never affect signup UX).
+export const pingPartnerClick = (code: string) =>
+  postJSON<void>('/partners/track/click', { code }).catch(() => undefined);
+
+export type PartnerType = 'lembaga' | 'individual' | 'agent';
+export type PartnerStatus = 'invited' | 'active' | 'suspended';
+
+export type PartnerStats = {
+  clicksTotal: number;
+  clicks30d: number;
+  signupsTotal: number;
+  signups30d: number;
+  active30d: number;
+  circleMembers: number;
+};
+
+export type PartnerRow = {
+  id: string;
+  type: PartnerType;
+  name: string;
+  code: string;
+  status: PartnerStatus;
+  createdAt: string;
+  stats: PartnerStats;
+};
+
+// getMyPartners returns the signed-in user's partner rows; a non-partner gets
+// an empty list (the dashboard renders its empty state).
+export const getMyPartners = () =>
+  authedFetch<{ partners: PartnerRow[] }>('/partners/me', { method: 'GET' });
+
+// ── AI-answer flagging (0036, Play GenAI policy) ─────────────────────────────
+// Fire-and-forget: the endpoint always 201s (server-side insert is fail-soft),
+// so callers show their "thank you" either way.
+
+export type AIReportSurface =
+  | 'rulings_chat'
+  | 'kitab_chat'
+  | 'reflection_chat'
+  | 'quran_summarize'
+  | 'quran_related';
+
+export type AIReportReason = 'wrong' | 'harmful' | 'offensive' | 'fabricated' | 'other';
+
+export const postReportAI = (body: {
+  surface: AIReportSurface;
+  reason: AIReportReason;
+  excerpts: string;
+}) => postJSON<{ ok: boolean }>('/reports/ai', body);
 
 // ── QURAN USER DATA (multi-device sync) ─────────────────────────────────────
 //

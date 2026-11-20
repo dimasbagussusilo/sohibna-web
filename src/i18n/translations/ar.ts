@@ -68,6 +68,8 @@ export const translations: Translation = {
       nameRequired: 'الاسم مطلوب.',
       invalidEmail: 'تنسيق البريد الإلكتروني غير صالح.',
       passwordTooShort: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.',
+            consent: 'أوافق على معالجة بياناتي كما هو موضح في سياسة الخصوصية.',
+            consentRequired: 'يرجى الموافقة على معالجة البيانات للمتابعة.'
     },
     google: {
       signIn: 'تسجيل الدخول عبر Google',
@@ -981,6 +983,15 @@ export const translations: Translation = {
     verifyBannerCTA: 'وثّق الآن',
     guest: 'ضيف',
     logoutDesc: 'تسجيل الخروج من حسابك',
+    deleteAccount: 'حذف الحساب',
+        privacyLink: 'سياسة الخصوصية',
+        termsLink: 'الشروط والأحكام',
+    deleteAccountDesc: 'محو الحساب وكل البيانات نهائيًا',
+    deleteTitle: 'حذف الحساب؟',
+    deleteBody: 'ستُمحى نهائيًا كل بياناتك — تقدم القراءة والحفظ والأهداف وسجل المحادثات وعضوية الحلقات — ولا يمكن استعادتها. هذا يمحو حسابك أنت فقط.',
+    deleteConfirm: 'حذف نهائي',
+    deleteDone: 'تم حذف الحساب',
+    deleteFailed: 'تعذّر حذف الحساب. حاول مجددًا.',
     more: 'المزيد',
     notifications: 'الإشعارات',
   },
@@ -1137,7 +1148,7 @@ export const translations: Translation = {
   // Pop-up announcement dialog chrome — title/body/CTA text itself comes
   // from the announcements table via the API, not from these keys.
   announcement: {
-    ctaDonate: 'تبرع الآن',
+    ctaDonate: 'ادعم الآن',
     ctaOpenLink: 'افتح الرابط',
     closeForToday: 'ربما لاحقًا',
   },
@@ -1224,6 +1235,7 @@ export const translations: Translation = {
       eyebrow: 'التنزيل',
       title: 'احصل على صحبنا',
       soon: 'قريبًا',
+      get: 'احصل عليه على Google Play',
       availableNow: 'متوفر الآن',
       playT: 'Google Play',
       playD: 'تطبيق أندرويد أصلي — قيد الإصدار.',
@@ -1260,7 +1272,7 @@ export const translations: Translation = {
       copy: 'نسخ',
       copied: 'تم النسخ!',
       waConfirm: 'تأكيد عبر الواتساب',
-      waText: 'السلام عليكم، لقد تبرعتُ لدعم تطبيق صحبنا.',
+      waText: 'السلام عليكم، لقد قدّمتُ دعمي لتطبيق صحبنا.',
       inAppNote: 'داخل التطبيق: قائمة «أنا» → ادعمنا (تحويل، QRIS، دعم دولي).',
     },
     faq: {
@@ -1291,6 +1303,7 @@ export const translations: Translation = {
       rights: '© {{year}} صحبنا',
       privacy: 'سياسة الخصوصية',
       terms: 'الشروط والأحكام',
+      mitra: 'برنامج الشركاء',
     },
   },
 
@@ -1431,5 +1444,85 @@ export const translations: Translation = {
     daysMetN: '{{n}} أيام ✓',
     goalLabel: 'الهدف {{n}} {{unit}}/يوم',
     loadError: 'تعذّر التحميل. حاول مجددًا.',
+  },
+  // Program Mitra (0033, Phase 1) — Arabic.
+  mitra: {
+    register: {
+      codeLabel: 'رمز الشريك (اختياري)',
+      codeHint: 'هل لديك رمز شريك من صحبنا؟ أدخله ليُحتسب تسجيلك.',
+    },
+    dashboard: {
+      title: 'لوحة الشريك',
+      subtitle: 'إحصاءات دعواتك — أرقام إجمالية فقط.',
+      yourCode: 'رمزك',
+      shareLink: 'رابط الدعوة',
+      copy: 'نسخ الرابط',
+      copied: 'تم نسخ الرابط',
+      clicks30: 'الزيارات (٣٠ يومًا)',
+      clicksTotal: 'إجمالي الزيارات',
+      signups30: 'التسجيلات (٣٠ يومًا)',
+      signupsTotal: 'إجمالي التسجيلات',
+      active30: 'القرّاء النشطون (٣٠ يومًا)',
+      circleMembers: 'انضموا إلى الحلقات',
+      empty: 'لا يوجد برنامج شركاء لهذا الحساب بعد.',
+    },
+    status: {
+      active: 'نشط',
+      invited: 'مدعوّ',
+      suspended: 'موقوف',
+    },
+    type: {
+      lembaga: 'مؤسسة',
+      individual: 'فرد',
+      agent: 'وكيل معتمد',
+    },
+    landing: {
+      title: 'برنامج شركاء صحبنا',
+      subtitle: 'ادعُ مجتمعك لقراءة القرآن مع صحبنا — وشاهد الأثر.',
+      typeDesc: {
+        lembaga: 'المعاهد والمساجد ومدارس القرآن والمجتمعات.',
+        individual: 'المعلمون وصنّاع المحتوى والدعاة.',
+        agent: 'أفراد تختارهم فرقة صحبنا وتؤهّلهم.',
+      },
+      how: 'كيف يعمل',
+      step1: 'احصل على رمز الشريك الرسمي من فريق صحبنا.',
+      step2: 'شارك رابطك أو رمز الاستجابة السريعة.',
+      step3: 'تابع الزيارات والتسجيلات من لوحتك.',
+      applyTitle: 'انضم كشريك',
+      applyBody: 'يُدار تسجيل الشركاء حاليًا مباشرة من فريق صحبنا للمؤسسات وصنّاع المحتوى والوكلاء المعتمدين.',
+      waPrefill: 'السلام عليكم فريق صحبنا، أرغب في الانضمام كشريك (مؤسسة/فرد/وكيل).',
+      cta: 'تواصل مع فريق صحبنا',
+    },
+  },
+  // AI-answer flagging (0036, Play GenAI policy) — reason picker strings.
+  aiReport: {
+    title: 'الإبلاغ عن الجواب',
+    sub: 'ما المشكلة في هذا الجواب؟',
+    thanks: 'شكرًا على بلاغك.',
+    reason: {
+      wrong: 'خطأ أو مضلِّل',
+      harmful: 'خطر',
+      offensive: 'مسيء',
+      fabricated: 'استشهاد مختلق',
+      other: 'أخرى',
+    },
+  },
+  // AI daily quota (0037) + supporter status (web Me card — status only,
+  // purchases happen in the app via Google Play).
+  quota: {
+    title: 'انتهى حد "اسأل الذكاء الاصطناعي" اليومي',
+    body: 'استُهلكت حصتك المجانية اليوم. تتجدد غدًا — أو احصل على حصة أكبر بكثير مع صحبنا+ داخل التطبيق.',
+    cta: 'اطّلع عليه على Google Play',
+  },
+  supporter: {
+    title: 'داعم صحبنا',
+    activeTitle: 'أنت داعم',
+    subtitle: 'ادعم التطوير + شارة وسمة حصرية داخل التطبيق',
+    countLine: '{{count}} داعم',
+    joinInApp: 'انضم عبر تطبيق صحبنا (Google Play)',
+  },
+  plus: {
+    title: 'صحبنا+',
+    teaser: 'حصة AI كبيرة — داخل التطبيق',
   },
 };

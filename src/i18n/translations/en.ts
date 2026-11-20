@@ -64,6 +64,8 @@ export const translations: Translation = {
       nameRequired: 'Name is required.',
       invalidEmail: 'Invalid email format.',
       passwordTooShort: 'Password must be at least 8 characters.',
+            consent: 'I agree to the processing of my data as described in the Privacy Policy.',
+            consentRequired: 'Please consent to data processing to continue.'
     },
     google: {
       signIn: 'Sign in with Google',
@@ -970,6 +972,15 @@ export const translations: Translation = {
     verifyBannerCTA: 'Verify now',
     guest: 'Guest',
     logoutDesc: 'Sign out of your account',
+    deleteAccount: 'Delete account',
+        privacyLink: 'Privacy Policy',
+        termsLink: 'Terms & Conditions',
+    deleteAccountDesc: 'Permanently erase account & data',
+    deleteTitle: 'Delete account?',
+    deleteBody: 'All of your data — reading progress, memorization, goals, chat history, and circle membership — is permanently erased and cannot be recovered. This erases only your own account.',
+    deleteConfirm: 'Delete permanently',
+    deleteDone: 'Account deleted',
+    deleteFailed: 'Could not delete the account. Try again.',
     more: 'More',
     notifications: 'Notifications',
   },
@@ -1126,7 +1137,7 @@ export const translations: Translation = {
   // Pop-up announcement dialog chrome — title/body/CTA text itself comes
   // from the announcements table via the API, not from these keys.
   announcement: {
-    ctaDonate: 'Donate Now',
+    ctaDonate: 'Support Now',
     ctaOpenLink: 'Open Link',
     closeForToday: 'Maybe later',
   },
@@ -1211,6 +1222,7 @@ export const translations: Translation = {
       eyebrow: 'Download',
       title: 'Get Sohibna',
       soon: 'Coming soon',
+      get: 'Get it on Google Play',
       availableNow: 'Available now',
       playT: 'Google Play',
       playD: 'Native Android app — release in progress.',
@@ -1247,7 +1259,7 @@ export const translations: Translation = {
       copy: 'Copy',
       copied: 'Copied!',
       waConfirm: 'Confirm via WhatsApp',
-      waText: 'Assalamualaikum, I just made a donation to support the Sohibna app.',
+      waText: 'Assalamualaikum, I just gave my support to the Sohibna app.',
       inAppNote:
         'Inside the app: Me menu → Support Us (transfer, QRIS, international support).',
     },
@@ -1279,6 +1291,7 @@ export const translations: Translation = {
       rights: '© {{year}} Sohibna',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
+      mitra: 'Partner Program',
     },
   },
 
@@ -1419,5 +1432,85 @@ export const translations: Translation = {
     daysMetN: '{{n}} days ✓',
     goalLabel: 'target {{n}} {{unit}}/day',
     loadError: 'Failed to load. Try again.',
+  },
+  // Program Mitra (0033, Phase 1) — English.
+  mitra: {
+    register: {
+      codeLabel: 'Partner code (optional)',
+      codeHint: 'Have a Sohibna partner code? Enter it so your signup is counted.',
+    },
+    dashboard: {
+      title: 'Partner Dashboard',
+      subtitle: 'Your referral stats — aggregate numbers only.',
+      yourCode: 'Your code',
+      shareLink: 'Invite link',
+      copy: 'Copy link',
+      copied: 'Link copied',
+      clicks30: 'Clicks (30d)',
+      clicksTotal: 'Total clicks',
+      signups30: 'Signups (30d)',
+      signupsTotal: 'Total signups',
+      active30: 'Active readers (30d)',
+      circleMembers: 'Joined circles',
+      empty: 'No partner program for this account yet.',
+    },
+    status: {
+      active: 'Active',
+      invited: 'Invited',
+      suspended: 'Suspended',
+    },
+    type: {
+      lembaga: 'Institution',
+      individual: 'Individual',
+      agent: 'Official agent',
+    },
+    landing: {
+      title: 'Sohibna Partner Program',
+      subtitle: 'Invite your community to read the Qur’an with Sohibna — and see the impact.',
+      typeDesc: {
+        lembaga: 'Pesantren, mosques, Quran schools, and communities.',
+        individual: 'Teachers, content creators, and preachers.',
+        agent: 'Individuals recruited and trained by the Sohibna team.',
+      },
+      how: 'How it works',
+      step1: 'Get your official partner code from the Sohibna team.',
+      step2: 'Share your link or QR code.',
+      step3: 'Track clicks and signups from your dashboard.',
+      applyTitle: 'Join as a partner',
+      applyBody: 'Partner onboarding is currently handled directly by the Sohibna team for institutions, creators, and official agents.',
+      waPrefill: 'Hello Sohibna team, I would like to join as a partner (institution/individual/agent).',
+      cta: 'Contact the Sohibna team',
+    },
+  },
+  // AI-answer flagging (0036, Play GenAI policy) — reason picker strings.
+  aiReport: {
+    title: 'Report answer',
+    sub: 'What is wrong with this answer?',
+    thanks: 'Thank you for the report.',
+    reason: {
+      wrong: 'Incorrect / misleading',
+      harmful: 'Harmful',
+      offensive: 'Offensive',
+      fabricated: 'Fabricated citation',
+      other: 'Other',
+    },
+  },
+  // AI daily quota (0037) + supporter status (web Me card — status only,
+  // purchases happen in the app via Google Play).
+  quota: {
+    title: 'Daily Ask-AI limit reached',
+    body: 'Your free Ask-AI quota for today is used up. It resets tomorrow — or get a much bigger quota with Sohibna+ in the app.',
+    cta: 'See it on Google Play',
+  },
+  supporter: {
+    title: 'Sohibna Supporter',
+    activeTitle: 'You are a Supporter',
+    subtitle: 'Support development + exclusive badge & theme in the app',
+    countLine: '{{count}} supporters',
+    joinInApp: 'Join in the Sohibna app (Google Play)',
+  },
+  plus: {
+    title: 'Sohibna+',
+    teaser: 'Big AI quota — in the app',
   },
 };

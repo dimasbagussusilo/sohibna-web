@@ -72,3 +72,12 @@ export async function listReflections(): Promise<ReflectionEntry[]> {
     return (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
   });
 }
+
+// clearReflectionLocalData wipes the local reflection store (account deletion
+// purge — synced entries die server-side via FK cascade).
+export async function clearReflectionLocalData(): Promise<void> {
+  const keys = (await AsyncStorage.getAllKeys()).filter((k) =>
+    typeof k === 'string' ? k.startsWith(PREFIX) : false,
+  );
+  for (const k of keys) await AsyncStorage.removeItem(k);
+}

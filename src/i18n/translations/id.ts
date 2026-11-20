@@ -66,6 +66,8 @@ export const translations = {
       nameRequired: 'Nama wajib diisi.',
       invalidEmail: 'Format email tidak valid.',
       passwordTooShort: 'Kata sandi minimal 8 karakter.',
+            consent: 'Saya menyetujui pemrosesan data saya sebagaimana dijelaskan dalam Kebijakan Privasi.',
+            consentRequired: 'Mohon setujui pemrosesan data untuk melanjutkan.'
     },
     google: {
       signIn: 'Masuk dengan Google',
@@ -980,6 +982,15 @@ export const translations = {
     verifyBannerCTA: 'Verifikasi sekarang',
     guest: 'Tamu',
     logoutDesc: 'Keluar dari akun Anda',
+    deleteAccount: 'Hapus akun',
+        privacyLink: 'Kebijakan Privasi',
+        termsLink: 'Syarat & Ketentuan',
+    deleteAccountDesc: 'Hapus permanen akun & semua data',
+    deleteTitle: 'Hapus akun?',
+    deleteBody: 'Seluruh data Anda — progres membaca, hafalan, target, riwayat chat, dan keanggotaan lingkaran — dihapus permanen dan tidak dapat dikembalikan. Tindakan ini hanya menghapus akun Anda sendiri.',
+    deleteConfirm: 'Hapus Permanen',
+    deleteDone: 'Akun terhapus',
+    deleteFailed: 'Gagal menghapus akun. Coba lagi.',
     more: 'Lainnya',
     notifications: 'Notifikasi',
   },
@@ -1136,7 +1147,7 @@ export const translations = {
   // Pop-up announcement dialog chrome — title/body/CTA text itself comes
   // from the announcements table via the API, not from these keys.
   announcement: {
-    ctaDonate: 'Donasi Sekarang',
+    ctaDonate: 'Dukung Sekarang',
     ctaOpenLink: 'Buka Tautan',
     closeForToday: 'Mungkin Nanti',
   },
@@ -1224,6 +1235,7 @@ export const translations = {
       eyebrow: 'Unduh',
       title: 'Dapatkan Sohibna',
       soon: 'Segera',
+      get: 'Dapat di Google Play',
       availableNow: 'Tersedia sekarang',
       playT: 'Google Play',
       playD: 'Aplikasi Android native — sedang dalam proses rilis.',
@@ -1260,7 +1272,7 @@ export const translations = {
       copy: 'Salin',
       copied: 'Tersalin!',
       waConfirm: 'Konfirmasi via WhatsApp',
-      waText: 'Assalamualaikum, saya baru saja berdonasi untuk aplikasi Sohibna.',
+      waText: 'Assalamualaikum, saya baru saja memberikan dukungan untuk aplikasi Sohibna.',
       inAppNote:
         'Di dalam aplikasi: menu Saya → Dukung Kami (transfer, QRIS, dukungan internasional).',
     },
@@ -1292,6 +1304,7 @@ export const translations = {
       rights: '© {{year}} Sohibna',
       privacy: 'Kebijakan Privasi',
       terms: 'Syarat & Ketentuan',
+      mitra: 'Program Mitra',
     },
   },
 
@@ -1435,5 +1448,87 @@ export const translations = {
     daysMetN: '{{n}} hari ✓',
     goalLabel: 'target {{n}} {{unit}}/hari',
     loadError: 'Gagal memuat. Coba lagi.',
+  },
+  // Program Mitra (0033, Phase 1): referral register field, partner dashboard,
+  // and the landing recruitment page. Kosakata komersial saja — kata
+  // donasi/sedekah/infaq/wakaf tidak boleh muncul di blok ini.
+  mitra: {
+    register: {
+      codeLabel: 'Kode mitra (opsional)',
+      codeHint: 'Punya kode dari mitra Sohibna? Masukkan agar pendaftaran Anda tercatat.',
+    },
+    dashboard: {
+      title: 'Dashboard Mitra',
+      subtitle: 'Statistik undangan Anda — angka agregat saja.',
+      yourCode: 'Kode Anda',
+      shareLink: 'Tautan undangan',
+      copy: 'Salin tautan',
+      copied: 'Tautan tersalin',
+      clicks30: 'Klik 30 hari',
+      clicksTotal: 'Total klik',
+      signups30: 'Pendaftar 30 hari',
+      signupsTotal: 'Total pendaftar',
+      active30: 'Pembaca aktif 30 hari',
+      circleMembers: 'Gabung lingkaran',
+      empty: 'Belum ada program mitra untuk akun ini.',
+    },
+    status: {
+      active: 'Aktif',
+      invited: 'Terundang',
+      suspended: 'Ditangguhkan',
+    },
+    type: {
+      lembaga: 'Lembaga',
+      individual: 'Individu',
+      agent: 'Agen resmi',
+    },
+    landing: {
+      title: 'Program Mitra Sohibna',
+      subtitle: 'Ajak jamaah, santri, dan komunitas membaca Al-Qur’an dengan Sohibna — dan pantau pengaruhnya.',
+      typeDesc: {
+        lembaga: 'Pesantren, masjid, TPA/TKA, dan komunitas.',
+        individual: 'Ustadz, pembuat konten, dan pendakwah.',
+        agent: 'Perorangan yang direkrut dan dibina tim Sohibna.',
+      },
+      how: 'Cara kerja',
+      step1: 'Dapatkan kode mitra resmi dari tim Sohibna.',
+      step2: 'Bagikan tautan atau kode QR Anda.',
+      step3: 'Pantau klik dan pendaftar dari dashboard.',
+      applyTitle: 'Bergabung sebagai mitra',
+      applyBody: 'Pendaftaran mitra saat ini dibuka langsung oleh tim Sohibna untuk lembaga, pembuat konten, dan agen resmi.',
+      waPrefill: 'Halo tim Sohibna, saya ingin bergabung sebagai mitra (lembaga/individu/agen).',
+      cta: 'Hubungi tim Sohibna',
+    },
+  },
+  // AI-answer flagging (0036, Play GenAI policy) — reason picker strings.
+  aiReport: {
+    title: 'Laporkan jawaban',
+    sub: 'Apa masalahnya dengan jawaban ini?',
+    thanks: 'Terima kasih atas laporannya.',
+    reason: {
+      wrong: 'Keliru / menyesatkan',
+      harmful: 'Berbahaya',
+      offensive: 'Menyinggung',
+      fabricated: 'Rujukan palsu',
+      other: 'Lainnya',
+    },
+  },
+  // AI daily quota (0037) + supporter status (web Me card — status only,
+  // purchases happen in the app via Google Play).
+  quota: {
+    title: 'Batas harian Tanya AI tercapai',
+    body: 'Kuota gratis Tanya AI hari ini sudah habis. Kalimat berikutnya tersedia besok — atau dapat kuota besar dengan Sohibna+ di aplikasi.',
+    cta: 'Lihat di Google Play',
+  },
+  supporter: {
+    title: 'Sohibna Supporter',
+    activeTitle: 'Anda adalah Supporter',
+    subtitle: 'Dukung pengembangan + lencana & tema eksklusif di aplikasi',
+    countLine: '{{count}} supporter',
+    joinInApp: 'Bergabung lewat aplikasi Sohibna (Google Play)',
+  },
+  plus: {
+    title: 'Sohibna+',
+    teaser: 'Kuota AI besar — di aplikasi',
   },
 } as const;

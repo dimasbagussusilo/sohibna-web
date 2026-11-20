@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Search, Sparkles, ChevronLeft } from 'lucide-react'
 import { fetchChapters, searchVerses, type Chapter, type VerseSearchHit } from '@/lib/quran'
 import { findRelatedVerses, type RelatedVerse } from '@/api'
+import { AIAnswerActions } from '@/components/AIAnswerActions'
+import { QuotaLimitSheet } from '@/components/QuotaLimitSheet'
+import { isQuotaError } from '@/api'
 import { useI18n } from '@/context/I18nContext'
 import { contentLangFor } from '@/i18n/contentLang'
 
@@ -25,6 +28,7 @@ export function QuranSearch() {
   const [aiResults, setAiResults] = useState<RelatedVerse[] | null>(null)
   const [aiBusy, setAiBusy] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [quota, setQuota] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -74,17 +78,17 @@ export function QuranSearch() {
     if (!topic) return
     setAiBusy(true)
     setAiError(null)
+    setQuota(false)
     setAiResults(null)
     try {
       const r = await findRelatedVerses(topic, lang)
       setAiResults(r.related)
     } catch (err) {
-      const msg = (err as Error).message || ''
-      setAiError(
-        msg.includes('not configured') || msg.includes('503')
-          ? t('quranSearch.aiError')
-          : t('quranSearch.aiError'),
-      )
+      if (isQuotaError(err)) {
+        setQuota(true)
+      } else {
+        setAiError(t('quranSearch.aiError'))
+      }
     } finally {
       setAiBusy(false)
     }
@@ -255,6 +259,7 @@ export function QuranSearch() {
                 {t('quranSearch.aiLoading')}
               </p>
             ) : null}
+            {quota ? <QuotaLimitSheet /> : null}
             {aiError ? (
               <p className="py-8 text-center text-xs text-red-400">{aiError}</p>
             ) : null}
@@ -282,6 +287,14 @@ export function QuranSearch() {
                       ) : null}
                     </button>
                   ))}
+                  {/* GenAI policy report path (0036) — one flag per AI result set. */}
+                  <div className="flex justify-end pt-1">
+                    <AIAnswerActions
+                      surface="quran_related"
+                      question={aiTopic}
+                      answer={aiResults.map((r) => `${r.key}: ${r.reason ?? ''}`).join('\n')}
+                    />
+                  </div>
                 </div>
               ) : (
                 <p className="py-8 text-center text-xs text-ink/40 dark:text-cream/40">

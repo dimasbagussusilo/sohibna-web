@@ -123,3 +123,14 @@ export function mergeRulingsThreads(
     .filter((e) => !e.deleted)
     .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
 }
+
+// clearRulingsLocalData wipes every local chat thread + draft (account
+// deletion purge — server rows die with the account via FK cascade).
+export async function clearRulingsLocalData(): Promise<void> {
+  const keys = (await AsyncStorage.getAllKeys()).filter((k) =>
+    typeof k === 'string'
+      ? k.startsWith(PREFIX) || k.startsWith(DRAFT_PREFIX)
+      : false,
+  );
+  for (const k of keys) await AsyncStorage.removeItem(k);
+}

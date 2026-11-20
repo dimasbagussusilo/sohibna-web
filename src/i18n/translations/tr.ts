@@ -66,6 +66,8 @@ export const translations: Translation = {
       nameRequired: 'Ad zorunludur.',
       invalidEmail: 'Geçersiz e-posta biçimi.',
       passwordTooShort: 'Şifre en az 8 karakter olmalıdır.',
+            consent: 'Gizlilik Politikasında açıklandığı gibi verilerimin işlenmesini kabul ediyorum.',
+            consentRequired: 'Devam etmek için veri işlemeye onay verin.'
     },
     google: {
       signIn: 'Google ile giriş yap',
@@ -981,6 +983,15 @@ export const translations: Translation = {
     verifyBannerCTA: 'Hemen doğrula',
     guest: 'Misafir',
     logoutDesc: 'Hesabınızdan çıkış yapın',
+    deleteAccount: 'Hesabı sil',
+        privacyLink: 'Gizlilik Politikası',
+        termsLink: 'Şartlar ve Koşullar',
+    deleteAccountDesc: 'Hesabı ve tüm verileri kalıcı olarak sil',
+    deleteTitle: 'Hesap silinsin mi?',
+    deleteBody: 'Tüm verileriniz — okuma ilerlemesi, ezberler, hedefler, sohbet geçmişi ve ders halkası üyeliği — kalıcı olarak silinir ve geri getirilemez. Bu yalnızca kendi hesabınızı siler.',
+    deleteConfirm: 'Kalıcı olarak sil',
+    deleteDone: 'Hesap silindi',
+    deleteFailed: 'Hesap silinemedi. Tekrar deneyin.',
     more: 'Daha Fazla',
     notifications: 'Bildirimler',
   },
@@ -1137,7 +1148,7 @@ export const translations: Translation = {
   // Pop-up announcement dialog chrome — title/body/CTA text itself comes
   // from the announcements table via the API, not from these keys.
   announcement: {
-    ctaDonate: 'Bağış Yap',
+    ctaDonate: 'Destekle',
     ctaOpenLink: 'Bağlantıyı Aç',
     closeForToday: 'Belki sonra',
   },
@@ -1223,6 +1234,7 @@ export const translations: Translation = {
       eyebrow: 'İndir',
       title: "Sohibna'yı Edinin",
       soon: 'Yakında',
+      get: "Google Play'den indirin",
       availableNow: 'Şu anda mevcut',
       playT: 'Google Play',
       playD: 'Yerel Android uygulaması — yayın sürecinde.',
@@ -1259,7 +1271,7 @@ export const translations: Translation = {
       copy: 'Kopyala',
       copied: 'Kopyalandı!',
       waConfirm: 'WhatsApp ile doğrulayın',
-      waText: 'Esselamu aleyküm, Sohibna uygulamasına yeni bir bağış yaptım.',
+      waText: 'Esselamu aleyküm, Sohibna uygulamasına desteğimi ilettim.',
       inAppNote:
         'Uygulama içinde: Profil menüsü → Bizi Destekle (havale, QRIS, uluslararası destek).',
     },
@@ -1291,6 +1303,7 @@ export const translations: Translation = {
       rights: '© {{year}} Sohibna',
       privacy: 'Gizlilik Politikası',
       terms: 'Hizmet Şartları',
+      mitra: 'Partner Programı',
     },
   },
 
@@ -1431,5 +1444,85 @@ export const translations: Translation = {
     daysMetN: '{{n}} gün ✓',
     goalLabel: 'hedef {{n}} {{unit}}/gün',
     loadError: 'Yüklenemedi. Tekrar dene.',
+  },
+  // Program Mitra (0033, Phase 1) — Turkish.
+  mitra: {
+    register: {
+      codeLabel: 'Partner kodu (isteğe bağlı)',
+      codeHint: 'Sohibna partner kodunuz mu var? Kaydınızın sayılması için girin.',
+    },
+    dashboard: {
+      title: 'Partner Paneli',
+      subtitle: 'Davet istatistikleriniz — yalnızca toplu sayılar.',
+      yourCode: 'Kodunuz',
+      shareLink: 'Davet bağlantısı',
+      copy: 'Bağlantıyı kopyala',
+      copied: 'Bağlantı kopyalandı',
+      clicks30: 'Tıklama (30 gün)',
+      clicksTotal: 'Toplam tıklama',
+      signups30: 'Kayıt (30 gün)',
+      signupsTotal: 'Toplam kayıt',
+      active30: 'Aktif okuyucu (30 gün)',
+      circleMembers: 'Ders halkasına katıldı',
+      empty: 'Bu hesap için henüz partner programı yok.',
+    },
+    status: {
+      active: 'Aktif',
+      invited: 'Davetli',
+      suspended: 'Askıda',
+    },
+    type: {
+      lembaga: 'Kurum',
+      individual: 'Birey',
+      agent: 'Resmî temsilci',
+    },
+    landing: {
+      title: 'Sohibna Partner Programı',
+      subtitle: 'Topluluğunuzu Sohibna ile Kur’an okumaya davet edin — ve etkisini görün.',
+      typeDesc: {
+        lembaga: 'Medreseler, camiler, Kur’an kursları ve topluluklar.',
+        individual: 'Öğretmenler, içerik üreticileri ve vaizler.',
+        agent: 'Sohibna ekibinin seçip yetiştirdiği kişiler.',
+      },
+      how: 'Nasıl çalışır',
+      step1: 'Sohibna ekibinden resmî partner kodunuzu alın.',
+      step2: 'Bağlantınızı veya QR kodunuzu paylaşın.',
+      step3: 'Tıklama ve kayıtları panelinizden takip edin.',
+      applyTitle: 'Partner olarak katılın',
+      applyBody: 'Partner kayıtları şu anda kurumlar, içerik üreticileri ve resmî temsilciler için doğrudan Sohibna ekibi tarafından yürütülüyor.',
+      waPrefill: 'Merhaba Sohibna ekibi, partner olarak katılmak istiyorum (kurum/birey/temsilci).',
+      cta: 'Sohibna ekibiyle iletişime geçin',
+    },
+  },
+  // AI-answer flagging (0036, Play GenAI policy) — reason picker strings.
+  aiReport: {
+    title: 'Cevabı bildir',
+    sub: 'Bu cevapta sorun nedir?',
+    thanks: 'Bildiriminiz için teşekkürler.',
+    reason: {
+      wrong: 'Yanlış / yanıltıcı',
+      harmful: 'Zararlı',
+      offensive: 'Rahatsız edici',
+      fabricated: 'Uydurma kaynak',
+      other: 'Diğer',
+    },
+  },
+  // AI daily quota (0037) + supporter status (web Me card — status only,
+  // purchases happen in the app via Google Play).
+  quota: {
+    title: 'Günlük Soru-YapayZeka limiti doldu',
+    body: 'Bugünkü ücretsiz kotanız tükendi. Yarın yenilenir — veya uygulamada Sohibna+ ile çok daha büyük kota alın.',
+    cta: "Google Play'de görüntüle",
+  },
+  supporter: {
+    title: 'Sohibna Destekçisi',
+    activeTitle: 'Bir Destekçisiniz',
+    subtitle: 'Geliştirmeyi destekleyin + uygulamada özel rozet & tema',
+    countLine: '{{count}} destekçi',
+    joinInApp: "Sohibna uygulaması üzerinden katılın (Google Play)",
+  },
+  plus: {
+    title: 'Sohibna+',
+    teaser: 'Büyük AI kotası — uygulamada',
   },
 };

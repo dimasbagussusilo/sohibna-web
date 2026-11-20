@@ -28,6 +28,9 @@ export function Footer() {
           <a href={`${prefix}/terms`} className="text-cream/55 hover:text-cream">
             {dict.landing.footer.terms}
           </a>
+          <a href={`${prefix}/mitra`} className="text-cream/55 hover:text-cream">
+            {dict.landing.footer.mitra}
+          </a>
         </div>
 
         <p className="max-w-lg text-xs leading-relaxed text-cream/40">

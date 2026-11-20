@@ -7,7 +7,7 @@
 // client-side greeting (reusing home.moodResponse) — no round-trip needed for it.
 
 import { useCallback, useEffect, useState } from 'react';
-import { askReflection, type ReflectionMessage, type ReflectionVersePayload } from '@/api';
+import { askReflection, isQuotaError, type ReflectionMessage, type ReflectionVersePayload } from '@/api';
 import { useI18n } from '@/context/I18nContext';
 import { useAuth } from '@/context/AuthContext';
 import { useQuranData } from '@/context/QuranDataContext';
@@ -39,6 +39,8 @@ export function useReflectionChat({ mood, verse, date }: Options) {
   // route maps the codes to localized strings ('unavailable' mirrors the old
   // not-configured/503 sniff; everything else is a network-ish failure).
   const [error, setError] = useState<'unavailable' | 'network' | null>(null);
+  // AI daily-quota 429 (0037) — separate from the generic error states.
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   // Resume the saved reflection for this day+mood, or seed a localized greeting
   // when starting fresh. Re-runs when the mood changes (the on-screen selector),
@@ -112,7 +114,11 @@ export function useReflectionChat({ mood, verse, date }: Options) {
       } catch (e) {
         console.error(e);
         const msg = e instanceof Error ? e.message : '';
-        setError(/not configured|503/i.test(msg) ? 'unavailable' : 'network');
+        if (isQuotaError(e)) {
+          setQuotaExceeded(true);
+        } else {
+          setError(/not configured|503/i.test(msg) ? 'unavailable' : 'network');
+        }
       } finally {
         setLoading(false);
       }
@@ -120,5 +126,5 @@ export function useReflectionChat({ mood, verse, date }: Options) {
     [messages, loading, verse, mood, lang, persist],
   );
 
-  return { messages, send, loading, error };
+  return { messages, send, loading, error, quotaExceeded };
 }

@@ -14,6 +14,8 @@ import {
   type ReflectionEntry,
 } from '@/reflection/history'
 import { MarkdownText } from '@/components/MarkdownText'
+import { AIAnswerActions } from '@/components/AIAnswerActions'
+import { QuotaLimitSheet } from '@/components/QuotaLimitSheet'
 
 // Daily Reflection (web port): pick a mood → a mood-specific ayah of the day →
 // chat with the AI companion grounded in that verse. Per-day local history.
@@ -51,7 +53,7 @@ export function DailyReflection() {
     [verse, verseKey, lang],
   )
 
-  const { messages, send, loading, error } = useReflectionChat({
+  const { messages, send, loading, error, quotaExceeded } = useReflectionChat({
     mood,
     verse: versePayload,
     date: day,
@@ -138,9 +140,9 @@ export function DailyReflection() {
       {/* Chat */}
       <div className="mx-auto w-full max-w-3xl flex-1 space-y-3 overflow-y-auto px-4 pb-4">
         {messages.map((m, i) => (
+          <div key={i} className={m.role === 'user' ? '' : 'me-auto max-w-[85%]'}>
           <div
-            key={i}
-            className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+            className={`max-w-full rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
               m.role === 'user'
                 ? 'ms-auto bg-[#8FBC8F] text-white'
                 : 'me-auto bg-white text-ink shadow-sm dark:bg-[#122A1F] dark:text-cream'
@@ -152,6 +154,14 @@ export function DailyReflection() {
                 <MarkdownText text={m.content} />
             )}
           </div>
+            {m.role !== 'user' ? (
+              <AIAnswerActions
+                surface="reflection_chat"
+                question={messages[i - 1]?.role === 'user' ? messages[i - 1].content : ''}
+                answer={m.content}
+              />
+            ) : null}
+          </div>
         ))}
         {loading ? (
           <div className="me-auto max-w-[85%] rounded-2xl bg-white px-4 py-2.5 shadow-sm dark:bg-[#122A1F]">
@@ -162,7 +172,9 @@ export function DailyReflection() {
             </div>
           </div>
         ) : null}
-        {error ? (
+        {quotaExceeded ? (
+          <QuotaLimitSheet />
+        ) : error ? (
           <p className="py-2 text-center text-xs text-red-400">
             {error === 'unavailable'
               ? t('reflection.companionUnavailable')

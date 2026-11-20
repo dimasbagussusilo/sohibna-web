@@ -70,6 +70,12 @@ const ResetPassword = lazy(() =>
   import('@/routes/AuthRecovery').then((m) => ({ default: m.ResetPassword })),
 )
 const Me = lazy(() => import('@/routes/Me').then((m) => ({ default: m.Me })))
+const MitraDashboard = lazy(() =>
+  import('@/routes/MitraDashboard').then((m) => ({ default: m.MitraDashboard }))
+)
+const MitraPitch = lazy(() =>
+  import('@/routes/landing/MitraPitch').then((m) => ({ default: m.MitraPitch })))
+
 
 // Chunk-load placeholder, matching the in-route loading spinners.
 function RouteFallback() {
@@ -138,6 +144,13 @@ function LandingRoutes() {
         <Route path="/ar/terms" element={<LegalPage doc="terms" lang="ar" />} />
         <Route path="/tr/terms" element={<LegalPage doc="terms" lang="tr" />} />
         <Route path="/ur/terms" element={<LegalPage doc="terms" lang="ur" />} />
+        {/* Program Mitra pitch (0033) — static, zero-API; the authed dashboard
+            lives on the app origin at /mitra. */}
+        <Route path="/mitra" element={<MitraPitch lang="id" />} />
+        <Route path="/en/mitra" element={<MitraPitch lang="en" />} />
+        <Route path="/ar/mitra" element={<MitraPitch lang="ar" />} />
+        <Route path="/tr/mitra" element={<MitraPitch lang="tr" />} />
+        <Route path="/ur/mitra" element={<MitraPitch lang="ur" />} />
         {/* Deep apex links never reach the SPA in prod (nginx landing mode 301s
             them to the app origin first) — this is the dev safety net. */}
         <Route path="*" element={<GoToAppOrigin />} />
@@ -195,6 +208,9 @@ function MainAppRoutes() {
               <Route path="/community/:id" element={<CommunityGroup />} />
               <Route path="/hafalan" element={<Hafalan />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              {/* Program Mitra dashboard (0033) — auth-gated in-component,
+                  full-page (outside AppShell like the other standalone screens). */}
+              <Route path="/mitra" element={<MitraDashboard />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/kitab-ai" element={<KitabAI />} />
               <Route path="/dzikir" element={<Dzikir />} />

@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { LogOut, Globe, ChevronRight, Trophy, Medal } from 'lucide-react'
+import { LogOut, Globe, ChevronRight, Trophy, Medal, Trash2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
@@ -7,15 +8,61 @@ import { useQuranData } from '@/context/QuranDataContext'
 import { langName, isExperimentalLang } from '@/i18n/langName'
 import type { Lang } from '@/i18n/types'
 import { VerifyEmailBanner } from '@/components/VerifyEmailBanner'
+import { deleteAccount, fetchBillingConfig } from '@/api'
+import { PLAY_STORE_URL } from '@/config'
+import { clearCursor, clearQueue, clearCache } from '@/lib/quranSync'
+import { clearRulingsLocalData } from '@/rulings/history'
+import { clearReflectionLocalData } from '@/reflection/history'
+import { Crown } from 'lucide-react'
 
 // Me tab (web, P0): profile, language, dark mode, logout. Alarms/qibla/etc.
 // entry points land with their P2 screens.
 export function Me() {
   const { t, lang, setLang } = useI18n()
   const { user, logout } = useAuth()
-  const { appearance, setAppearance } = useApp()
+  const { appearance, setAppearance, askConfirm, toast } = useApp()
   const { setAppSetting } = useQuranData()
   const navigate = useNavigate()
+
+  // Supporter status card (0037): STATUS ONLY — the web never sells digital
+  // goods (Play policy); the CTA links out to the Play listing.
+  const [supporterCount, setSupporterCount] = useState(0)
+  useEffect(() => {
+    fetchBillingConfig()
+      .then((c) => setSupporterCount(c.supporterCount))
+      .catch(() => {})
+  }, [])
+
+  // User-initiated account deletion (0035, Play requirement) — mirror of the
+  // app's danger row: server tx wipes the account via FK cascade, then this
+  // browser's per-user caches are purged.
+  const handleDeleteAccount = async () => {
+    const ok = await askConfirm({
+      title: t('me.deleteTitle'),
+      message: t('me.deleteBody'),
+      confirmText: t('me.deleteConfirm'),
+      destructive: true,
+    })
+    if (!ok || !user) return
+    try {
+      await deleteAccount()
+    } catch {
+      toast(t('me.deleteFailed'))
+      return
+    }
+    try {
+      await clearCursor(user.id)
+      await clearQueue(user.id)
+      await clearCache(user.id)
+      await clearRulingsLocalData()
+      await clearReflectionLocalData()
+    } catch {
+      /* purge best-effort — server data is already gone */
+    }
+    await logout()
+    toast(t('me.deleteDone'))
+    navigate('/login')
+  }
 
   const LANGS: Lang[] = ['id', 'en', 'ar', 'tr', 'ur']
 
@@ -122,6 +169,34 @@ export function Me() {
         </Link>
       </Section>
 
+      {/* Supporter status (0037) — display + Play link only, no web purchase */}
+      {user ? (
+        <a
+          href={PLAY_STORE_URL || undefined}
+          target={PLAY_STORE_URL ? '_blank' : undefined}
+          rel="noreferrer"
+          className={`mt-5 flex items-center gap-3 rounded-2xl px-4 py-3 ${
+            user.supporter?.active
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+              : 'bg-white shadow-sm dark:bg-[#122A1F] text-ink dark:text-cream'
+          } ${PLAY_STORE_URL ? '' : 'pointer-events-none'}`}
+        >
+          <Crown size={18} className="shrink-0" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">
+              {user.supporter?.active ? t('supporter.activeTitle') : t('supporter.title')}
+            </span>
+            <span className="block text-[11px] opacity-70">
+              {user.supporter?.active
+                ? t('supporter.countLine', { count: String(supporterCount) })
+                : PLAY_STORE_URL
+                  ? t('supporter.joinInApp')
+                  : t('supporter.subtitle')}
+            </span>
+          </span>
+        </a>
+      ) : null}
+
       {/* Logout */}
       {user ? (
         <button
@@ -132,6 +207,16 @@ export function Me() {
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 py-3 text-sm font-semibold text-red-500"
         >
           <LogOut size={16} /> {t('settings.logout')}
+        </button>
+      ) : null}
+
+      {/* Delete account (0035, Play requirement) — quiet row under logout */}
+      {user ? (
+        <button
+          onClick={() => void handleDeleteAccount()}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-transparent py-3 text-xs font-medium text-ink/45 hover:text-ink/70 dark:text-cream/45 dark:hover:text-cream/70"
+        >
+          <Trash2 size={13} /> {t('me.deleteAccount')}
         </button>
       ) : null}
 

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
 import { GoogleSignInButton } from '@/components/GoogleSignInButton'
+import { captureMitraRef, pingMitraClickOnce } from '@/lib/mitraRef'
 
 // Login / Register (web port of the RN screens, same shape + keys).
 export function Login() {
@@ -109,15 +110,32 @@ export function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  // Program Mitra referral code (0033): prefilled from ?ref= (first-touch,
+  // stored so a signup days later still carries it), editable, optional.
+  const [mitraCode, setMitraCode] = useState('')
+  // UU PDP 27/2022 consent — must be ticked before the account is created.
+  const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const stored = captureMitraRef(new URLSearchParams(window.location.search).get('ref'))
+    if (stored) {
+      setMitraCode(stored)
+      pingMitraClickOnce(stored)
+    }
+  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setError(null)
+    if (!consent) {
+      setError(t('auth.register.consentRequired'))
+      return
+    }
     try {
-      await register(name.trim(), email.trim(), password)
+      await register(name.trim(), email.trim(), password, mitraCode.trim() || undefined)
       // The session is already live; land on the OTP entry nudge (the Me
       // banner covers anyone who skips it).
       navigate(`/verify-code?email=${encodeURIComponent(email.trim())}`, { replace: true })
@@ -177,6 +195,36 @@ export function Register() {
             placeholder={t('auth.register.passwordMin')}
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-[#8FBC8F] dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
           />
+          <input
+            value={mitraCode}
+            onChange={(e) => setMitraCode(e.target.value.toUpperCase())}
+            placeholder={t('mitra.register.codeLabel')}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            maxLength={16}
+            title={t('mitra.register.codeHint')}
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm uppercase tracking-widest text-ink outline-none focus:border-[#8FBC8F] dark:border-white/10 dark:bg-[#0D1F17] dark:text-cream"
+          />
+          {/* UU PDP consent gate — links stay same-origin (legal routes exist
+              on the app origin). */}
+          <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-ink/60 dark:text-cream/60">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#8FBC8F]"
+            />
+            <span>
+              {t('auth.register.consent')}{' '}
+              <Link to="/privacy" className="font-semibold text-[#8FBC8F]">
+                {t('me.privacyLink')}
+              </Link>{' '}
+              ·{' '}
+              <Link to="/terms" className="font-semibold text-[#8FBC8F]">
+                {t('me.termsLink')}
+              </Link>
+            </span>
+          </label>
           {error ? <p className="text-center text-xs text-red-500">{error}</p> : null}
           <button
             type="submit"

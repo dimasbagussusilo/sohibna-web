@@ -21,3 +21,9 @@ export const FIREBASE_CONFIG = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '',
   appId: import.meta.env.VITE_FIREBASE_APP_ID ?? '',
 }
+
+// Play listing URL — set VITE_PLAY_STORE_URL when the listing goes live;
+// empty = the web quota card / store badges stay in their "Segera/soon"
+// state (no dead links). The web NEVER sells digital goods (Play policy):
+// this is a link-out only.
+export const PLAY_STORE_URL: string = import.meta.env.VITE_PLAY_STORE_URL ?? ''

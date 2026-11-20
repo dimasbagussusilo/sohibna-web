@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { login as apiLogin, register as apiRegister, revokeSession, type User } from '@/api'
+import { consumeMitraRef } from '@/lib/mitraRef'
 import { signInWithGoogleWeb, signOutGoogleWeb } from '@/lib/googleAuthWeb'
 import {
   clearSession,
@@ -32,8 +33,8 @@ type AuthState = {
   token: string | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string) => Promise<void>
-  loginGoogle: () => Promise<void>
+  register: (name: string, email: string, password: string, referralCode?: string) => Promise<void>
+  loginGoogle: (referralCode?: string) => Promise<void>
   logout: () => Promise<void>
   updateUser: (u: User) => void
 }
@@ -119,8 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      const r = await apiRegister(name, email, password)
+    async (name: string, email: string, password: string, referralCode?: string) => {
+      // Program Mitra first-touch (0033): an explicit code wins, else a code
+      // captured from a ?ref= landing survives until the signup that consumes
+      // it. Server-side the field is optional and silently ignored when stale.
+      const code = referralCode ?? consumeMitraRef() ?? undefined
+      const r = await apiRegister(name, email, password, code)
       await onAuthed(r.access_token, r.refresh_token, r.expires_at, r.user)
     },
     [onAuthed],
@@ -130,8 +135,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ID token for a Sohibna session (same session/refresh machinery as login).
   // A user-initiated cancel is swallowed (resolves without authing); other
   // errors propagate to the caller (the button handler) for display.
-  const loginGoogle = useCallback(async () => {
-    const r = await signInWithGoogleWeb()
+  // The mitra referral code only ever applies to a brand-new account
+  // (enforced server-side on the create branch).
+  const loginGoogle = useCallback(async (referralCode?: string) => {
+    const r = await signInWithGoogleWeb(referralCode ?? consumeMitraRef() ?? undefined)
     await onAuthed(r.access_token, r.refresh_token, r.expires_at, r.user)
   }, [onAuthed])
 

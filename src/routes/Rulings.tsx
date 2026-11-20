@@ -19,6 +19,8 @@ import { scopeFromEntry, type RulingsRefScope } from '@/rulings/scope'
 import { useRulingsSources } from '@/rulings/sources'
 import { accentColor } from '@/components/kitab/palette'
 import { MarkdownText } from '@/components/MarkdownText'
+import { AIAnswerActions } from '@/components/AIAnswerActions'
+import { QuotaLimitSheet } from '@/components/QuotaLimitSheet'
 
 // The static curated "Rulings Collection" was retired — the RAG chat answers all
 // of it from the kitab library. The page is chat-first: the general Ask-AI
@@ -216,7 +218,7 @@ export function Rulings() {
 export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: RulingsRefScope | null, onClose: () => void }) {
   const { t } = useI18n()
   const { user } = useAuth()
-  const { messages, send, loading, error } = useRulingsChat({ chatId, scope })
+  const { messages, send, loading, error, quotaExceeded } = useRulingsChat({ chatId, scope })
   const [draft, setDraft] = useState('')
   const [hintHidden, setHintHidden] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -326,9 +328,9 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
           )}
 
           {messages.map((m, i) => (
+            <div key={i} className={m.role === 'user' ? '' : 'me-auto max-w-[85%]'}>
             <div
-              key={i}
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              className={`max-w-full rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 m.role === 'user'
                   ? 'ms-auto bg-[#8FBC8F] text-white'
                   : 'me-auto bg-white text-ink shadow-sm dark:bg-[#122A1F] dark:text-cream'
@@ -339,6 +341,14 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
               ) : (
                 <MarkdownText text={m.content} />
               )}
+            </div>
+              {m.role !== 'user' ? (
+                <AIAnswerActions
+                  surface={scope?.sources?.length ? 'kitab_chat' : 'rulings_chat'}
+                  question={messages[i - 1]?.role === 'user' ? messages[i - 1].content : ''}
+                  answer={m.content}
+                />
+              ) : null}
             </div>
           ))}
 
@@ -352,11 +362,13 @@ export function ChatScreen({ chatId, scope, onClose }: { chatId: string, scope: 
             </div>
           )}
 
-          {error && (
+          {quotaExceeded ? (
+            <QuotaLimitSheet />
+          ) : error ? (
             <div className="mx-auto rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400">
               {t('rulings.noSummary')}
             </div>
-          )}
+          ) : null}
           <div ref={bottomRef} className="h-2" />
         </div>
       </div>

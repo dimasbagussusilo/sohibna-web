@@ -25,8 +25,9 @@ async function getAuth(): Promise<import('firebase/auth').Auth> {
 
 // Run the popup sign-in flow and exchange the ID token for a Sohibna session.
 // A user-initiated cancel (popup closed) resolves to null — callers treat that
-// as a silent no-op. Other errors propagate for display.
-export async function signInWithGoogleWeb(): Promise<AuthResponse> {
+// as a silent no-op. Other errors propagate for display. The optional mitra
+// referral code (0033) is only honored server-side on account creation.
+export async function signInWithGoogleWeb(referralCode?: string): Promise<AuthResponse> {
   if (!googleConfigured()) throw new Error('google-not-configured')
   const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth')
   const auth = await getAuth()
@@ -40,7 +41,7 @@ export async function signInWithGoogleWeb(): Promise<AuthResponse> {
   )
   if (!credential) throw new Error('cancelled')
   const idToken = await credential.user.getIdToken()
-  return loginWithGoogle(idToken)
+  return loginWithGoogle(idToken, referralCode)
 }
 
 // Best-effort sign-out of the Firebase session (local state only).
