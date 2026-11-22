@@ -830,7 +830,7 @@ export type XpSummary = {
 
 export const fetchXp = (deviceId: string) => syncFetch<XpSummary>(deviceId, '/quran/me/xp')
 
-// ── Community: Lingkar Tilawah / Lingkar Keluarga (0020) — app-mirrored ────
+// ── Community: Grup Tilawah / Grup Keluarga (0020) — app-mirrored ────
 export type CommunityGroupKind = 'circle' | 'family'
 export type CommunityGoalUnit = 'verse' | 'page' | 'time' | 'range'
 export type CommunityGoalType = 'daily' | 'duration'
