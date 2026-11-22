@@ -1497,10 +1497,17 @@ export const translations: Translation = {
   },
   // AI daily quota (0037) + supporter status (web Me card — status only,
   // purchases happen in the app via Google Play).
+  // AI gates (v2 0039): login prompt + 3-tier matrix + the 429 card.
   quota: {
-    title: 'Daily Ask-AI limit reached',
-    body: 'Your free Ask-AI quota for today is used up. It resets tomorrow — or get a much bigger quota with Sohibna+ in the app.',
-    cta: 'See it on Google Play',
+    title: 'Daily AI limit reached',
+    body: 'Your free AI quota for today is used up. The next question arrives tomorrow — or get a bigger quota with Sohibna+ in the app.',
+    cta: 'View on Google Play',
+    loginTitle: 'Sign in to use AI',
+    loginBody: 'AI is now for signed-in users — 1 free conversation/day, more with Supporter or Premium.',
+    loginCta: 'Sign in / Sign up',
+    mFree: 'Free: 1 section + 1 chat/day · 5 min recite',
+    mSup: 'Supporter: 5 + 5 chats/day · 15 min · WA group',
+    mPrem: 'Premium: 15 + 15 chats/day · 30 min · all themes',
   },
   supporter: {
     title: 'Sohibna Supporter',
@@ -1508,6 +1515,9 @@ export const translations: Translation = {
     subtitle: 'Support development + exclusive badge & theme in the app',
     countLine: '{{count}} supporters',
     joinInApp: 'Join in the Sohibna app (Google Play)',
+    premiumTitle: 'You are Sohibna Premium',
+    premiumLine: 'Thank you for your support',
+
   },
   plus: {
     title: 'Sohibna+',

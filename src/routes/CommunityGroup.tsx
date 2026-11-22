@@ -5,6 +5,19 @@ import { useI18n } from '@/context/I18nContext'
 import { useApp } from '@/context/AppContext'
 import { fetchCommunityGroup, leaveCommunityGroup, type CommunityGroupDetail } from '@/api'
 
+// Tier identity ring (0039): bronze/silver/gold avatar border + tinted
+// initials — the light-web echo of the app's TierFrame.
+const TIER_RING: Record<string, string> = {
+  free: 'border-[#b45309]',
+  supporter: 'border-[#94a3b8]',
+  premium: 'border-amber-500',
+}
+const TIER_TEXT: Record<string, string> = {
+  free: 'text-[#b45309]',
+  supporter: 'text-[#94a3b8]',
+  premium: 'text-amber-500',
+}
+
 // Community group detail (web v1 — read-mostly): ring, members, automatic
 // clasemen. Reactions/board actions happen in the app for now.
 export function CommunityGroup() {
@@ -143,13 +156,25 @@ export function CommunityGroup() {
                 : 'border-transparent bg-black/5 dark:bg-white/10'
             }`}
           >
+            {/* Tier identity ring (0039): bronze/silver/gold — the light-web
+                echo of the app's TierFrame; absent on old servers. */}
             {m.imageUrl ? (
-              <img src={m.imageUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
-        ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8FBC8F]/20 text-xs font-bold text-[#8FBC8F]">
-            {m.alias.slice(0, 1).toUpperCase()}
-          </div>
-        )}
+              <img
+                src={m.imageUrl}
+                alt=""
+                className={`h-9 w-9 rounded-full object-cover ${m.tier ? `border-2 ${TIER_RING[m.tier]}` : ''}`}
+              />
+            ) : (
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold ${
+                  m.tier
+                    ? `border-2 ${TIER_RING[m.tier]} bg-black/5 dark:bg-white/10 ${TIER_TEXT[m.tier]}`
+                    : 'bg-[#8FBC8F]/20 text-[#8FBC8F]'
+                }`}
+              >
+                {m.alias.slice(0, 1).toUpperCase()}
+              </div>
+            )}
             <div className="ml-2.5 min-w-0 flex-1">
               <p className="flex items-center truncate text-sm font-bold text-ink dark:text-cream">
                 {m.alias}
@@ -178,6 +203,7 @@ export function CommunityGroup() {
           <div key={b.userId} className="flex items-center py-1.5">
             <span className={`w-5 text-xs font-bold ${i === 0 ? 'text-amber-500' : 'text-ink/40 dark:text-cream/40'}`}>{i + 1}</span>
             <span className="flex-1 text-xs font-semibold text-ink dark:text-cream">
+              {b.tier ? <span className={`mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle ${b.tier === 'premium' ? 'bg-amber-500' : b.tier === 'supporter' ? 'bg-[#94a3b8]' : 'bg-[#b45309]'}`} /> : null}
               {b.alias}
               {b.isMe ? <span className="text-[#8FBC8F]"> · {t('community.you')}</span> : null}
             </span>

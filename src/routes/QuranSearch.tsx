@@ -5,7 +5,8 @@ import { fetchChapters, searchVerses, type Chapter, type VerseSearchHit } from '
 import { findRelatedVerses, type RelatedVerse } from '@/api'
 import { AIAnswerActions } from '@/components/AIAnswerActions'
 import { QuotaLimitSheet } from '@/components/QuotaLimitSheet'
-import { isQuotaError } from '@/api'
+import { isLoginGateError, isQuotaError } from '@/api'
+import { AILoginGate } from '@/components/AILoginGate'
 import { useI18n } from '@/context/I18nContext'
 import { contentLangFor } from '@/i18n/contentLang'
 
@@ -29,6 +30,7 @@ export function QuranSearch() {
   const [aiBusy, setAiBusy] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
   const [quota, setQuota] = useState(false)
+  const [loginGate, setLoginGate] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -79,12 +81,15 @@ export function QuranSearch() {
     setAiBusy(true)
     setAiError(null)
     setQuota(false)
+    setLoginGate(false)
     setAiResults(null)
     try {
       const r = await findRelatedVerses(topic, lang)
       setAiResults(r.related)
     } catch (err) {
-      if (isQuotaError(err)) {
+      if (isLoginGateError(err)) {
+        setLoginGate(true)
+      } else if (isQuotaError(err)) {
         setQuota(true)
       } else {
         setAiError(t('quranSearch.aiError'))
@@ -259,7 +264,7 @@ export function QuranSearch() {
                 {t('quranSearch.aiLoading')}
               </p>
             ) : null}
-            {quota ? <QuotaLimitSheet /> : null}
+            {loginGate ? <AILoginGate /> : quota ? <QuotaLimitSheet /> : null}
             {aiError ? (
               <p className="py-8 text-center text-xs text-red-400">{aiError}</p>
             ) : null}

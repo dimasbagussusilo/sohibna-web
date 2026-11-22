@@ -1509,10 +1509,17 @@ export const translations: Translation = {
   },
   // AI daily quota (0037) + supporter status (web Me card — status only,
   // purchases happen in the app via Google Play).
+  // AI gates (v2 0039): login prompt + 3-tier matrix + the 429 card.
   quota: {
-    title: 'روزانہ پوچھو-AI کی حد پوری ہو گئی',
-    body: 'آج کی مفت کوٹہ ختم ہو گئی ہے۔ کل دوبارہ شروع ہو جائے گی — یا ایپ میں صحبنا+ کے ساتھ بہت بڑی کوٹہ حاصل کریں۔',
-    cta: 'گوگل پلے پر دیکھیں',
+    title: 'روزانہ AI حد مکمل',
+    body: 'آج کا مفت AI کوٹہ ختم ہو گیا۔ اگلا سوال کل — یا ایپ میں سوہبنا+ سے بڈا کوٹہ لیں۔',
+    cta: 'Google Play پر دیکھیں',
+    loginTitle: 'AI استعمال کے لیے لاگ اِن کریں',
+    loginBody: 'AI اب لاگ اِن صارفین کے لیے ہے — روزانہ 1 مفت گفتگو، سپورٹر یا پریمیم سے مزید۔',
+    loginCta: 'لاگ اِن / رجسٹر',
+    mFree: 'مفت: روزانہ 1 سیکشن + 1 چیٹ · 5 منٹ',
+    mSup: 'سپورٹر: روزانہ 5 + 5 چیٹ · 15 منٹ · WA گروپ',
+    mPrem: 'پریمیم: روزانہ 15 + 15 چیٹ · 30 منٹ · تمام تھیمز',
   },
   supporter: {
     title: 'صحبنا سپورٹر',
@@ -1520,6 +1527,9 @@ export const translations: Translation = {
     subtitle: 'ترقی میں تعاون + ایپ میں خصوصی بیج اور تھیم',
     countLine: '{{count}} سپورٹر',
     joinInApp: 'صحبنا ایپ کے ذریعے شامل ہوں (گوگل پلے)',
+    premiumTitle: 'آپ سوہبنا پریمیم ہیں',
+    premiumLine: 'آپ کی سپورٹ کا شکریہ',
+
   },
   plus: {
     title: 'صحبنا+',

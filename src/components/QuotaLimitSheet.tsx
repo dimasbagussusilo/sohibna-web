@@ -15,6 +15,19 @@ export function QuotaLimitSheet() {
       <p className="mt-1 text-xs leading-relaxed text-ink/60 dark:text-cream/60">
         {t('quota.body')}
       </p>
+      <div className="mt-3 space-y-1 text-start">
+        {(
+          [
+            ['quota.mFree', 'quota.mSup', 'quota.mPrem'],
+          ] as const
+        ).flatMap((row) =>
+          row.map((k) => (
+            <p key={k} className="text-[11px] leading-relaxed text-ink/60 dark:text-cream/60">
+              • {t(k)}
+            </p>
+          )),
+        )}
+      </div>
       {PLAY_STORE_URL ? (
         <a
           href={PLAY_STORE_URL}

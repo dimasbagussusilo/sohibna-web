@@ -1509,10 +1509,17 @@ export const translations: Translation = {
   },
   // AI daily quota (0037) + supporter status (web Me card — status only,
   // purchases happen in the app via Google Play).
+  // AI gates (v2 0039): login prompt + 3-tier matrix + the 429 card.
   quota: {
-    title: 'Günlük Soru-YapayZeka limiti doldu',
-    body: 'Bugünkü ücretsiz kotanız tükendi. Yarın yenilenir — veya uygulamada Sohibna+ ile çok daha büyük kota alın.',
-    cta: "Google Play'de görüntüle",
+    title: 'Günlük yapay zekâ sınırına ulaşıldı',
+    body: 'Bugünün ücretsiz yapay zekâ kotası doldu. Sonraki soru yarın — ya da uygulamada Sohibna+ ile daha büyük kota alın.',
+    cta: 'Google Playde görüntüle',
+    loginTitle: 'Yapay zekâyı kullanmak için giriş yapın',
+    loginBody: 'Yapay zekâ artık giriş yapan kullanıcılar için — günde 1 ücretsiz sohbet, Destekçi veya Premium ile daha fazlası.',
+    loginCta: 'Giriş yap / Kayıt ol',
+    mFree: 'Ücretsiz: günde 1 bölüm + 1 sohbet · 5 dk',
+    mSup: 'Destekçi: günde 5 + 5 sohbet · 15 dk · WA grubu',
+    mPrem: 'Premium: günde 15 + 15 sohbet · 30 dk · tüm temalar',
   },
   supporter: {
     title: 'Sohibna Destekçisi',
@@ -1520,6 +1527,9 @@ export const translations: Translation = {
     subtitle: 'Geliştirmeyi destekleyin + uygulamada özel rozet & tema',
     countLine: '{{count}} destekçi',
     joinInApp: "Sohibna uygulaması üzerinden katılın (Google Play)",
+    premiumTitle: 'Sohibna Premium üyesisiniz',
+    premiumLine: 'Desteğiniz için teşekkürler',
+
   },
   plus: {
     title: 'Sohibna+',

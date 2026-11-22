@@ -131,6 +131,9 @@ export async function pickAnnouncement(
   // Empty table encodes as JSON null (Go nil slice) — treat it as [].
   const coords = await readCoords()
   for (const a of list ?? []) {
+    // 'paywall' promos are app-only (in-app Play Billing upsell); the web
+    // never sells — the app twin instead filters 'donate' (Play policy).
+    if (a.action === 'paywall') continue
     if (!resolveContent(a, lang)) continue
     if (await isSeen(a, coords)) continue;
     if (a.frequency === 'once') {

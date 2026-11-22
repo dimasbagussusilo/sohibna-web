@@ -13,7 +13,7 @@ import { PLAY_STORE_URL } from '@/config'
 import { clearCursor, clearQueue, clearCache } from '@/lib/quranSync'
 import { clearRulingsLocalData } from '@/rulings/history'
 import { clearReflectionLocalData } from '@/reflection/history'
-import { Crown } from 'lucide-react'
+import { Crown, Gem } from 'lucide-react'
 
 // Me tab (web, P0): profile, language, dark mode, logout. Alarms/qibla/etc.
 // entry points land with their P2 screens.
@@ -176,22 +176,37 @@ export function Me() {
           target={PLAY_STORE_URL ? '_blank' : undefined}
           rel="noreferrer"
           className={`mt-5 flex items-center gap-3 rounded-2xl px-4 py-3 ${
-            user.supporter?.active
-              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-              : 'bg-white shadow-sm dark:bg-[#122A1F] text-ink dark:text-cream'
+            user.plus?.active
+              ? 'bg-amber-400/15 text-amber-600 dark:text-amber-300'
+              : user.supporter?.active
+                ? 'bg-slate-400/15 text-slate-600 dark:text-slate-300'
+                : 'bg-white shadow-sm dark:bg-[#122A1F] text-ink dark:text-cream'
           } ${PLAY_STORE_URL ? '' : 'pointer-events-none'}`}
         >
-          <Crown size={18} className="shrink-0" />
+          {user.plus?.active ? (
+            <Gem size={18} className="shrink-0 text-amber-500" />
+          ) : (
+            <Crown
+              size={18}
+              className={`shrink-0 ${user.supporter?.active ? 'text-slate-500' : ''}`}
+            />
+          )}
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold">
-              {user.supporter?.active ? t('supporter.activeTitle') : t('supporter.title')}
+              {user.plus?.active
+                ? t('supporter.premiumTitle')
+                : user.supporter?.active
+                  ? t('supporter.activeTitle')
+                  : t('supporter.title')}
             </span>
             <span className="block text-[11px] opacity-70">
-              {user.supporter?.active
-                ? t('supporter.countLine', { count: String(supporterCount) })
-                : PLAY_STORE_URL
-                  ? t('supporter.joinInApp')
-                  : t('supporter.subtitle')}
+              {user.plus?.active
+                ? t('supporter.premiumLine')
+                : user.supporter?.active
+                  ? t('supporter.countLine', { count: String(supporterCount) })
+                  : PLAY_STORE_URL
+                    ? t('supporter.joinInApp')
+                    : t('supporter.subtitle')}
             </span>
           </span>
         </a>

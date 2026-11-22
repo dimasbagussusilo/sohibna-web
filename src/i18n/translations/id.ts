@@ -1515,10 +1515,17 @@ export const translations = {
   },
   // AI daily quota (0037) + supporter status (web Me card — status only,
   // purchases happen in the app via Google Play).
+  // AI gates (v2 0039): login prompt + 3-tier matrix + the 429 card.
   quota: {
     title: 'Batas harian Tanya AI tercapai',
     body: 'Kuota gratis Tanya AI hari ini sudah habis. Kalimat berikutnya tersedia besok — atau dapat kuota besar dengan Sohibna+ di aplikasi.',
     cta: 'Lihat di Google Play',
+    loginTitle: 'Masuk untuk Memakai AI',
+    loginBody: 'Tanya AI kini untuk pengguna yang masuk — gratis 1 percakapan/hari, lebih banyak dengan Supporter atau Premium.',
+    loginCta: 'Masuk / Daftar',
+    mFree: 'Gratis: 1 section + 1 chat/hari · uji hafalan 5 mnt',
+    mSup: 'Supporter: 5 + 5 chat/hari · 15 mnt · grup WA',
+    mPrem: 'Premium: 15 + 15 chat/hari · 30 mnt · semua tema',
   },
   supporter: {
     title: 'Sohibna Supporter',
@@ -1526,6 +1533,9 @@ export const translations = {
     subtitle: 'Dukung pengembangan + lencana & tema eksklusif di aplikasi',
     countLine: '{{count}} supporter',
     joinInApp: 'Bergabung lewat aplikasi Sohibna (Google Play)',
+    premiumTitle: 'Anda Sohibna Premium',
+    premiumLine: 'Terima kasih atas dukungan Anda',
+
   },
   plus: {
     title: 'Sohibna+',

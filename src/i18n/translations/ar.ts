@@ -1509,10 +1509,17 @@ export const translations: Translation = {
   },
   // AI daily quota (0037) + supporter status (web Me card — status only,
   // purchases happen in the app via Google Play).
+  // AI gates (v2 0039): login prompt + 3-tier matrix + the 429 card.
   quota: {
-    title: 'انتهى حد "اسأل الذكاء الاصطناعي" اليومي',
-    body: 'استُهلكت حصتك المجانية اليوم. تتجدد غدًا — أو احصل على حصة أكبر بكثير مع صحبنا+ داخل التطبيق.',
-    cta: 'اطّلع عليه على Google Play',
+    title: 'تم الوصول إلى الحد اليومي',
+    body: 'استُخدمت حصة الذكاء الاصطناعي المجانية لليوم. السؤال التالي متاح غدًا — أو احصل على حصة أكبر مع سوهِبنا+ في التطبيق.',
+    cta: 'اعرض على Google Play',
+    loginTitle: 'سجّل الدخول لاستخدام الذكاء الاصطناعي',
+    loginBody: 'الذكاء الاصطناعي الآن للمستخدمين المسجلين — محادثة مجانية واحدة يوميًا، والمزيد مع الداعم أو بريميوم.',
+    loginCta: 'تسجيل الدخول / حساب جديد',
+    mFree: 'مجاني: محادثة + رسالة يوميًا · 5 دقائق تسميع',
+    mSup: 'الداعم: 5 + 5 يوميًا · 15 دقيقة · مجموعة واتساب',
+    mPrem: 'بريميوم: 15 + 15 يوميًا · 30 دقيقة · كل السمات',
   },
   supporter: {
     title: 'داعم صحبنا',
@@ -1520,6 +1527,9 @@ export const translations: Translation = {
     subtitle: 'ادعم التطوير + شارة وسمة حصرية داخل التطبيق',
     countLine: '{{count}} داعم',
     joinInApp: 'انضم عبر تطبيق صحبنا (Google Play)',
+    premiumTitle: 'أنت مشترك في سوهِبنا بريميوم',
+    premiumLine: 'شكرًا لدعمك',
+
   },
   plus: {
     title: 'صحبنا+',

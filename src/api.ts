@@ -154,7 +154,8 @@ export type AnnouncementDTO = {
   id: string;
   content: Record<string, AnnouncementContent>;
   image_url: string;
-  action: '' | 'donate' | 'url';
+  // 'paywall' is app-only (opens the Play paywall there); the web pick skips it.
+  action: '' | 'donate' | 'url' | 'paywall';
   action_url: string;
   frequency: 'daily' | 'once';
   updated_at: string;
@@ -202,11 +203,17 @@ function isAIPath(path: string): boolean {
 }
 
 async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<T> {
+  // v2 quotas (0039): AI is login-gated server-side — signed-in sessions
+  // stamp their Bearer so the quota counts against the account; guests stay
+  // anonymous (the server 401s them with ai_login_required once enforcement
+  // flips, and the web shows an inline sign-in prompt).
+  const bearer = isAIPath(path) ? await getAccessToken().catch(() => '') : '';
   const res = await fetch(API_BASE_URL + path, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(isAIPath(path) ? { 'X-Device-ID': getDeviceId() } : {}),
+      ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
     },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs),
@@ -347,6 +354,18 @@ export const deleteAccount = () =>
 // ── Billing / entitlements (0037) ────────────────────────────────────────────
 // Web never SELLS digital goods (Play policy): these reads exist so the web
 // Me page can show status and link to the Play listing.
+
+// isLoginGateError narrows the v2 AI 401 (0039): AI requires a signed-in
+// account; the web answers with an inline sign-in prompt (never a sale —
+// purchases live in the Play Store app).
+export function isLoginGateError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { status?: number }).status === 401 &&
+    (err as { code?: string }).code === 'ai_login_required'
+  );
+}
 
 // isQuotaError narrows the postJSON ApiError (status + code) for AI callers.
 export function isQuotaError(err: unknown): boolean {
@@ -849,9 +868,10 @@ export type CommunityMember = {
   todayTarget: number // daily: target; duration: today's auto portion
   windowAmount: number // duration: cumulative progress in the goal window
   daysOnTargetWeek: number
-}
+  tier?: 'free' | 'supporter' | 'premium'
+};
 
-export type CommunityBoardEntry = { userId: string; alias: string; imageUrl: string | null; daysMet: number; weekAmount: number; isMe: boolean }
+export type CommunityBoardEntry = { userId: string; alias: string; imageUrl: string | null; daysMet: number; weekAmount: number; isMe: boolean; tier?: 'free' | 'supporter' | 'premium' }
 
 export type CommunityReaction = { fromUserId: string; toUserId: string; day: string; preset: CommunityPreset }
 
@@ -865,7 +885,7 @@ export type CommunityGroupDetail = {
   board: CommunityBoardEntry[]
   topEncourager: { userId: string; alias: string; count: number } | null
   reactions: CommunityReaction[]
-}
+};
 
 export const fetchCommunityGroups = () => authedFetch<{ groups: CommunityGroupSummary[] }>('/community/groups')
 

@@ -15,6 +15,7 @@ import {
 } from '@/reflection/history'
 import { MarkdownText } from '@/components/MarkdownText'
 import { AIAnswerActions } from '@/components/AIAnswerActions'
+import { AILoginGate } from '@/components/AILoginGate'
 import { QuotaLimitSheet } from '@/components/QuotaLimitSheet'
 
 // Daily Reflection (web port): pick a mood → a mood-specific ayah of the day →
@@ -53,7 +54,7 @@ export function DailyReflection() {
     [verse, verseKey, lang],
   )
 
-  const { messages, send, loading, error, quotaExceeded } = useReflectionChat({
+  const { messages, send, loading, error, quotaExceeded, loginGate } = useReflectionChat({
     mood,
     verse: versePayload,
     date: day,
@@ -172,7 +173,9 @@ export function DailyReflection() {
             </div>
           </div>
         ) : null}
-        {quotaExceeded ? (
+        {loginGate ? (
+          <AILoginGate />
+        ) : quotaExceeded ? (
           <QuotaLimitSheet />
         ) : error ? (
           <p className="py-2 text-center text-xs text-red-400">
