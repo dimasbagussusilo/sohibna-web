@@ -7,7 +7,6 @@ import { useApp } from '@/context/AppContext'
 import { useQuranData } from '@/context/QuranDataContext'
 import { langName, isExperimentalLang } from '@/i18n/langName'
 import type { Lang } from '@/i18n/types'
-import { VerifyEmailBanner } from '@/components/VerifyEmailBanner'
 import { deleteAccount, fetchBillingConfig } from '@/api'
 import { PLAY_STORE_URL } from '@/config'
 import { clearCursor, clearQueue, clearCache } from '@/lib/quranSync'
@@ -91,10 +90,6 @@ export function Me() {
           {t('quranHome.guestLogin')}
         </Link>
       ) : null}
-
-      {/* Verification nudge — unverified password accounts only (Google
-          accounts are created verified; undefined = pre-0012 API). */}
-      {user && user.email_verified === false ? <VerifyEmailBanner /> : null}
 
       {/* Language */}
       <Section title={t('settings.languageSection')}>

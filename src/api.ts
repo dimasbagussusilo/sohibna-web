@@ -230,12 +230,12 @@ async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQU
   return data as T;
 }
 
-// register/loginWithGoogle take an OPTIONAL Program Mitra referral code
-// (0033). The key is included ONLY when set — the API rejects unknown JSON
-// fields, so an old server must never see it (deploy API first), and old
-// clients stay byte-identical to today.
+// register (0041 verify-then-create) only STAGES the signup — no account,
+// no session. 202 {ok}; the emailed code creates the account at verifyEmail.
+// The OPTIONAL Program Mitra referral code (0033) is attributed when the
+// account actually comes into existence.
 export const register = (name: string, email: string, password: string, referralCode?: string) =>
-  postJSON<AuthResponse>('/auth/register', {
+  postJSON<{ ok: boolean }>('/auth/register', {
     name,
     email,
     password,
@@ -254,17 +254,15 @@ export const loginWithGoogle = (idToken: string, referralCode?: string) =>
     ...(referralCode ? { referral_code: referralCode } : {}),
   });
 
-// ── EMAIL VERIFICATION + PASSWORD RESET (OTP) ───────────────────────────────
-// verify-email is authed (the post-register code page runs inside the new
-// session); forgot/reset are public — the emailed 6-digit code is the
-// credential. resend-verification lives next to getMe below.
+// ── SIGNUP VERIFICATION + PASSWORD RESET (OTP) ──────────────────────────────
+// verify-email is PUBLIC and email-keyed (0041): the code + email CREATE the
+// account (already verified) and the response is a full session — the user is
+// signed in the moment the account exists. forgot/reset are public too — the
+// emailed 6-digit code is the credential.
 
-// verifyEmail checks the 6-digit code → the freshly verified user.
-export const verifyEmail = (code: string) =>
-  authedFetch<{ ok: boolean; user: User }>('/auth/verify-email', {
-    method: 'POST',
-    body: JSON.stringify({ code }),
-  });
+// verifyEmail checks the code → the just-created account + a fresh session.
+export const verifyEmail = (email: string, code: string) =>
+  postJSON<AuthResponse>('/auth/verify-email', { email, code });
 
 // forgotPassword always succeeds (204) — unknown/unverified emails are
 // indistinguishable by design, so the page always shows "check your inbox".
@@ -381,12 +379,11 @@ export type BillingConfig = { plusEnabled: boolean; supporterCount: number };
 export const fetchBillingConfig = () => getJSON<BillingConfig>('/billing/config');
 export const fetchSupportersCount = () => getJSON<{ count: number }>('/supporters/count');
 
-// resendVerification re-mails the verification link (authed); 429 = cooldown.
-export const resendVerification = () =>
-  authedFetch<{ ok: boolean }>('/auth/resend-verification', {
-    method: 'POST',
-    body: JSON.stringify({}),
-  });
+// resendVerification re-mails the signup code for a STAGED registration
+// (0041: public, email-keyed — silent 204 for unknown/registered emails);
+// 429 = cooldown.
+export const resendVerification = (email: string) =>
+  postJSON<{ ok: boolean }>('/auth/resend-verification', { email });
 
 // ── PROGRAM MITRA (0033, Phase 1: attribution + tracking, no money) ─────────
 // The click ping fires from the register page when ?ref= is present (public,

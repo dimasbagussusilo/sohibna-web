@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
+import { ApiError } from '@/api'
 import { GoogleSignInButton } from '@/components/GoogleSignInButton'
 import { captureMitraRef, pingMitraClickOnce } from '@/lib/mitraRef'
 
@@ -136,11 +137,17 @@ export function Register() {
     }
     try {
       await register(name.trim(), email.trim(), password, mitraCode.trim() || undefined)
-      // The session is already live; land on the OTP entry nudge (the Me
-      // banner covers anyone who skips it).
+      // 202 {ok} — the signup is STAGED (no account, no session yet); the
+      // code page is where the account is created.
       navigate(`/verify-code?email=${encodeURIComponent(email.trim())}`, { replace: true })
-    } catch {
-      setError(t('auth.register.couldNotRegister'))
+    } catch (e) {
+      // 409 = email already registered (localized); other server errors keep
+      // the generic message (non-ApiError = network etc.).
+      setError(
+        e instanceof ApiError && e.status === 409
+          ? t('auth.register.emailTaken')
+          : t('auth.register.couldNotRegister'),
+      )
     } finally {
       setBusy(false)
     }

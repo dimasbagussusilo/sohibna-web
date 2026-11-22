@@ -2,18 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '@/context/AuthContext'
 import { useI18n } from '@/context/I18nContext'
-import {
-  forgotPassword,
-  resendVerification,
-  resetPassword,
-  verifyEmail,
-} from '@/api'
+import { ApiError, forgotPassword, resendVerification, resetPassword, verifyEmail } from '@/api'
 import type { ReactNode } from 'react'
 
 // Email verification + password recovery, OTP flavour (web port of the RN
 // screens, same i18n keys). The emailed 6-digit code is the credential — no
-// deep links, so every page is a plain form: /verify-code (post-register,
-// runs inside the new session), /forgot-password, /reset-password.
+// deep links, so every page is a plain form: /verify-code (0041: public,
+// email-keyed, CREATES the account + session), /forgot-password,
+// /reset-password.
 
 // Shell matching Login/Register: centred card on the cream canvas.
 function RecoveryShell({ children }: { children: ReactNode }) {
@@ -55,11 +51,13 @@ function CodeInput({
   )
 }
 
-// VerifyCode: post-register OTP entry (authed — the register session is live).
-// Reached with ?email=…; also the Me-banner target for users who skipped.
+// VerifyCode: the ONLY step that creates the account (0041 verify-then-
+// create — register merely staged it). Entering the emailed 6-digit OTP
+// creates the verified account AND signs the user in (the response is a full
+// session). Reached with ?email=….
 export function VerifyCode() {
   const { t } = useI18n()
-  const { updateUser } = useAuth()
+  const { applyAuthResponse } = useAuth()
   const [params] = useSearchParams()
   const email = params.get('email') ?? ''
 
@@ -82,11 +80,17 @@ export function VerifyCode() {
     setBusy(true)
     setError(null)
     try {
-      const r = await verifyEmail(code)
-      updateUser(r.user)
+      const r = await verifyEmail(email, code)
+      await applyAuthResponse(r) // account created + signed in
       setDone(true)
-    } catch {
-      setError(t('auth.checkEmail.invalidCode'))
+    } catch (err) {
+      // 409 = the email meanwhile won a Google-created account — the staged
+      // signup is gone; the only path forward is signing in with Google.
+      setError(
+        err instanceof ApiError && err.status === 409
+          ? t('auth.checkEmail.googleCollision')
+          : t('auth.checkEmail.invalidCode'),
+      )
     } finally {
       setBusy(false)
     }
@@ -96,7 +100,7 @@ export function VerifyCode() {
     if (cooldown > 0) return
     setNote(null)
     try {
-      await resendVerification()
+      await resendVerification(email)
       setCooldown(60)
       setNote(t('auth.checkEmail.resent'))
     } catch {
@@ -167,7 +171,7 @@ export function VerifyCode() {
           </p>
         )}
         <p className="text-center">
-          <Link to="/home" className="text-xs text-ink/50 underline dark:text-cream/50">
+          <Link to="/login" className="text-xs text-ink/50 underline dark:text-cream/50">
             {t('auth.checkEmail.continue')}
           </Link>
         </p>

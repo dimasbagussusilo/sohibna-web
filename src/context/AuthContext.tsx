@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { login as apiLogin, register as apiRegister, revokeSession, type User } from '@/api'
+import { login as apiLogin, register as apiRegister, revokeSession, type AuthResponse, type User } from '@/api'
 import { consumeMitraRef } from '@/lib/mitraRef'
 import { signInWithGoogleWeb, signOutGoogleWeb } from '@/lib/googleAuthWeb'
 import {
@@ -33,7 +33,12 @@ type AuthState = {
   token: string | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  // 0041 verify-then-create: register only STAGES the signup (no session —
+  // the account is created by the code page via applyAuthResponse).
   register: (name: string, email: string, password: string, referralCode?: string) => Promise<void>
+  // applyAuthResponse adopts a tokenResponse (verify-email's 200) as the live
+  // session — the user leaves the code page signed in.
+  applyAuthResponse: (r: AuthResponse) => Promise<void>
   loginGoogle: (referralCode?: string) => Promise<void>
   logout: () => Promise<void>
   updateUser: (u: User) => void
@@ -45,6 +50,7 @@ const AuthContext = createContext<AuthState>({
   loading: true,
   login: async () => {},
   register: async () => {},
+  applyAuthResponse: async () => {},
   loginGoogle: async () => {},
   logout: async () => {},
   updateUser: () => {},
@@ -124,8 +130,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Program Mitra first-touch (0033): an explicit code wins, else a code
       // captured from a ?ref= landing survives until the signup that consumes
       // it. Server-side the field is optional and silently ignored when stale.
+      // 0041 verify-then-create: 202 {ok} — no session comes back; the code
+      // page creates the account (and mints the session) via verify-email.
       const code = referralCode ?? consumeMitraRef() ?? undefined
-      const r = await apiRegister(name, email, password, code)
+      await apiRegister(name, email, password, code)
+    },
+    [],
+  )
+
+  // applyAuthResponse adopts a tokenResponse (verify-email's 200) as the live
+  // session — the user leaves the code page signed in (0041).
+  const applyAuthResponse = useCallback(
+    async (r: AuthResponse) => {
       await onAuthed(r.access_token, r.refresh_token, r.expires_at, r.user)
     },
     [onAuthed],
@@ -206,8 +222,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Memoized value — all functions are stable useCallbacks, so consumers only
   // re-render when the session state (user/token/loading) actually changes.
   const value = useMemo(
-    () => ({ user, token, loading, login, register, loginGoogle, logout, updateUser }),
-    [user, token, loading, login, register, loginGoogle, logout, updateUser],
+    () => ({ user, token, loading, login, register, applyAuthResponse, loginGoogle, logout, updateUser }),
+    [user, token, loading, login, register, applyAuthResponse, loginGoogle, logout, updateUser],
   )
 
   return (
