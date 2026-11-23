@@ -8,7 +8,7 @@ export const content: LegalContent = {
     metaDescription:
       'Sohibna verilerinizi nasıl toplar, kullanır ve korur — reklamsız, izleyicisiz, veri satışı yok.',
     updatedLabel: 'Son güncelleme',
-    updated: '9 Kasım 2026',
+    updated: '23 Kasım 2026',
     backHome: 'Ana Sayfaya Dön',
     sections: [
       {
@@ -28,6 +28,7 @@ export const content: LegalContent = {
         h: 'İbadet ve etkinlik verileriniz',
         p: [
           'Okuma, ezberleme ve ilerleme özelliklerini sunabilmek için uygulamada oluşturduğunuz verileri saklarız: işaretler ve favori âyetler, etiketler, son okuma konumu, hatim hedefleri ve ilerlemesi, ezber hedefleri ve âyet bazında ezber durumu, tekrar (mürâcaa) kuyruğu, günlük tefekkür notları ve ruh hâli, kaydetmeyi seçtiğiniz yapay zekâ sohbetleri ile uygulama tercih ve ayarlarınız.',
+          'Talim (ezber okuma) özelliğini kullanırsanız okuma ses kayıtlarınız dosya depomuzda saklanır: ezber ilerlemesini izlemek için üçüncü taraf bir yapay zekâ hizmeti tarafından otomatik olarak değerlendirilir; bir rehber eğitmen atadıysanız, kayıtları değerlendirme amacıyla dinleyebilir.',
           'Bu veriler tüm cihazlarınızda kullanılabilmesi için hesabınızla eşitlenir. Hesap oluşturmak zorunda değilsiniz — özelliklerin çoğu hesapsız da çalışır.',
         ],
       },
@@ -59,7 +60,7 @@ export const content: LegalContent = {
       {
         h: 'Üçüncü taraflar',
         p: [
-          'Hizmeti işletmek için şu sağlayıcılarla çalışıyoruz: barındırma ve veritabanı sağlayıcıları, dosya deposu, e-posta gönderim hizmeti (Brevo), Google (Firebase Authentication ve Gemini), Groq (yapay zekâ modeli), BigDataCloud coğrafi kodlama hizmeti ve uygulamayı oradan indirdiyseniz Google Play. Her biri, verileri yalnızca o işlev için gereken ölçüde işler.',
+          'Hizmeti işletmek için şu sağlayıcılarla çalışıyoruz: barındırma ve veritabanı sağlayıcıları, dosya deposu, e-posta gönderim hizmeti (Brevo), Google (Firebase Authentication ve Gemini), Groq (yapay zekâ modeli), BigDataCloud coğrafi kodlama hizmeti, RevenueCat (ücretli özellik durumunuzu yönetmek için uygulama içi satın alma verilerinizi işler) ve uygulamayı oradan indirdiyseniz Google Play — uygulama içi ödemeler Google Play Billing üzerinden işlenir. Her biri, verileri yalnızca o işlev için gereken ölçüde işler.',
         ],
       },
       {

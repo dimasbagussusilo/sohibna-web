@@ -2,8 +2,9 @@ import type { LegalContent } from './index'
 
 // Bahasa Indonesia — authoritative source. Facts grounded in the actual data
 // flows of the Go API + clients (email auth, Firebase Google sign-in, S3/MinIO
-// avatars, Groq LLM, Gemini embeddings, BigDataCloud geocoding, local-only
-// notifications, no analytics SDK, no ads).
+// avatars, recitation audio for hafalan review + ASR, Groq LLM, Gemini
+// embeddings, BigDataCloud geocoding, RevenueCat purchase processing,
+// local-only notifications, no analytics SDK, no ads).
 
 export const content: LegalContent = {
   privacy: {
@@ -11,7 +12,7 @@ export const content: LegalContent = {
     metaDescription:
       'Bagaimana Sohibna mengumpulkan, menggunakan, dan melindungi data Anda — tanpa iklan, tanpa pelacak, tanpa penjualan data.',
     updatedLabel: 'Terakhir diperbarui',
-    updated: '9 November 2026',
+    updated: '23 November 2026',
     backHome: 'Kembali ke Beranda',
     sections: [
       {
@@ -31,6 +32,7 @@ export const content: LegalContent = {
         h: 'Data ibadah dan aktivitas Anda',
         p: [
           'Untuk menghadirkan fitur baca, hafalan, dan progres, kami menyimpan data yang Anda buat di dalam aplikasi: penanda dan ayat favorit, label, catatan bacaan terakhir, target khatam beserta progresnya, target hafalan dan status hafalan per ayat, antrean murajaah, catatan refleksi harian beserta suasana hati, riwayat percakapan AI yang Anda simpan, serta preferensi dan pengaturan aplikasi.',
+          'Jika Anda menggunakan fitur setoran hafalan, rekaman suara setoran Anda disimpan di penyimpanan berkas kami: dinilai secara otomatis oleh layanan AI pihak ketiga untuk memantau kemajuan hafalan, dan bila Anda menunjuk pembimbing, rekaman tersebut dapat didengar oleh pembimbing Anda untuk ditinjau.',
           'Data ini disinkronkan ke akun Anda agar tersedia di seluruh perangkat. Anda bebas tidak membuat akun — sebagian besar fitur tetap dapat dipakai tanpa akun.',
         ],
       },
@@ -62,7 +64,7 @@ export const content: LegalContent = {
       {
         h: 'Pihak ketiga',
         p: [
-          'Dalam menjalankan layanan, kami bekerja sama dengan: penyedia hosting dan basis data, penyimpanan berkas, layanan pengiriman email (Brevo), Google (Firebase Authentication dan Gemini), Groq (model AI), layanan geocoding BigDataCloud, serta Google Play bila Anda mengunduh aplikasi dari sana. Masing-masing memproses data hanya sejauh diperlukan untuk fungsi tersebut.',
+          'Dalam menjalankan layanan, kami bekerja sama dengan: penyedia hosting dan basis data, penyimpanan berkas, layanan pengiriman email (Brevo), Google (Firebase Authentication dan Gemini), Groq (model AI), layanan geocoding BigDataCloud, RevenueCat (memproses data pembelian di aplikasi untuk mengelola status fitur berbayar Anda), serta Google Play bila Anda mengunduh aplikasi dari sana — pembayaran di aplikasi diproses melalui Google Play Billing. Masing-masing memproses data hanya sejauh diperlukan untuk fungsi tersebut.',
         ],
       },
       {

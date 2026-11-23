@@ -8,7 +8,7 @@ export const content: LegalContent = {
     metaDescription:
       'How Sohibna collects, uses, and protects your data — no ads, no trackers, no data selling.',
     updatedLabel: 'Last updated',
-    updated: 'November 9, 2026',
+    updated: 'November 23, 2026',
     backHome: 'Back to Home',
     sections: [
       {
@@ -28,6 +28,7 @@ export const content: LegalContent = {
         h: 'Your worship and activity data',
         p: [
           'To provide the reading, memorization, and progress features, we store the data you create in the app: bookmarks and favorite verses, labels, last-read positions, Quran-reading goals and their progress, memorization targets and per-verse memorization status, review queue, daily reflection notes and moods, AI conversations you choose to save, and your app preferences and settings.',
+          'If you use the recitation feature, your recitation audio recordings are stored in our file storage: they are assessed automatically by a third-party AI service to track memorization progress, and if you appoint a mentor, that mentor can listen to the recordings for review.',
           'This data syncs to your account so it is available on all your devices. You are free to skip creating an account — most features work without one.',
         ],
       },
@@ -59,7 +60,7 @@ export const content: LegalContent = {
       {
         h: 'Third parties',
         p: [
-          'To operate the service we work with: hosting and database providers, file storage, the email delivery service (Brevo), Google (Firebase Authentication and Gemini), Groq (the AI model), the BigDataCloud geocoding service, and Google Play if you downloaded the app there. Each processes data only as needed for that function.',
+          'To operate the service we work with: hosting and database providers, file storage, the email delivery service (Brevo), Google (Firebase Authentication and Gemini), Groq (the AI model), the BigDataCloud geocoding service, RevenueCat (processes in-app purchase data to manage your paid-feature status), and Google Play if you downloaded the app there — in-app payments are processed through Google Play Billing. Each processes data only as needed for that function.',
         ],
       },
       {
