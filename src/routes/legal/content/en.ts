@@ -35,13 +35,13 @@ export const content: LegalContent = {
       {
         h: 'Your location',
         p: [
-          'Prayer times and the qibla direction are computed on your device. To display city names, coordinates are sent to a third-party geocoding service (BigDataCloud) without any identity attached. We do not store your location history on our servers.',
+          'Prayer times and the qibla direction are computed on your device. To display city names, coordinates are sent to a third-party geocoding service (BigDataCloud) without any identity attached. When you open the Nearby Masjid feature, the map is loaded from Google Maps and your coordinates at that moment are also sent to Google. We do not store your location history on our servers.',
         ],
       },
       {
         h: 'Our AI features',
         p: [
-          'When you use Ask AI, Kitab AI, or Reflection, your question and the conversation context are sent to a third-party language-model service (Groq) to generate an answer, and the book-reference search uses Google\'s embedding service (Gemini).',
+          'When you use Ask AI, Kitab AI, or Reflection, your question and the conversation context are sent to a third-party language-model service (Groq, with Google Gemini as fallback) to generate an answer, and the book-reference search uses Google\'s embedding service (Gemini).',
           'AI answers can be wrong and are not fatwa — for worship decisions, consult qualified scholars or the appropriate religious authority. A limited sample of questions and answers may be logged on our server for quality assurance and handling of reports.',
         ],
       },
@@ -60,7 +60,7 @@ export const content: LegalContent = {
       {
         h: 'Third parties',
         p: [
-          'To operate the service we work with: hosting and database providers, file storage, the email delivery service (Brevo), Google (Firebase Authentication and Gemini), Groq (the AI model), the BigDataCloud geocoding service, RevenueCat (processes in-app purchase data to manage your paid-feature status), and Google Play if you downloaded the app there — in-app payments are processed through Google Play Billing. Each processes data only as needed for that function.',
+          'To operate the service we work with: hosting and database providers, file storage, the email delivery service (Brevo), Google (Firebase Authentication, Gemini, and Maps for the nearby-masjid feature), Groq (the AI model), the BigDataCloud geocoding service, RevenueCat (processes in-app purchase data to manage your paid-feature status), and Google Play if you downloaded the app there — in-app payments are processed through Google Play Billing. Each processes data only as needed for that function.',
         ],
       },
       {

@@ -35,13 +35,13 @@ export const content: LegalContent = {
       {
         h: 'Konumunuz',
         p: [
-          'Namaz vakitleri ve kıble yönü cihazınızda hesaplanır. Şehir adını gösterebilmek için koordinatlar, kimliğiniz olmadan üçüncü taraf bir coğrafi kodlama hizmetine (BigDataCloud) gönderilir. Konum geçmişinizi sunucularımızda saklamayız.',
+          'Namaz vakitleri ve kıble yönü cihazınızda hesaplanır. Şehir adını gösterebilmek için koordinatlar, kimliğiniz olmadan üçüncü taraf bir coğrafi kodlama hizmetine (BigDataCloud) gönderilir. Yakın Camii özelliğini açtığınızda harita Google Maps üzerinden yüklenir ve o anki koordinatlarınız da Google\'a iletilir. Konum geçmişinizi sunucularımızda saklamayız.',
         ],
       },
       {
         h: 'Yapay zekâ özelliklerimiz',
         p: [
-          'Sor ve Öğren, Kitap Zekâsı veya Tefekkür özelliklerini kullandığınızda sorunuz ve sohbet bağlamı, yanıt üretmek için üçüncü taraf bir dil modeli hizmetine (Groq) gönderilir; kitap referansı arama ise Google\'ın gömme (embedding) hizmetini (Gemini) kullanır.',
+          'Sor ve Öğren, Kitap Zekâsı veya Tefekkür özelliklerini kullandığınızda sorunuz ve sohbet bağlamı, yanıt üretmek için üçüncü taraf bir dil modeli hizmetine (Groq; yedek olarak Google Gemini) gönderilir; kitap referansı arama ise Google\'ın gömme (embedding) hizmetini (Gemini) kullanır.',
           'Yapay zekâ yanıtları hatalı olabilir ve fetva değildir — ibadet kararları için yetkili âlimlere veya ilgili dinî merciiye daninin. Soru ve yanıtların sınırlı bir örneklemi, kalite güvencesi ve raporların ele alınması için sunucumuzda kaydedilebilir.',
         ],
       },
@@ -60,7 +60,7 @@ export const content: LegalContent = {
       {
         h: 'Üçüncü taraflar',
         p: [
-          'Hizmeti işletmek için şu sağlayıcılarla çalışıyoruz: barındırma ve veritabanı sağlayıcıları, dosya deposu, e-posta gönderim hizmeti (Brevo), Google (Firebase Authentication ve Gemini), Groq (yapay zekâ modeli), BigDataCloud coğrafi kodlama hizmeti, RevenueCat (ücretli özellik durumunuzu yönetmek için uygulama içi satın alma verilerinizi işler) ve uygulamayı oradan indirdiyseniz Google Play — uygulama içi ödemeler Google Play Billing üzerinden işlenir. Her biri, verileri yalnızca o işlev için gereken ölçüde işler.',
+          'Hizmeti işletmek için şu sağlayıcılarla çalışıyoruz: barındırma ve veritabanı sağlayıcıları, dosya deposu, e-posta gönderim hizmeti (Brevo), Google (Firebase Authentication, Gemini ve yakın camii özelliği için Maps), Groq (yapay zekâ modeli), BigDataCloud coğrafi kodlama hizmeti, RevenueCat (ücretli özellik durumunuzu yönetmek için uygulama içi satın alma verilerinizi işler) ve uygulamayı oradan indirdiyseniz Google Play — uygulama içi ödemeler Google Play Billing üzerinden işlenir. Her biri, verileri yalnızca o işlev için gereken ölçüde işler.',
         ],
       },
       {

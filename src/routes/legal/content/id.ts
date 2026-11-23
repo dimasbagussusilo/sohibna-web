@@ -39,13 +39,13 @@ export const content: LegalContent = {
       {
         h: 'Lokasi Anda',
         p: [
-          'Jadwal shalat dan arah kibla dihitung di perangkat Anda. Untuk menampilkan nama kota, koordinat dikirim ke layanan geocoding pihak ketiga (BigDataCloud) tanpa disertai identitas Anda. Kami tidak menyimpan riwayat lokasi Anda di server.',
+          'Jadwal shalat dan arah kibla dihitung di perangkat Anda. Untuk menampilkan nama kota, koordinat dikirim ke layanan geocoding pihak ketiga (BigDataCloud) tanpa disertai identitas Anda. Saat Anda membuka fitur Masjid Terdekat, peta dimuat dari Google Maps dan koordinat Anda saat itu turut terkirim ke Google. Kami tidak menyimpan riwayat lokasi Anda di server.',
         ],
       },
       {
         h: 'Fitur AI kami',
         p: [
-          'Saat Anda menggunakan Tanya AI, Kitab AI, atau Refleksi, pertanyaan Anda beserta konteks percakapan dikirim ke layanan model bahasa pihak ketiga (Groq) untuk menghasilkan jawaban, dan proses pencarian rujukan kitab menggunakan layanan embedding Google (Gemini).',
+          'Saat Anda menggunakan Tanya AI, Kitab AI, atau Refleksi, pertanyaan Anda beserta konteks percakapan dikirim ke layanan model bahasa pihak ketiga (Groq, dengan cadangan Google Gemini) untuk menghasilkan jawaban, dan proses pencarian rujukan kitab menggunakan layanan embedding Google (Gemini).',
           'Jawaban AI dapat keliru dan bukan fatwa — untuk keputusan ibadah, rujuklah ulama atau lembaga yang berwenang. Sebagian contoh tanya-jawab dapat kami catat di server secara terbatas untuk keperluan penjaminan mutu dan penanganan laporan.',
         ],
       },
@@ -64,7 +64,7 @@ export const content: LegalContent = {
       {
         h: 'Pihak ketiga',
         p: [
-          'Dalam menjalankan layanan, kami bekerja sama dengan: penyedia hosting dan basis data, penyimpanan berkas, layanan pengiriman email (Brevo), Google (Firebase Authentication dan Gemini), Groq (model AI), layanan geocoding BigDataCloud, RevenueCat (memproses data pembelian di aplikasi untuk mengelola status fitur berbayar Anda), serta Google Play bila Anda mengunduh aplikasi dari sana — pembayaran di aplikasi diproses melalui Google Play Billing. Masing-masing memproses data hanya sejauh diperlukan untuk fungsi tersebut.',
+          'Dalam menjalankan layanan, kami bekerja sama dengan: penyedia hosting dan basis data, penyimpanan berkas, layanan pengiriman email (Brevo), Google (Firebase Authentication, Gemini, dan Maps untuk fitur masjid terdekat), Groq (model AI), layanan geocoding BigDataCloud, RevenueCat (memproses data pembelian di aplikasi untuk mengelola status fitur berbayar Anda), serta Google Play bila Anda mengunduh aplikasi dari sana — pembayaran di aplikasi diproses melalui Google Play Billing. Masing-masing memproses data hanya sejauh diperlukan untuk fungsi tersebut.',
         ],
       },
       {
