@@ -1,23 +1,33 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { useI18n } from '@/context/I18nContext'
 
 // Overlay confirmation dialog rendered once in App (like Toast). Keeps every
 // ask — destructive confirms and informational alerts — on the app's own design
-// instead of the browser's window.confirm. Escape cancels, Enter confirms.
+// instead of the browser's window.confirm. Escape cancels, Enter confirms
+// (only once the type-to-confirm gate, when present, is satisfied).
 export function ConfirmDialog() {
   const { confirmReq, settleConfirm } = useApp()
   const { t } = useI18n()
+
+  // Type-to-confirm gate (typeToConfirm): the input resets for every request —
+  // including the null that closes the dialog — so a reopened ask starts blank.
+  const [typed, setTyped] = useState('')
+  useEffect(() => {
+    setTyped('')
+  }, [confirmReq])
+  const expected = confirmReq?.typeToConfirm
+  const typeOk = !expected || typed.trim().toLowerCase() === expected.toLowerCase()
 
   useEffect(() => {
     if (!confirmReq) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') settleConfirm(false)
-      else if (e.key === 'Enter') settleConfirm(true)
+      else if (e.key === 'Enter' && typeOk) settleConfirm(true)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [confirmReq, settleConfirm])
+  }, [confirmReq, settleConfirm, typeOk])
 
   if (!confirmReq) return null
 
@@ -36,6 +46,23 @@ export function ConfirmDialog() {
             {confirmReq.message}
           </p>
         )}
+        {expected && (
+          <>
+            <p className="mt-2 break-all text-center text-[13px] leading-relaxed text-ink/60 dark:text-cream/60">
+              {t('common.typeToConfirm', { text: expected })}
+            </p>
+            <input
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              autoFocus
+              autoCapitalize="none"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label={expected}
+              className="mt-3 w-full rounded-xl border border-black/10 bg-black/5 px-4 py-3 text-sm text-ink outline-none focus:border-[#8FBC8F]/60 dark:border-white/10 dark:bg-white/10 dark:text-cream dark:focus:border-[#8FBC8F]"
+            />
+          </>
+        )}
         <div className="mt-6 flex gap-3">
           {!confirmReq.hideCancel && (
             <button
@@ -47,9 +74,10 @@ export function ConfirmDialog() {
           )}
           <button
             onClick={() => settleConfirm(true)}
-            className={`flex-1 rounded-xl py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 ${
-              confirmReq.destructive ? 'bg-red-500' : 'bg-[#8FBC8F]'
-            }`}
+            disabled={!typeOk}
+            className={`flex-1 rounded-xl py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40 ${
+              typeOk ? 'transition-opacity hover:opacity-90' : ''
+            } ${confirmReq.destructive ? 'bg-red-500' : 'bg-[#8FBC8F]'}`}
           >
             {confirmReq.confirmText ?? t('common.done')}
           </button>

@@ -39,6 +39,10 @@ export type ConfirmRequest = {
   cancelText?: string
   destructive?: boolean // confirm button renders red
   hideCancel?: boolean // informational variant: single dismiss button
+  // Friction gate for irreversible actions (e.g. delete account): the confirm
+  // button stays disabled until the user types this exact text (trimmed,
+  // case-insensitive match — emails).
+  typeToConfirm?: string
 }
 type PendingConfirm = ConfirmRequest & { resolve: (ok: boolean) => void }
 

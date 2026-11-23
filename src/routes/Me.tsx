@@ -41,6 +41,9 @@ export function Me() {
       message: t('me.deleteBody'),
       confirmText: t('me.deleteConfirm'),
       destructive: true,
+      // Friction gate: the delete button unlocks only after the user retypes
+      // their own email — a stray click can't wipe the account.
+      typeToConfirm: user?.email,
     })
     if (!ok || !user) return
     try {
