@@ -27,7 +27,7 @@ export const content: LegalContent = {
       {
         h: 'İbadet ve etkinlik verileriniz',
         p: [
-          'Okuma, ezberleme ve ilerleme özelliklerini sunabilmek için uygulamada oluşturduğunuz verileri saklarız: işaretler ve favori âyetler, etiketler, son okuma konumu, hatim hedefleri ve ilerlemesi, ezber hedefleri ve âyet bazında ezber durumu, tekrar (mürâcaa) kuyruğu, günlük tefekkür notları ve ruh hâli, kaydetmeyi seçtiğiniz yapay zekâ sohbetleri ile uygulama tercih ve ayarlarınız.',
+          'Okuma, ezberleme ve ilerleme özelliklerini sunabilmek için uygulamada oluşturduğunuz verileri saklarız: işaretler ve favori âyetler, etiketler, son okuma konumu, hatim hedefleri ve ilerlemesi, ezber hedefleri ve âyet bazında ezber durumu, tekrar (mürâcaa) kuyruğu, günlük tefekkür notları ve ruh hâli, kaydetmeyi seçtiğiniz yapay zekâ sohbetleri, topluluk gruplarındaki üyeliğiniz ve etkinlikleriniz ile uygulama tercih ve ayarlarınız.',
           'Talim (ezber okuma) özelliğini kullanırsanız okuma ses kayıtlarınız dosya depomuzda saklanır: ezber ilerlemesini izlemek için üçüncü taraf bir yapay zekâ hizmeti tarafından otomatik olarak değerlendirilir; bir rehber eğitmen atadıysanız, kayıtları değerlendirme amacıyla dinleyebilir.',
           'Bu veriler tüm cihazlarınızda kullanılabilmesi için hesabınızla eşitlenir. Hesap oluşturmak zorunda değilsiniz — özelliklerin çoğu hesapsız da çalışır.',
         ],
@@ -108,7 +108,7 @@ export const content: LegalContent = {
     metaDescription:
       'Sohibna uygulamasının kullanım koşulları — PT. FRAME DIGITAL SOLUSINDO\'dan bir ibadet ve İslam öğrenme yardımcısı.',
     updatedLabel: 'Son güncelleme',
-    updated: '9 Kasım 2026',
+    updated: '23 Kasım 2026',
     backHome: 'Ana Sayfaya Dön',
     sections: [
       {
@@ -120,7 +120,7 @@ export const content: LegalContent = {
       {
         h: 'Sohibna hizmeti hakkında',
         p: [
-          'Sohibna bir ibadet ve İslam öğrenme yardımcısıdır: Kur\'an okuma ve ezberleme, namaz vakitleri, kıble yönü, Hicri takvim, zikir, namaz ve ikrô öğrenimi ile yapay zekâ destekli İslam külliyatı sohbeti.',
+          'Sohibna bir ibadet ve İslam öğrenme yardımcısıdır: Kur\'an okuma ve ezberleme, namaz vakitleri, kıble yönü, Hicri takvim, zikir, namaz ve ikrô öğrenimi, öğrenici topluluk grupları ile yapay zekâ destekli İslam külliyatı sohbeti.',
           'Hizmet "olduğu gibi" sunulur. İçeriğin doğruluğu için gayret ederiz; ancak hatasız veya kesintisiz olduğunu taahhüt etmeyiz.',
         ],
       },
@@ -140,6 +140,7 @@ export const content: LegalContent = {
         h: 'Dürüst kullanım',
         p: [
           'Hizmeti kötüye kullanmamayı; hukuka veya genel ahlaka aykırı içerik göndermemeyi; otomasyon dâhil sunucuları aşırı yüklememeyi; sistemlere veya başkalarının verilerine izinsiz erişmeye teşebbüs etmemeyi kabul edersiniz.',
+          'Bu şartlar topluluk özelliklerine de eksiksiz uygulanır. Kurallara aykırı topluluk içeriğini kaldırabilir, kural ihlal eden kullanıcıların erişimini kısıtlayabilir ve kullanıcı bildirimlerini değerlendirebiliriz; dilediğiniz an bir kullanıcıyı üye profil sayfasından engelleyebilirsiniz.',
         ],
       },
       {
@@ -157,13 +158,14 @@ export const content: LegalContent = {
       {
         h: 'Gönüllü destek',
         p: [
-          '"Bizi Destekle" özelliği, uygulamanın işletmesi için gönüllü destek sunmanıza imkân verir. Destek hiçbir özellik, içerik veya ayrıcalık açmaz; alınan tutarlar, ilgili hukukun zorun kıldığı hâller dışında iade edilmez.',
+          'Sohibna\'nın işletilmesine gönüllü destek, uygulamadan değil sitemizdeki (sohibna.com) bağış sayfası üzerinden verilir. Destek, uygulama içinde hiçbir özellik, içerik veya ayrıcalık açmaz; alınan tutarlar ilgili hukukun zorun kıldığı hâller dışında iade edilmez.',
         ],
       },
       {
-        h: 'İleride ücretli özellikler',
+        h: 'Ücretsiz ve ücretli özellikler',
         p: [
-          'İleride ücretli bir abonelik sunarsak (örneğin Sohibna+), ödemeler Google Play Billing üzerinden işlenecek ve Google Play koşullarına tabi olacaktır. Temel ibadet özellikleri — Kur\'an, namaz vakitleri, ezan, kıble — ücretsiz kalır.',
+          'Temel ibadet özellikleri — Kur\'an okuma ve ezberleme, namaz vakitleri, ezan, kıble, zikir — ücretsiz kalır. Uygulamada isteğe bağlı satın almalar sunulur: Sohibna+ programı kapsamındaki "Supporter" ve "Premium" paketleri (aylık/yıllık abonelik veya ömür boyu tek ödeme); bunlar Yapay Zekâ\'ya Sor ve talim gibi yardımcı özellik kotalarını genişletir, rozetler, profil süslemeleri ve belirli temalar gibi kozmetik dokunuşların kilidini açar.',
+          'Tüm ödemeler Google Play Billing üzerinden işlenir; abonelik, iptal ve iade dâhil Google Play koşullarına tabidir. Bazı ücretli özellikler sınırlı süreyle ücretsiz denenebilir.',
         ],
       },
       {

@@ -31,7 +31,7 @@ export const content: LegalContent = {
       {
         h: 'Data ibadah dan aktivitas Anda',
         p: [
-          'Untuk menghadirkan fitur baca, hafalan, dan progres, kami menyimpan data yang Anda buat di dalam aplikasi: penanda dan ayat favorit, label, catatan bacaan terakhir, target khatam beserta progresnya, target hafalan dan status hafalan per ayat, antrean murajaah, catatan refleksi harian beserta suasana hati, riwayat percakapan AI yang Anda simpan, serta preferensi dan pengaturan aplikasi.',
+          'Untuk menghadirkan fitur baca, hafalan, dan progres, kami menyimpan data yang Anda buat di dalam aplikasi: penanda dan ayat favorit, label, catatan bacaan terakhir, target khatam beserta progresnya, target hafalan dan status hafalan per ayat, antrean murajaah, catatan refleksi harian beserta suasana hati, riwayat percakapan AI yang Anda simpan, keanggotaan serta aktivitas Anda di grup komunitas, serta preferensi dan pengaturan aplikasi.',
           'Jika Anda menggunakan fitur setoran hafalan, rekaman suara setoran Anda disimpan di penyimpanan berkas kami: dinilai secara otomatis oleh layanan AI pihak ketiga untuk memantau kemajuan hafalan, dan bila Anda menunjuk pembimbing, rekaman tersebut dapat didengar oleh pembimbing Anda untuk ditinjau.',
           'Data ini disinkronkan ke akun Anda agar tersedia di seluruh perangkat. Anda bebas tidak membuat akun — sebagian besar fitur tetap dapat dipakai tanpa akun.',
         ],
@@ -112,7 +112,7 @@ export const content: LegalContent = {
     metaDescription:
       'Ketentuan penggunaan aplikasi Sohibna — alat bantu ibadah dan pembelajaran Islam dari PT. FRAME DIGITAL SOLUSINDO.',
     updatedLabel: 'Terakhir diperbarui',
-    updated: '9 November 2026',
+    updated: '23 November 2026',
     backHome: 'Kembali ke Beranda',
     sections: [
       {
@@ -124,7 +124,7 @@ export const content: LegalContent = {
       {
         h: 'Tentang layanan Sohibna',
         p: [
-          'Sohibna adalah aplikasi pendamping ibadah dan pembelajaran Islam: membaca dan menghafal Al-Qur\'an, jadwal shalat, arah kibla, kalender hijriah, dzikir, pembelajaran shalat dan iqro, serta diskusi literatur Islam berbantuan AI.',
+          'Sohibna adalah aplikasi pendamping ibadah dan pembelajaran Islam: membaca dan menghafal Al-Qur\'an, jadwal shalat, arah kibla, kalender hijriah, dzikir, pembelajaran shalat dan iqro, grup komunitas pembelajar, serta diskusi literatur Islam berbantuan AI.',
           'Layanan disediakan "sebagaimana adanya". Kami berupaya menjaga keakuratan konten, namun tidak menjamin bebas dari kekeliruan maupun gangguan.',
         ],
       },
@@ -144,6 +144,7 @@ export const content: LegalContent = {
         h: 'Penggunaan yang wajar',
         p: [
           'Anda setuju untuk tidak: menyalahgunakan layanan, mengirim konten yang melanggar hukum atau kesusilaan, membebani server secara berlebihan termasuk melalui otomatisasi, maupun mencoba mengakses sistem atau data orang lain tanpa izin.',
+          'Ketentuan ini berlaku penuh dalam fitur komunitas. Kami dapat menghapus konten komunitas yang melanggar, membatasi akses pengguna yang melanggar, serta menindak lanjuti laporan antar-pengguna; Anda dapat memblokir pengguna lain kapan saja dari halaman profil anggotanya.',
         ],
       },
       {
@@ -161,13 +162,14 @@ export const content: LegalContent = {
       {
         h: 'Dukungan sukarela',
         p: [
-          'Fitur "Dukung Kami" memungkinkan Anda memberikan dukungan sukarela untuk operasional aplikasi. Dukungan tidak membuka fitur, konten, maupun keistimewaan apa pun, dan yang telah diterima tidak dapat dikembalikan, kecuali diwajibkan oleh hukum yang berlaku.',
+          'Dukungan sukarela untuk operasional Sohibna disalurkan melalui halaman donasi di situs web kami (sohibna.com), di luar aplikasi. Dukungan tidak membuka fitur, konten, maupun keistimewaan apa pun di dalam aplikasi, dan yang telah diterima tidak dapat dikembalikan, kecuali diwajibkan oleh hukum yang berlaku.',
         ],
       },
       {
-        h: 'Fitur berbayar di kemudian hari',
+        h: 'Fitur gratis dan berbayar',
         p: [
-          'Apabila di kemudian hari kami menyediakan langganan berbayar (misalnya Sohibna+), transaksinya akan diproses melalui Google Play Billing dan tunduk pada ketentuan Google Play. Fitur inti ibadah — Al-Qur\'an, jadwal shalat, adzan, kibla — tetap gratis.',
+          'Fitur inti ibadah — membaca dan menghafal Al-Qur\'an, jadwal shalat, adzan, kibla, dzikir — tetap gratis. Di dalam aplikasi tersedia pembelian opsional: paket "Supporter" dan "Premium" di bawah program Sohibna+ (langganan bulanan/tahunan atau sekali bayar seumur hidup), yang memperluas kuota fitur bantu seperti Tanya AI dan setoran hafalan serta membuka sentuhan tampilan khusus (lencana, dekorasi profil, dan tema tertentu).',
+          'Seluruh pembayaran diproses melalui Google Play Billing dan tunduk pada ketentuan Google Play, termasuk cara berlangganan, pembatalan, dan pengembalian dana. Sebagian fitur berbayar dapat dicoba gratis dalam jangka waktu terbatas.',
         ],
       },
       {

@@ -27,7 +27,7 @@ export const content: LegalContent = {
       {
         h: 'Your worship and activity data',
         p: [
-          'To provide the reading, memorization, and progress features, we store the data you create in the app: bookmarks and favorite verses, labels, last-read positions, Quran-reading goals and their progress, memorization targets and per-verse memorization status, review queue, daily reflection notes and moods, AI conversations you choose to save, and your app preferences and settings.',
+          'To provide the reading, memorization, and progress features, we store the data you create in the app: bookmarks and favorite verses, labels, last-read positions, Quran-reading goals and their progress, memorization targets and per-verse memorization status, review queue, daily reflection notes and moods, AI conversations you choose to save, your membership and activity in community groups, and your app preferences and settings.',
           'If you use the recitation feature, your recitation audio recordings are stored in our file storage: they are assessed automatically by a third-party AI service to track memorization progress, and if you appoint a mentor, that mentor can listen to the recordings for review.',
           'This data syncs to your account so it is available on all your devices. You are free to skip creating an account — most features work without one.',
         ],
@@ -108,7 +108,7 @@ export const content: LegalContent = {
     metaDescription:
       'The terms of use for the Sohibna app — an Islamic worship and learning companion by PT. FRAME DIGITAL SOLUSINDO.',
     updatedLabel: 'Last updated',
-    updated: 'November 9, 2026',
+    updated: 'November 23, 2026',
     backHome: 'Back to Home',
     sections: [
       {
@@ -120,7 +120,7 @@ export const content: LegalContent = {
       {
         h: 'About the Sohibna service',
         p: [
-          'Sohibna is an Islamic worship and learning companion: reading and memorizing the Qur\'an, prayer times, qibla direction, Hijri calendar, dhikr, prayer and iqro learning, and AI-assisted discussion of Islamic literature.',
+          'Sohibna is an Islamic worship and learning companion: reading and memorizing the Qur\'an, prayer times, qibla direction, Hijri calendar, dhikr, prayer and iqro learning, learner community groups, and AI-assisted discussion of Islamic literature.',
           'The service is provided "as is". We strive to keep content accurate, but do not guarantee it is free of errors or interruptions.',
         ],
       },
@@ -140,6 +140,7 @@ export const content: LegalContent = {
         h: 'Fair use',
         p: [
           'You agree not to: misuse the service, transmit content that violates law or public decency, overload the servers including through automation, or attempt to access systems or other people\'s data without authorization.',
+          'These terms apply fully within the community features. We may remove community content that violates them, restrict access of users who break them, and act on user reports; you can block another user at any time from their member profile page.',
         ],
       },
       {
@@ -157,13 +158,14 @@ export const content: LegalContent = {
       {
         h: 'Voluntary support',
         p: [
-          'The "Support Us" feature lets you give voluntary support toward the app\'s operations. Support unlocks no features, content, or privileges, and amounts received are non-refundable except where required by applicable law.',
+          'Voluntary support toward Sohibna\'s operations is given through the donation page on our website (sohibna.com), outside the app. Support unlocks no features, content, or privileges in the app, and amounts received are non-refundable except where required by applicable law.',
         ],
       },
       {
-        h: 'Paid features in the future',
+        h: 'Free and paid features',
         p: [
-          'If we later offer a paid subscription (for example Sohibna+), transactions will be processed through Google Play Billing and subject to Google Play\'s terms. The core worship features — the Qur\'an, prayer times, adhan, qibla — remain free.',
+          'The core worship features — reading and memorizing the Qur\'an, prayer times, adhan, qibla, dhikr — remain free. The app offers optional in-app purchases: the "Supporter" and "Premium" plans under the Sohibna+ program (monthly or yearly subscription, or a one-time lifetime purchase), which expand helper-feature quotas such as Ask AI and recitation, and unlock cosmetic touches (badges, profile decorations, and certain themes).',
+          'All payments are processed through Google Play Billing and are subject to Google Play\'s terms, including how to subscribe, cancel, and request refunds. Some paid features can be tried free for a limited time.',
         ],
       },
       {
