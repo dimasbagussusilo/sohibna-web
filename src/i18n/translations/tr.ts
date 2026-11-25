@@ -1512,6 +1512,8 @@ export const translations: Translation = {
   quota: {
     title: 'Günlük yapay zekâ sınırına ulaşıldı',
     body: 'Bugünün ücretsiz yapay zekâ kotası doldu. Sonraki soru yarın — ya da uygulamada Sohibna+ ile daha büyük kota alın.',
+    limitBodyPremium: 'Bugünün Premium yapay zekâ kotası doldu. Sonraki soru yarın.',
+    limitBodySupporter: 'Bugünün Destekçi yapay zekâ kotası doldu. Sonraki soru yarın — ya da uygulamada Premium ile en büyük kota alın.',
     cta: 'Google Playde görüntüle',
     loginTitle: 'Yapay zekâyı kullanmak için giriş yapın',
     loginBody: 'Yapay zekâ artık giriş yapan kullanıcılar için — günde 1 ücretsiz sohbet, Destekçi veya Premium ile daha fazlası.',

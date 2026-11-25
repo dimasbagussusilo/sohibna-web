@@ -1518,6 +1518,8 @@ export const translations = {
   quota: {
     title: 'Batas harian Tanya AI tercapai',
     body: 'Kuota gratis Tanya AI hari ini sudah habis. Kalimat berikutnya tersedia besok — atau dapat kuota besar dengan Sohibna+ di aplikasi.',
+    limitBodyPremium: 'Kuota harian Premium Anda sudah habis. Kalimat berikutnya tersedia besok.',
+    limitBodySupporter: 'Kuota harian Supporter Anda sudah habis. Kalimat berikutnya tersedia besok — atau dapat kuota terbesar dengan Premium di aplikasi.',
     cta: 'Lihat di Google Play',
     loginTitle: 'Masuk untuk Memakai AI',
     loginBody: 'Tanya AI kini untuk pengguna yang masuk — gratis 1 percakapan/hari, lebih banyak dengan Supporter atau Premium.',

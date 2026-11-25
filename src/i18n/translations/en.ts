@@ -1500,6 +1500,8 @@ export const translations: Translation = {
   quota: {
     title: 'Daily AI limit reached',
     body: 'Your free AI quota for today is used up. The next question arrives tomorrow — or get a bigger quota with Sohibna+ in the app.',
+    limitBodyPremium: 'Your Premium daily quota is used up. The next question arrives tomorrow.',
+    limitBodySupporter: 'Your Supporter daily quota is used up. The next question arrives tomorrow — or get the largest quota with Premium in the app.',
     cta: 'View on Google Play',
     loginTitle: 'Sign in to use AI',
     loginBody: 'AI is now for signed-in users — 1 free conversation/day, more with Supporter or Premium.',
