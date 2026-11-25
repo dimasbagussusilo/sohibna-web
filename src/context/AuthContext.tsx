@@ -11,6 +11,8 @@ import {
 import { login as apiLogin, register as apiRegister, revokeSession, type AuthResponse, type User } from '@/api'
 import { consumeMitraRef } from '@/lib/mitraRef'
 import { signInWithGoogleWeb, signOutGoogleWeb } from '@/lib/googleAuthWeb'
+import { clearReflectionLocalData } from '@/reflection/history'
+import { clearRulingsLocalData } from '@/rulings/history'
 import {
   clearSession,
   getAccessToken,
@@ -25,6 +27,18 @@ const ACCESS_TOKEN_KEY = 'sohibna.auth_token'
 const REFRESH_TOKEN_KEY = 'sohibna.auth_refresh'
 const TOKEN_EXP_KEY = 'sohibna.auth_exp' // access-token expiry, epoch ms
 const USER_KEY = 'sohibna.auth_user'
+
+// Account-attached conversations must not outlive the session on this device.
+// The chat caches (AI chats + daily reflections) are keyed by entry id, not by
+// account: without this the next account — or a guest — could read the previous
+// account's threads, continuing one would re-save it into THEIR account, and
+// local reflections are backfilled into whichever account logs in next. Only
+// these two stores are purged; device settings, the per-uid sync caches/queues
+// and guest reading progress are untouched.
+const purgeLocalChats = () => {
+  clearRulingsLocalData().catch(() => {})
+  clearReflectionLocalData().catch(() => {})
+}
 
 type AuthState = {
   user: User | null
@@ -83,6 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setToken(null)
       setUser(null)
+      // Session over (logout, dead refresh token, AuthError) — the account's
+      // cached conversations go with it.
+      purgeLocalChats()
       localStorage.removeItem(ACCESS_TOKEN_KEY)
       localStorage.removeItem(REFRESH_TOKEN_KEY)
       localStorage.removeItem(TOKEN_EXP_KEY)
@@ -111,6 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshToken,
         expiresAt: new Date(exp).getTime(),
       }
+      // A direct account switch (A → B with no logout in between) never passes
+      // through a null session — purge here too.
+      if (userRef.current && userRef.current.id !== u.id) purgeLocalChats()
       userRef.current = u
       setSingletonSession(session) // → subscription persists it + sets state
     },
