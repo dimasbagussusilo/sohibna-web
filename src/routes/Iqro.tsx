@@ -3,37 +3,21 @@ import { useNavigate } from 'react-router'
 import { ChevronLeft, Volume2 } from 'lucide-react'
 import { VOLUMES, V1_FAMILIES, V2_WORDS } from '@/iqro/data'
 import { resolve } from '@/dzikir/content'
+import { useServerTts } from '@/hooks/useServerTts'
 import type { Lang } from '@/i18n/types'
 import { useI18n } from '@/context/I18nContext'
 
 // Iqro (web port, P2 subset): the hijaiyah curriculum — Volume 1 (letters by
 // makhraj family) and Volume 2 (letter joining). Each letter/word speaks via
-// Web Speech. Volumes 3–5 (harakat/tajwid rules) render as text sections from
-// the same datasets.
+// the server's Gemini TTS (same voice as the RN app; browser voice only as a
+// fallback). Lesson syllables are sent verbatim — NO waqf, or the final
+// harakat the lesson teaches is stripped (same rule as the app). Volumes 3–5
+// (harakat/tajwid rules) render as text sections from the same datasets.
 export function Iqro() {
   const { t, lang, dict } = useI18n()
   const navigate = useNavigate()
   const [vol, setVol] = useState(1)
-  const [speaking, setSpeaking] = useState<string | null>(null)
-
-  const speak = (id: string, text: string) => {
-    if (!('speechSynthesis' in window)) return
-    if (speaking === id) {
-      window.speechSynthesis.cancel()
-      setSpeaking(null)
-      return
-    }
-    const u = new SpeechSynthesisUtterance(text)
-    const voices = window.speechSynthesis.getVoices()
-    const v = voices.find((x) => x.lang.startsWith('ar'))
-    if (v) u.voice = v
-    u.lang = v?.lang ?? 'ar-SA'
-    u.onend = () => setSpeaking(null)
-    u.onerror = () => setSpeaking(null)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
-    setSpeaking(id)
-  }
+  const { speaking, speak } = useServerTts(false)
 
   return (
     <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">

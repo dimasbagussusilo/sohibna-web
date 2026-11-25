@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ChevronLeft, Volume2 } from 'lucide-react'
 import { useDzikirContent } from '@/dzikir/content'
+import { useServerTts } from '@/hooks/useServerTts'
 import type { DzikirCategory } from '@/dzikir/types'
 import { useI18n } from '@/context/I18nContext'
 
 // Dzikir & Doa (web port): category tabs + Arabic cards with transliteration,
 // meaning, and reference (religion-content standard: references always shown).
-// Web Speech TTS reads the Arabic (same ar-* voice preference as the RN app).
+// The Arabic is read by the server's Gemini TTS with pausal forms (waqf), the
+// same as the RN app; the browser's Arabic voice is only the fallback.
 const CATS: DzikirCategory[] = ['afterPrayer', 'morning', 'evening', 'daily']
 
 export function Dzikir() {
@@ -15,28 +17,9 @@ export function Dzikir() {
   const navigate = useNavigate()
   const { items } = useDzikirContent()
   const [cat, setCat] = useState<DzikirCategory>('afterPrayer')
-  const [speaking, setSpeaking] = useState<string | null>(null)
+  const { speaking, speak } = useServerTts(true)
 
   const filtered = useMemo(() => items.filter((i) => i.category === cat), [items, cat])
-
-  const speak = (id: string, arabic: string) => {
-    if (!('speechSynthesis' in window)) return
-    if (speaking === id) {
-      window.speechSynthesis.cancel()
-      setSpeaking(null)
-      return
-    }
-    const u = new SpeechSynthesisUtterance(arabic)
-    const voices = window.speechSynthesis.getVoices()
-    const ar = voices.find((v) => v.lang.startsWith('ar'))
-    if (ar) u.voice = ar
-    u.lang = ar?.lang ?? 'ar-SA'
-    u.onend = () => setSpeaking(null)
-    u.onerror = () => setSpeaking(null)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
-    setSpeaking(id)
-  }
 
   return (
     <div className="min-h-dvh bg-cream dark:bg-night lg:ps-20">

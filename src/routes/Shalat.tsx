@@ -10,6 +10,7 @@ import {
   WUDHU_NIAT,
 } from '@/shalat/data'
 import { MAZHABS, type ArabicItem, type Bi, type Body, type Lang, type Mazhab } from '@/shalat/types'
+import { useServerTts } from '@/hooks/useServerTts'
 import { useI18n } from '@/context/I18nContext'
 
 // Shalat (web port): the rukun/movement flow (mazhab-aware variants), the
@@ -39,7 +40,9 @@ export function Shalat() {
   const [mazhab, setMazhab] = useState<Mazhab>('shafii')
   const [prayerIdx, setPrayerIdx] = useState(0)
   const [stepIdx, setStepIdx] = useState(0)
-  const [speaking, setSpeaking] = useState<string | null>(null)
+  // Litany prose: spoken with pausal forms (waqf), same as the app's
+  // useTtsPlayer; server Gemini TTS first, browser Arabic voice as fallback.
+  const { speaking, speak } = useServerTts(true)
 
   // The Body for a step under the active mazhab (variant → shared fallback).
   const stepBody = (s: (typeof RUKUN_STEPS)[number]): Body | undefined =>
@@ -49,25 +52,6 @@ export function Shalat() {
   const step = RUKUN_STEPS[Math.min(stepIdx, RUKUN_STEPS.length - 1)]
   const body = step ? stepBody(step) : undefined
   const recitation = body ? ar(body as ArabicItem, lang) : null
-
-  const speak = (id: string, arabic: string | undefined) => {
-    if (!arabic || !('speechSynthesis' in window)) return
-    if (speaking === id) {
-      window.speechSynthesis.cancel()
-      setSpeaking(null)
-      return
-    }
-    const u = new SpeechSynthesisUtterance(arabic)
-    const voices = window.speechSynthesis.getVoices()
-    const v = voices.find((x) => x.lang.startsWith('ar'))
-    if (v) u.voice = v
-    u.lang = v?.lang ?? 'ar-SA'
-    u.onend = () => setSpeaking(null)
-    u.onerror = () => setSpeaking(null)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
-    setSpeaking(id)
-  }
 
   const mazhabInfo = MAZHAB_INFO[mazhab]
 
@@ -315,20 +299,26 @@ function RecitationCard({
           : 'mb-3 rounded-3xl bg-white p-5 shadow-sm dark:bg-[#122A1F]'
       }
     >
-      {item.title ? (
-        <div className="mb-2 flex items-center justify-between">
+      {/* The listen button is NOT gated on a title (RN parity: ArabicBlock
+          renders ListenButton whenever a player is wired). The Shalat
+          resolver never sets `title`, so the old `item.title &&` gate left
+          every recitation on this page unplayable. */}
+      <div className="mb-2 flex items-center justify-between">
+        {item.title ? (
           <span className="text-[10px] font-bold uppercase tracking-widest text-[#8FBC8F]">
             {item.title}
           </span>
-          <button
-            onClick={() => speak(idPrefix, item.arabic)}
-            className="flex items-center gap-1 text-[10px] font-semibold text-[#8FBC8F]"
-          >
-            <Volume2 size={11} />
-            {speaking === idPrefix ? t('dzikir.listening') : t('dzikir.listen')}
-          </button>
-        </div>
-      ) : null}
+        ) : (
+          <span />
+        )}
+        <button
+          onClick={() => speak(idPrefix, item.arabic)}
+          className="flex items-center gap-1 text-[10px] font-semibold text-[#8FBC8F]"
+        >
+          <Volume2 size={11} />
+          {speaking === idPrefix ? t('dzikir.listening') : t('dzikir.listen')}
+        </button>
+      </div>
       <div className="quran-rtl mb-2 text-right text-[28px] text-ink dark:text-cream">
         {item.arabic}
       </div>
