@@ -11,7 +11,7 @@
 // The exported mutation names are unchanged from the pre-sync version, so the
 // reader screens don't change. Internals switch from a debounced whole-document
 // PUT to scoped per-resource PATCHes.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@/lib/storage';
 import { DEFAULT_USER_DATA, displayModeTransition, forwardRangeForSlot, markTs, markVerseKey, type DisplayMode, type UserData, type KhatmGoal, type HafalanTarget, type HafalanScope, type MemorizedStatus, type ReviewOutcome, type PrayerDay, type ReflectionEntryData, type RulingsChatEntryData, type AppLang, type Appearance } from '@/lib/quran';
 import { clearLegacyGuestData } from '@/lib/quranStorage';
@@ -34,6 +34,7 @@ import {
   lwwStamp,
 } from '@/lib/quranSync';
 import { AuthError, getChanges, getState } from '@/api';
+import { getSession } from '@/lib/authSession';
 import { getDeviceId } from '@/lib/deviceId';
 import { useAuth } from '@/context/AuthContext';
 import type { GoalType, GoalUnit } from '@/api';
@@ -117,6 +118,25 @@ type PendingSession = {
   pages: number;
   at: number; // epoch ms — when the session happened, not when it uploads
 };
+
+// Sync scope — the ACCOUNT a sync run belongs to. A fresh object is minted
+// whenever the uid changes (never on a token refresh), so an async continuation
+// can tell "my account is still the live one" from "this result belongs to a
+// session that already ended" with one identity check (see staleRun).
+type SyncScope = { readonly uid: string };
+
+// staleRun builds the predicate a sync run consults after EVERY await. The run
+// is abandoned once React commits another account (its scope was superseded) OR
+// the session singleton already answers to someone else / to no one — it
+// switches synchronously in onAuthed/clearSession, i.e. BEFORE React commits,
+// and every request takes its token from it at send time. A session without a
+// userId skips the singleton half (scope-only).
+function staleRun(scopeRef: { current: SyncScope }, scope: SyncScope): () => boolean {
+  const sessionUid = getSession()?.userId;
+  return () =>
+    scopeRef.current !== scope ||
+    (sessionUid !== undefined && getSession()?.userId !== sessionUid);
+}
 
 async function loadPendingSessions(): Promise<PendingSession[]> {
   try {
@@ -306,6 +326,13 @@ export function useQuranDataSync() {
   const flushingRef = useRef(false);
   // Guards against concurrent fullPulls (see fullPull below).
   const pullingRef = useRef(false);
+  // …and WHICH scope the in-flight pull belongs to: a pull abandoned by an
+  // account switch must neither block the new account's pull nor unlock it.
+  const pullingScopeRef = useRef<SyncScope | null>(null);
+  // True while the reload effect's guest branch is loading the guest document.
+  // Blanks the guest-persist effect meanwhile: `ud` still holds the PREVIOUS
+  // account's data until that load lands while tokenRef is already null.
+  const loadingGuestRef = useRef(false);
   // Late-bound handle to deltaPull (defined below flush): a flush that learns
   // its write lost the server's latest-activity-wins guard triggers an
   // immediate pull so the UI converges instead of lying optimistically.
@@ -320,11 +347,22 @@ export function useQuranDataSync() {
   useEffect(() => {
     udRef.current = ud;
   }, [ud]);
-  // uid in a ref for async callbacks (flush/backfill) — reads the CURRENT scope
-  // even across awaits after a logout switched it.
+  // uid in a ref for enqueueOp's queue persistence. Synced in a passive effect,
+  // i.e. in the same flush as the reload effect that swaps queueRef, so an op
+  // is always persisted under the account that owns the in-memory queue. Async
+  // runs never key a write on it — they use their captured SyncScope.
   const uidRef = useRef<string>(uid);
   useEffect(() => {
     uidRef.current = uid;
+  }, [uid]);
+  // The sync scope (see SyncScope), minted in the COMMIT phase on purpose: no
+  // async continuation can run between the commit that switched accounts and
+  // the mint, so a late snapshot / queue rebuild / AuthError for the old
+  // account is already stale the moment it lands. A token refresh keeps the uid
+  // → same scope → in-flight work for the same account is never abandoned.
+  const scopeRef = useRef<SyncScope>({ uid });
+  useLayoutEffect(() => {
+    if (scopeRef.current.uid !== uid) scopeRef.current = { uid };
   }, [uid]);
   const deviceId = useMemo(() => getDeviceId(), []);
 
@@ -342,7 +380,13 @@ export function useQuranDataSync() {
   // optimistic mark that will silently vanish on the next launch.
   const flush = useCallback(async () => {
     if (!tokenRef.current || flushingRef.current || queueRef.current.length === 0) return;
+    const scope = scopeRef.current;
+    // The account changed in this commit but its passive effects (uidRef, the
+    // reload effect) haven't run yet: the queue still in memory belongs to the
+    // previous account — never send it under the new session's token.
+    if (uidRef.current !== scope.uid) return;
     flushingRef.current = true;
+    const stale = staleRun(scopeRef, scope);
     let staleWrites = false;
     try {
       // The exact run flushQueue consumes. Ops enqueued DURING the await
@@ -353,14 +397,23 @@ export function useQuranDataSync() {
       // saw. Reference equality is safe — Op objects are never cloned between
       // enqueue and flush.
       const inflight = queueRef.current;
-      const result = await flushQueue(deviceId, inflight);
+      // `stale` doubles as flushQueue's stop hint: every op takes its token from
+      // the session singleton at SEND time, so once the account is gone the rest
+      // of this queue must not go out under the new session's token.
+      const result = await flushQueue(deviceId, inflight, stale);
+      // Account switched mid-flush → abandon the run: no re-queue, no persist, no
+      // ud write under the new scope. The un-sent ops are still in
+      // pending.<uid> (enqueueOp persists the whole queue on every enqueue) and
+      // re-send idempotently at that account's next login.
+      if (stale()) return;
       staleWrites = result.staleWrites;
       const { remaining } = result;
       const survivors = queueRef.current.filter(
         (q) => !inflight.includes(q) && !remaining.includes(q),
       );
       queueRef.current = [...remaining, ...survivors];
-      await saveQueue(uidRef.current, queueRef.current);
+      await saveQueue(scope.uid, queueRef.current);
+      if (stale()) return;
       syncPendingLang(queueRef.current);
       // App prefs were applied optimistically at enqueue time, but a relaunch
       // (the RTL language switch) rebuilds ud from the server/cache BEFORE
@@ -371,6 +424,9 @@ export function useQuranDataSync() {
       const reapplied = reapplyAppSettings(udRef.current, [...inflight, ...survivors]);
       if (reapplied !== udRef.current) setUdState(reapplied);
     } catch (e) {
+      // A failure of a request the OLD account sent (a 401 after a switch, a
+      // "not authenticated" after a logout) must never log the new one out.
+      if (stale()) return;
       if (e instanceof AuthError) void logout();
       // network/5xx: leave the queue intact for the next foreground/mutation
     } finally {
@@ -403,13 +459,18 @@ export function useQuranDataSync() {
   const backfillLocalProgress = useCallback(
     async (snapshot: UserData) => {
       if (!tokenRef.current) return;
-      const uid = uidRef.current;
-      if (uid === 'guest') return;
+      const scope = scopeRef.current;
+      if (scope.uid === 'guest') return;
+      const stale = staleRun(scopeRef, scope);
       try {
-        if (await AsyncStorage.getItem(backfillFlagKey(uid))) return;
+        if (await AsyncStorage.getItem(backfillFlagKey(scope.uid))) return;
         const ops = await collectBackfillOps(snapshot);
+        // Account switched during the scan: enqueueOp would drop these into
+        // whatever queue is current. They belong to the account the snapshot
+        // was pulled for — leave them for that account's next login instead.
+        if (stale()) return;
         for (const op of ops) enqueueOp(op);
-        await AsyncStorage.setItem(backfillFlagKey(uid), '1');
+        await AsyncStorage.setItem(backfillFlagKey(scope.uid), '1');
       } catch {
         /* best-effort: if the flag write failed we retry on the next login */
       }
@@ -426,11 +487,16 @@ export function useQuranDataSync() {
   const drainPendingSessions = useCallback(
     async () => {
       if (!tokenRef.current) return;
+      const scope = scopeRef.current;
+      const stale = staleRun(scopeRef, scope);
       try {
         const now = Date.now();
         const sessions = (await loadPendingSessions()).filter(
           (s) => now - s.at <= PENDING_SESSIONS_MAX_AGE_MS,
         );
+        // Account switched during the read: leave the sessions parked (the key
+        // is only removed after a successful enqueue) for the next login.
+        if (stale()) return;
         for (const s of sessions) enqueueOp({ kind: 'readingLog', entry: s });
         if (sessions.length) await AsyncStorage.removeItem(PENDING_SESSIONS_KEY);
       } catch {
@@ -444,29 +510,42 @@ export function useQuranDataSync() {
   // feed signals more pages. This is what keeps a second device in sync.
   const deltaPull = useCallback(async () => {
     if (!tokenRef.current) return;
+    const scope = scopeRef.current;
+    // Account changed in this commit, passive effects not yet run: cursorRef
+    // still holds the previous account's cursor — pulling from it under the
+    // new token would merge the new feed over the old account's ud.
+    if (uidRef.current !== scope.uid) return;
+    const stale = staleRun(scopeRef, scope);
     try {
       let since = cursorRef.current;
       let hasMore = true;
       while (hasMore) {
         const feed = await getChanges(deviceId, since, 200);
+        if (stale()) return;
         if (feed.changes.length) {
           // Guard against reverting keys with queued/in-flight ops (this feed
           // may have been fetched before those edits happened).
           const pending = pendingSettingKeys(queueRef.current);
           setUdState((prev) => {
+            // Updaters run at render time: the account may have switched between
+            // the fetch and this render — drop the page, keep prev.
+            if (stale()) return prev;
             const merged = mergeRemote(prev, feed.changes, pending);
-            void saveCache(uidRef.current, merged);
+            void saveCache(scope.uid, merged);
             return merged;
           });
         }
         since = feed.cursor;
         if (since > cursorRef.current) {
           cursorRef.current = since;
-          await saveCursor(uidRef.current, since);
+          await saveCursor(scope.uid, since);
+          if (stale()) return;
         }
         hasMore = feed.has_more;
       }
     } catch (e) {
+      // A 401 for a request the old account sent must not log the new one out.
+      if (stale()) return;
       if (e instanceof AuthError) void logout();
       // else: silent — the next foreground/mutation retries
     }
@@ -481,10 +560,16 @@ export function useQuranDataSync() {
   // ops. On network failure it renders the cached snapshot (or defaults) so
   // progress is never "missing" on an offline cold start. Guarded against
   // concurrent invocations (StrictMode double-mount, rapid effect re-runs) —
-  // a second pull while one is in flight is skipped, not queued.
+  // a second pull while one is in flight is skipped, not queued. One whose
+  // account was switched away mid-flight is abandoned at its next await and
+  // never blocks (or unlocks) the new account's pull.
   const fullPull = useCallback(async () => {
-    if (!tokenRef.current || pullingRef.current) return;
+    if (!tokenRef.current) return;
+    const scope = scopeRef.current;
+    if (pullingRef.current && pullingScopeRef.current === scope) return;
     pullingRef.current = true;
+    pullingScopeRef.current = scope;
+    const stale = staleRun(scopeRef, scope);
     try {
       // The queue as it was BEFORE this pull's flush: if the pull below falls
       // back to the offline cache, that cache can predate these ops (they were
@@ -500,27 +585,36 @@ export function useQuranDataSync() {
         // failure), so a failed flush just falls through to the possibly-stale
         // pull, where pendingLang holds the line until the op lands.
         await flush();
+        if (stale()) return;
         const st = await getState(deviceId);
+        if (stale()) return;
         cursorRef.current = st.cursor;
-        await saveCursor(uidRef.current, st.cursor);
+        await saveCursor(scope.uid, st.cursor);
+        if (stale()) return;
         const merged = mergeRemote(DEFAULT_USER_DATA, st.changes, pendingSettingKeys(queuedAtStart));
         setUdState(merged);
-        void saveCache(uidRef.current, merged);
+        void saveCache(scope.uid, merged);
         setLoaded(true);
         // One-time: upload local-only prayer/reflection history + app prefs
         // the account doesn't have yet (server wins conflicts). Must run here —
         // the snapshot is the only way to know which keys the server already
         // has.
         await backfillLocalProgress(merged);
+        if (stale()) return;
         // Upload reading sessions parked while logged out (carries their
         // happened-at; the server clamps to 7 days back).
         await drainPendingSessions();
+        if (stale()) return;
         // Best-effort: tell the server our timezone so streak day boundaries
         // are computed in the reader's local day, not UTC.
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (tz) enqueueOp({ kind: 'tz', tz });
         void flush();
       } catch (e) {
+        // A failure of a request the OLD account sent must never log the new
+        // one out, and an offline fallback for an account that already left
+        // has nothing to render here.
+        if (stale()) return;
         if (e instanceof AuthError) {
           void logout();
           return;
@@ -531,8 +625,10 @@ export function useQuranDataSync() {
         // the full account state from seq 0 over the cached base (merges are
         // idempotent).
         cursorRef.current = 0;
-        await saveCursor(uidRef.current, 0);
-        const cached = await loadCache(uidRef.current);
+        await saveCursor(scope.uid, 0);
+        if (stale()) return;
+        const cached = await loadCache(scope.uid);
+        if (stale()) return;
         // Fold the queued app prefs over the cache — it can predate them
         // (e.g. it was last written before a language switch made offline),
         // and the stale value would otherwise revert the user's choice.
@@ -544,7 +640,10 @@ export function useQuranDataSync() {
         void drainPendingSessions();
       }
     } finally {
-      pullingRef.current = false;
+      // Only the pull that still owns the slot may unlock it: an abandoned pull
+      // runs this AFTER the new account's pull took the slot over — an
+      // unconditional reset there would let a third pull start underneath.
+      if (pullingScopeRef.current === scope) pullingRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId, enqueueOp, flush, logout, drainPendingSessions]);
@@ -554,41 +653,57 @@ export function useQuranDataSync() {
   useEffect(() => {
     if (authLoading) return;
     let cancelled = false;
+    // This run's account. `gone()` is re-checked after every await: a run for
+    // an account that was switched away mid-load must not install that
+    // account's cursor/queue (or guest document) over the newer run's.
+    const isStale = staleRun(scopeRef, scopeRef.current);
+    const gone = () => cancelled || isStale();
     (async () => {
       if (token) {
         // Move pre-0008 un-suffixed sync keys into this user's scope once, then
         // load THIS user's cursor/queue (per-user keys — account switches can't
         // reuse each other's state).
         await migrateLegacySyncKeys(uid);
-        cursorRef.current = await loadCursor(uid);
-        queueRef.current = await loadQueue(uid);
-        syncPendingLang(queueRef.current);
-        if (!cancelled) void fullPull();
+        const cursor = await loadCursor(uid);
+        const queue = await loadQueue(uid);
+        if (gone()) return;
+        cursorRef.current = cursor;
+        queueRef.current = queue;
+        syncPendingLang(queue);
+        void fullPull();
       } else {
         // Guest: no account to sync to, but persist UserData LOCALLY so a
         // returning guest's script/font/reciter/favorites/labels survive a
         // restart instead of resetting to defaults. Legacy on-device guest
         // data (pre-sync format) is wiped first. Only the 'guest' scope is
         // cleared — other accounts' cursors/queues/caches stay untouched.
-        cursorRef.current = 0;
-        queueRef.current = [];
-        syncPendingLang([]);
-        await clearCursor('guest');
-        await clearQueue('guest');
-        await clearLegacyGuestData();
-        let guestUD: UserData | null = null;
+        // Blank the guest-persist effect until the guest document is in state.
+        loadingGuestRef.current = true;
         try {
-          const raw = await AsyncStorage.getItem(LOCAL_UD_KEY);
-          if (raw) guestUD = JSON.parse(raw) as UserData;
-        } catch {
-          /* ignore bad cache → fall back to defaults */
-        }
-        if (!cancelled) {
+          cursorRef.current = 0;
+          queueRef.current = [];
+          syncPendingLang([]);
+          await clearCursor('guest');
+          await clearQueue('guest');
+          await clearLegacyGuestData();
+          let guestUD: UserData | null = null;
+          try {
+            const raw = await AsyncStorage.getItem(LOCAL_UD_KEY);
+            if (raw) guestUD = JSON.parse(raw) as UserData;
+          } catch {
+            /* ignore bad cache → fall back to defaults */
+          }
+          if (gone()) return;
           // Spread defaults FIRST so newly-added UserData fields (e.g. memorized,
           // hafalanTargets) are backfilled for guest documents persisted before
           // they existed — without clobbering any field the guest already has.
           setUdState({ ...DEFAULT_USER_DATA, ...(guestUD ?? {}) });
           setLoaded(true);
+        } finally {
+          // Only the run that still owns the guest scope may clear the flag: a
+          // superseded run must not un-blank the newer run's guard (and a
+          // storage error must not leave it stuck).
+          if (!gone()) loadingGuestRef.current = false;
         }
       }
     })();
@@ -626,9 +741,11 @@ export function useQuranDataSync() {
 
   // Guests persist their full UserData locally (their only store — no server).
   // Authed users skip this so the server stays the source of truth. Gated on
-  // `loaded` so the pre-load DEFAULT never clobbers a saved guest document.
+  // `loaded` so the pre-load DEFAULT never clobbers a saved guest document, and
+  // on `loadingGuestRef` so the account that just logged out (its ud sits in
+  // state until the guest document lands) is never written into guestUD.
   useEffect(() => {
-    if (!loaded || tokenRef.current) return;
+    if (!loaded || tokenRef.current || loadingGuestRef.current) return;
     AsyncStorage.setItem(LOCAL_UD_KEY, JSON.stringify(ud)).catch(() => {});
   }, [ud, loaded]);
 

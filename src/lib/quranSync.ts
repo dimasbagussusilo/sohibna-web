@@ -560,17 +560,28 @@ export const MAX_OP_ATTEMPTS = 5;
 //                 network failures (fetch rejects with TypeError) and unknown
 //                 error shapes stay retriable forever
 //
+// `shouldStop` (optional) is consulted before EACH op is sent. The hook passes
+// its "sync account changed" check: every op takes its token from the session
+// singleton at send time, so once the account was switched or logged out the
+// rest of the queue must not go out under the new session. The un-sent ops
+// stay in `remaining` (and in the persisted queue) for their own account.
+//
 // An op the server keeps REJECTING (ApiError) is deadlettered after
 // MAX_OP_ATTEMPTS consecutive attempts — keeping it queued forever would wedge
 // every later op behind it (the flush stops at the first failure), which is
 // how a single bad settings value once froze all reading-progress sync.
 export type FlushResult = { remaining: Op[]; staleWrites: boolean; error: unknown | null };
 
-export async function flushQueue(deviceId: string, queue: Op[]): Promise<FlushResult> {
+export async function flushQueue(
+  deviceId: string,
+  queue: Op[],
+  shouldStop?: () => boolean,
+): Promise<FlushResult> {
   const remaining = [...queue];
   let staleWrites = false;
   let error: unknown | null = null;
   while (remaining.length) {
+    if (shouldStop?.()) break;
     const head = remaining[0];
     try {
       const r = await applyOp(deviceId, head);

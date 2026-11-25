@@ -127,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         accessToken,
         refreshToken,
         expiresAt: new Date(exp).getTime(),
+        userId: u.id,
       }
       // A direct account switch (A → B with no logout in between) never passes
       // through a null session — purge here too.
@@ -181,7 +182,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     const s = getSession()
     if (s) await revokeSession(s.refreshToken) // best-effort server-side revoke
-    clearSession() // → subscription clears state + storage
+    // The revoke is a network round trip: if ANOTHER account signed in while it
+    // was in flight, that session is not ours to clear (a same-account token
+    // refresh replaces the object, hence the userId compare).
+    if ((getSession()?.userId ?? null) === (s?.userId ?? null)) {
+      clearSession() // → subscription clears state + storage
+    }
     void signOutGoogleWeb() // best-effort: clear Google sign-in state
   }, [])
 
@@ -213,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             accessToken: access,
             refreshToken: refresh,
             expiresAt: Number(expStr),
+            userId: u.id,
           })
           try {
             // Force-evaluate: refreshes now if the access token is near/past expiry.

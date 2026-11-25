@@ -15,6 +15,10 @@ export type Session = {
   // Access-token expiry as epoch ms (from the API's expires_at). Refresh if the
   // current time is within REFRESH_SKEW_MS of this.
   expiresAt: number;
+  // The account this session belongs to (AuthContext sets it from the user).
+  // Refresh-proof identity: consumers (useQuranData) compare it to tell a
+  // token refresh from a logout / account switch. Absent on hand-built sessions.
+  userId?: string;
 };
 
 type Listener = (s: Session | null) => void;
@@ -67,8 +71,8 @@ type TokenResponse = {
 };
 
 async function doRefresh(): Promise<Session> {
-  const rt = session?.refreshToken;
-  if (!rt) throw new AuthError('no refresh token');
+  const started = session;
+  if (!started || !started.refreshToken) throw new AuthError('no refresh token');
 
   // Bounded refresh: without a timeout, one wedged request pins `inflight`
   // forever and every authed call queues behind it indefinitely. A timeout
@@ -76,16 +80,23 @@ async function doRefresh(): Promise<Session> {
   const res = await fetch(API_BASE_URL + '/auth/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh_token: rt }),
+    body: JSON.stringify({ refresh_token: started.refreshToken }),
     signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) throw new AuthError('refresh failed');
 
   const data = (await res.json()) as TokenResponse;
+  // The session was replaced while this refresh was in flight (logout, or a
+  // direct account switch): these tokens belong to the account that just
+  // left. Re-establishing them logged a just-logged-out user back in and, on a
+  // switch, handed the new account the old one's token. Abort instead —
+  // callers treat AuthError as "that session is over".
+  if (session !== started) throw new AuthError('session changed');
   const next: Session = {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
     expiresAt: new Date(data.expires_at).getTime(),
+    userId: started.userId,
   };
   setSession(next);
   return next;

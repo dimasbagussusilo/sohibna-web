@@ -478,3 +478,33 @@ test('flushQueue reports staleWrites when the ts-guard rejects a mark', async ()
     setSession(null)
   }
 })
+
+// shouldStop is the hook's "sync account changed" check: every op takes its
+// token from the session singleton at SEND time, so once the account was
+// switched mid-flush the rest of the queue must not go out under the new
+// session. The un-sent ops stay in `remaining` for their own account.
+test('flushQueue stops before the next op once shouldStop says the account changed', async () => {
+  const { setSession } = await import('@/lib/authSession')
+  setSession({ accessToken: 't', refreshToken: 'r', expiresAt: Date.now() + 3_600_000 })
+  const realFetch = globalThis.fetch
+  let sends = 0
+  globalThis.fetch = (async () => {
+    sends++
+    return new Response(JSON.stringify({ ok: true }), { status: 200 })
+  }) as typeof fetch
+  try {
+    const second: Op = { kind: 'favorite', verseKey: '1:2', deleted: false }
+    const r = await flushQueue(
+      'dev',
+      [{ kind: 'favorite', verseKey: '1:1', deleted: false }, second],
+      () => sends >= 1, // the account "switches" while the first op is in flight
+    )
+    assert.equal(sends, 1, 'the second op must not be sent under the new session')
+    assert.deepEqual(r.remaining, [second])
+    assert.equal(r.error, null)
+    assert.equal(r.staleWrites, false)
+  } finally {
+    globalThis.fetch = realFetch
+    setSession(null)
+  }
+})
