@@ -23,14 +23,17 @@ automatically via GitHub Actions.
 In landing mode nginx serves the SPA shell at `/`, `/en`, `/ar`, `/tr`, `/ur` (the landing
 routes in `src/App.tsx`), serves `/assets/` + fonts/icons/og-image, 404s
 `/sw.js` + `/manifest.webmanifest` (the landing origin is never installable),
-and **301s everything else to `https://app.sohibna.com`**. The mode is
+302s the mitra short links `/r/CODE` to the API's `GET /ref/CODE` (which counts
+the click and sends the client on to the Play/App Store — carrying the code as
+the Play install referrer — or to the app register page), and **301s
+everything else to `https://app.sohibna.com`**. The mode is
 chosen at container start by `docker-entrypoint.d/05-select-nginx-mode.sh`,
 which renders `/etc/nginx/conf.d/default.conf` from `/etc/nginx/modes/`
 (the config files deliberately do NOT end in `.template` — this nginx image
 ignores non-executable `.sh` entrypoint scripts, and an executed script's
 exports never reach its own `20-envsubst-on-templates.sh`). Fallback if you
-ever need it: render the config by hand — `envsubst '${APP_ORIGIN}' <
-nginx/default.conf.landing > default.conf`.
+ever need it: render the config by hand —
+`API_ORIGIN=https://sohibna-api.catatanbidan.id envsubst '${APP_ORIGIN} ${API_ORIGIN}' < nginx/default.conf.landing > default.conf`.
 
 ## One-time setup
 
@@ -97,6 +100,9 @@ podman build -t sohibna-web:dev .
 podman run -p 8081:8080 sohibna-web:dev                        # app mode
 podman run -p 8082:8080 -e APP_MODE=landing sohibna-web:dev   # landing mode
 # landing: / /en /ar /tr /ur → 200 · /home → 301 app · /sw.js → 404
+#          /r/PB7XK2 → 302 https://sohibna-api.catatanbidan.id/ref/PB7X2
+#   curl -sI http://localhost:8082/r/PB7XK2 | grep -i location   # must show the
+#   real API origin, never a literal ${API_ORIGIN} (the envsubst list — see Gotchas)
 ```
 
 ## Manual
@@ -112,6 +118,12 @@ kubectl rollout undo deployment/sohibna-web-deployment -n cendekita
 - `VITE_*` values are **inlined at build time** — changing a secret requires
   a new push (or re-run) to take effect, and the browser cache may serve the
   old shell for up to `no-cache` negotiation.
+- The entrypoint's `envsubst` substitutes ONLY the variables in its explicit
+  list (`'${APP_ORIGIN} ${API_ORIGIN}'`). A config that gains a new `${VAR}`
+  needs a list entry there plus an `ENV`/k8s default, or the literal
+  placeholder ships inside the 302's `Location`. Check after a deploy:
+  `kubectl exec -n cendekita deploy/sohibna-landing-deployment -- grep -c '\${' /etc/nginx/conf.d/default.conf`
+  must print `0`.
 - `PORT_SOURCES.md` lists files copied from the RN app — re-diff before
   porting more. The `landing.*` translation keys are maintained in BOTH
   repos' dictionaries (web renders them; RN keeps the port invariant).

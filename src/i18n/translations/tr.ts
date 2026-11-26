@@ -1449,6 +1449,8 @@ export const translations: Translation = {
     register: {
       codeLabel: 'Partner kodu (isteğe bağlı)',
       codeHint: 'Sohibna partner kodunuz mu var? Kaydınızın sayılması için girin.',
+      // Rendered by the RN register screen (Play Install Referrer); mirrored.
+      detected: 'Davet bağlantınızdan {{code}} partner kodu algılandı — sizin için dolduruldu.',
     },
     dashboard: {
       title: 'Partner Paneli',

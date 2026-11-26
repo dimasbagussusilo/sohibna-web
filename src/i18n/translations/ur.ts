@@ -1449,6 +1449,8 @@ export const translations: Translation = {
     register: {
       codeLabel: 'پارٹنر کوڈ (اختیاری)',
       codeHint: 'صحبنا کا پارٹنر کوڈ ہے؟ اپنی رجسٹریشن درج کرانے کے لیے داخل کریں۔',
+      // Rendered by the RN register screen (Play Install Referrer); mirrored.
+      detected: 'دعوتی لنک سے پارٹنر کوڈ {{code}} ملا — خود بخود درج کر دیا گیا۔',
     },
     dashboard: {
       title: 'پارٹنر ڈیش بورڈ',

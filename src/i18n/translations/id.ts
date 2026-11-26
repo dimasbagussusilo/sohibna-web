@@ -1455,6 +1455,8 @@ export const translations = {
     register: {
       codeLabel: 'Kode mitra (opsional)',
       codeHint: 'Punya kode dari mitra Sohibna? Masukkan agar pendaftaran Anda tercatat.',
+      // Rendered by the RN register screen (Play Install Referrer); mirrored.
+      detected: 'Kode mitra {{code}} terdeteksi dari tautan undangan — sudah diisi otomatis.',
     },
     dashboard: {
       title: 'Dashboard Mitra',

@@ -1449,6 +1449,8 @@ export const translations: Translation = {
     register: {
       codeLabel: 'رمز الشريك (اختياري)',
       codeHint: 'هل لديك رمز شريك من صحبنا؟ أدخله ليُحتسب تسجيلك.',
+      // Rendered by the RN register screen (Play Install Referrer); mirrored.
+      detected: 'تم اكتشاف رمز الشريك {{code}} من رابط الدعوة — تم ملؤه تلقائيًا.',
     },
     dashboard: {
       title: 'لوحة الشريك',

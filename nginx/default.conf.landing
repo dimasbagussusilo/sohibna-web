@@ -139,17 +139,20 @@ server {
         try_files /index.html =404;
     }
 
-    # Public short referral links (Program Mitra, 0033): sohibna.com/r/CODE →
-    # the app-origin register page with ?ref=. The landing origin stays
-    # zero-API — this is a pure nginx redirect; the click is counted by the
-    # APP-origin register page (the landing CSP forbids any fetch here).
+    # Public short referral links (Program Mitra, 0033 + Play Install
+    # Referrer): sohibna.com/r/CODE → the API's GET /ref/{code}, which 302s on
+    # to the Play Store carrying the code as the install referrer (Android +
+    # desktop), the App Store (iOS/iPadOS), or the app-origin register page
+    # with ?ref= wherever no store URL is configured. The landing origin stays
+    # zero-API — this is a server-side 302, not a fetch; the API counts the
+    # click (the register page pings its own).
     # 302, NEVER 301: browsers cache 301s permanently, which would outlive a
-    # code rotation. Case-tolerant; the client normalizes to uppercase.
+    # code rotation. Case-tolerant; the API normalizes to uppercase.
     # Positional capture only — the entrypoint envsubs an explicit var list,
     # and a named capture could collide with an exported env var. The regex is
     # QUOTED because nginx reads an unquoted `{4,12}` as a config block.
     location ~ "^/(en|ar|tr|ur)?/?r/([A-Za-z0-9]{4,12})/?$" {
-        return 302 ${APP_ORIGIN}/register?ref=$2;
+        return 302 ${API_ORIGIN}/ref/$2;
     }
 
     # Everything else lives on the app origin (midwifery apex pattern).

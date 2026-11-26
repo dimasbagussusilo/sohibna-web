@@ -40,8 +40,11 @@ COPY nginx/default.conf.app nginx/default.conf.landing /etc/nginx/modes/
 COPY docker-entrypoint.d/05-select-nginx-mode.sh /docker-entrypoint.d/05-select-nginx-mode.sh
 COPY --from=builder /src/dist /usr/share/nginx/html
 
+# API_ORIGIN: where the landing's /r/CODE mitra short links 302 to (the API's
+# GET /ref/CODE). Runtime (not VITE_*): the landing nginx config uses it.
 ENV APP_MODE=app \
-    APP_ORIGIN=https://app.sohibna.com
+    APP_ORIGIN=https://app.sohibna.com \
+    API_ORIGIN=https://sohibna-api.catatanbidan.id
 
 EXPOSE 8080
 USER 101

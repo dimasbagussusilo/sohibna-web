@@ -1437,6 +1437,8 @@ export const translations: Translation = {
     register: {
       codeLabel: 'Partner code (optional)',
       codeHint: 'Have a Sohibna partner code? Enter it so your signup is counted.',
+      // Rendered by the RN register screen (Play Install Referrer); mirrored.
+      detected: 'Partner code {{code}} detected from your invite link — filled in for you.',
     },
     dashboard: {
       title: 'Partner Dashboard',

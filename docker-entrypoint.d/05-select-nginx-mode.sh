@@ -22,5 +22,12 @@ esac
 
 APP_ORIGIN="${APP_ORIGIN:-https://sohibna.cendekita.id}"
 export APP_ORIGIN
+# API_ORIGIN is where the landing's /r/CODE short links 302 to (the API's
+# GET /ref/CODE does the real redirect and counts the click). Same prod
+# default as the Dockerfile ENV, so a missed k8s env is harmless.
+API_ORIGIN="${API_ORIGIN:-https://sohibna-api.catatanbidan.id}"
+export API_ORIGIN
 
-envsubst '${APP_ORIGIN}' < "$SRC" > "$OUT"
+# A variable is only substituted when it is LISTED here — a config that gains
+# a ${VAR} without a list entry ships the literal placeholder in its 302s.
+envsubst '${APP_ORIGIN} ${API_ORIGIN}' < "$SRC" > "$OUT"

@@ -40,6 +40,11 @@ spec:
               value: landing
             - name: APP_ORIGIN
               value: https://app.sohibna.com
+            # Where the /r/CODE mitra short links 302 to (the API's
+            # GET /ref/CODE counts the click and redirects). Same value as
+            # the Dockerfile default — listed so the wiring is visible here.
+            - name: API_ORIGIN
+              value: https://sohibna-api.catatanbidan.id
           ports:
             - containerPort: 8080
           readinessProbe:
