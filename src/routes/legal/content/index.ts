@@ -9,10 +9,11 @@ import { content as ur } from './ur'
 // content kept OUT of the app dictionaries (they would bloat translations/*).
 // Loaded only by the lazy /privacy & /terms routes. id + en are the
 // authoritative texts; ar/tr/ur mirror them section-for-section. The `anchor`
-// field carries a stable element id (#delete) that external policies
-// (Google Play account-declaration form) link to.
+// field carries a stable element id: #delete, which the Google Play
+// account-declaration form links to, and #mitra, which the app's in-app
+// Partner Program rules link to for the full legal text.
 
-export type LegalSection = { h: string; p: readonly string[]; anchor?: 'delete' }
+export type LegalSection = { h: string; p: readonly string[]; anchor?: 'delete' | 'mitra' }
 
 export type LegalDoc = {
   title: string

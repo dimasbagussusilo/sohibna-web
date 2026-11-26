@@ -284,10 +284,12 @@ export const revokeSession = (refreshToken: string) =>
 // retrying offline/network failures forever.
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  code?: string; // machine code from the body ("payout_below_minimum", …)
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -328,7 +330,13 @@ async function authedRequest<T>(
   const data = await res.json().catch(() => ({}));
   if (res.status === 401) throw new AuthError();
   if (!res.ok) {
-    throw new ApiError(res.status, (data as { error?: string })?.error || `Request failed: ${res.status}`);
+    // The body's machine code travels with the error (the Mitra payout flow
+    // maps its 409/403 codes to copy instead of parsing the message).
+    throw new ApiError(
+      res.status,
+      (data as { error?: string })?.error || `Request failed: ${res.status}`,
+      (data as { code?: string })?.code,
+    );
   }
   return data as T;
 }

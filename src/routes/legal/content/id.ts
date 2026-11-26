@@ -12,7 +12,7 @@ export const content: LegalContent = {
     metaDescription:
       'Bagaimana Sohibna mengumpulkan, menggunakan, dan melindungi data Anda — tanpa iklan, tanpa pelacak, tanpa penjualan data.',
     updatedLabel: 'Terakhir diperbarui',
-    updated: '23 November 2026',
+    updated: '26 November 2026',
     backHome: 'Kembali ke Beranda',
     sections: [
       {
@@ -53,6 +53,12 @@ export const content: LegalContent = {
         h: 'Foto profil (opsional)',
         p: [
           'Jika Anda mengunggah foto profil, foto disimpan di penyimpanan berkas kami dan dapat diakses melalui tautan. Mohon unggah hanya foto yang aman untuk dibagikan. Foto dapat Anda ganti atau hapus kapan saja dari halaman profil.',
+        ],
+      },
+      {
+        h: 'Program Mitra',
+        p: [
+          'Jika Anda mengikuti Program Mitra, kami mencatat kode rujukan Anda dan menghitung komisi dari pembelian berbayar di Google Play oleh pengguna yang mendaftar lewat rujukan Anda. Anda hanya melihat ringkasan anonim — produk, waktu, dan nominal komisi; identitas pengguna yang Anda ajak tidak pernah dibagikan kepada mitra. Data rekening bank tidak dikumpulkan di dalam aplikasi. Catatan komisi dan pencairan disimpan hanya dengan kode mitra dan nominal, dan tetap tersimpan setelah akun dihapus untuk kebutuhan pembukuan.',
         ],
       },
       {
@@ -112,7 +118,7 @@ export const content: LegalContent = {
     metaDescription:
       'Ketentuan penggunaan aplikasi Sohibna — alat bantu ibadah dan pembelajaran Islam dari PT. FRAME DIGITAL SOLUSINDO.',
     updatedLabel: 'Terakhir diperbarui',
-    updated: '23 November 2026',
+    updated: '26 November 2026',
     backHome: 'Kembali ke Beranda',
     sections: [
       {
@@ -170,6 +176,16 @@ export const content: LegalContent = {
         p: [
           'Fitur inti ibadah — membaca dan menghafal Al-Qur\'an, jadwal shalat, adzan, kibla, dzikir — tetap gratis. Di dalam aplikasi tersedia pembelian opsional: paket "Supporter" dan "Premium" di bawah program Sohibna+ (langganan bulanan/tahunan atau sekali bayar seumur hidup), yang memperluas kuota fitur bantu seperti Tanya AI dan setoran hafalan serta membuka sentuhan tampilan khusus (lencana, dekorasi profil, dan tema tertentu).',
           'Seluruh pembayaran diproses melalui Google Play Billing dan tunduk pada ketentuan Google Play, termasuk cara berlangganan, pembatalan, dan pengembalian dana. Sebagian fitur berbayar dapat dicoba gratis dalam jangka waktu terbatas.',
+        ],
+      },
+      {
+        h: 'Program Mitra',
+        anchor: 'mitra',
+        p: [
+          'Program Mitra memungkinkan setiap pengguna yang telah masuk mengajak orang lain memakai Sohibna melalui tautan atau kode rujukan, dan memperoleh komisi dari pembelian berbayar di Google Play oleh pengguna yang mendaftar lewat rujukan tersebut. Ketentuan lengkap program tercantum di dalam aplikasi (Saya → Program Mitra → Ketentuan Program Mitra) dan berlaku sebagai bagian dari Syarat & Ketentuan ini.',
+          'Komisi merupakan persentase dari pendapatan bersih — harga pembelian setelah potongan toko dan pajak — dan berlaku untuk pembelian pertama serta setiap perpanjangan langganan berikutnya. Klik, pendaftaran, instalasi, ulasan, dan peringkat tidak pernah dibayar. Program bersifat satu tingkat, terpisah dari dukungan sukarela, dan tidak melibatkan dana zakat, infaq, atau sedekah.',
+          'Rate komisi, masa mengendap, dan minimum pencairan dapat kami ubah; perubahan berlaku untuk pembayaran yang tercatat setelahnya dan ditampilkan di dalam aplikasi. Komisi yang telah dicairkan tetap menjadi hak Anda. Kami dapat membatalkan komisi dan menangguhkan keanggotaan bila terjadi pelanggaran, misalnya rujukan ke akun sendiri, pemberian insentif untuk ulasan atau instalasi, atau spam.',
+          'Pencairan dilakukan melalui transfer setelah data rekening dikonfirmasi di luar aplikasi. Pajak atas komisi merupakan tanggung jawab Anda sesuai ketentuan yang berlaku. Mitra menyatakan berusia 18 tahun ke atas atau memiliki izin wali.',
         ],
       },
       {

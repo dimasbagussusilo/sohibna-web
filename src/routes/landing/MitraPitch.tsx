@@ -2,23 +2,24 @@ import { useI18n } from '@/context/I18nContext'
 import type { Lang } from '@/i18n/types'
 import { useDocumentMeta, type MetaAlternate } from '@/hooks/useDocumentMeta'
 import { LANDING_ORIGIN } from '@/origins'
-import { Building2, QrCode, User, UserCheck } from 'lucide-react'
+import { PLAY_STORE_URL } from '@/config'
+import { Building2, Smartphone, User, UserCheck } from 'lucide-react'
 import { LandingI18n } from './LandingI18n'
 import { Footer } from './Footer'
 import './landing.css'
 
-// Program Mitra recruitment page (0033) — the public "partner with us" pitch
-// on the landing origin. Static i18n content only (the landing CSP allows no
-// API calls); joining is handled by the team over WhatsApp in Phase 1 (no
-// forms). The mitra DASHBOARD lives on the app origin at /mitra; only the
-// exact /mitra path (and lang prefixes) is carved out of nginx's 301
-// catch-all — deeper paths still forward there.
-// Keep the WA number in sync with Support.tsx / the in-app donation page.
+// Program Mitra recruitment page (0033 + 0046) — the public "partner with us"
+// pitch on the landing origin. Static i18n content only (the landing CSP
+// allows no API calls). Since Phase 2 anyone joins from INSIDE the app
+// (Me → Program Mitra), so the call to action leads to the Play Store — or,
+// while the listing is not live, to the landing's own download section. The
+// mitra DASHBOARD lives on the app origin at /mitra; only the exact /mitra
+// path (and lang prefixes) is carved out of nginx's 301 catch-all — deeper
+// paths still forward there.
 
 const LANG_PATH: Record<Lang, string> = { id: '/', en: '/en', ar: '/ar', tr: '/tr', ur: '/ur' }
-const mitraUrl = (lang: Lang) =>
-  `${LANDING_ORIGIN}${LANG_PATH[lang] === '/' ? '' : LANG_PATH[lang]}/mitra`
-const WA_NUMBER = '6281809713971'
+const langPath = (lang: Lang) => (LANG_PATH[lang] === '/' ? '' : LANG_PATH[lang])
+const mitraUrl = (lang: Lang) => `${LANDING_ORIGIN}${langPath(lang)}/mitra`
 
 export function MitraPitch({ lang: forced }: { lang?: Lang }) {
   if (forced) {
@@ -49,7 +50,9 @@ function MitraBody({ routeLang }: { routeLang?: Lang }) {
     ogImage: `${LANDING_ORIGIN}/og-image.png`,
   })
 
-  const waText = encodeURIComponent(t('mitra.landing.waPrefill'))
+  // Where the call to action leads: the Play listing, or the landing's own
+  // download section until the listing is live.
+  const ctaHref = PLAY_STORE_URL || `${LANDING_ORIGIN}${langPath(lang)}/#unduh`
   const types = [
     { icon: Building2, key: 'lembaga' },
     { icon: User, key: 'individual' },
@@ -118,15 +121,15 @@ function MitraBody({ routeLang }: { routeLang?: Lang }) {
         </ol>
 
         <div className="mt-14 rounded-3xl bg-[#0A1812] p-8 text-center text-cream">
-          <QrCode size={28} className="mx-auto mb-3 text-[#8FBC8F]" />
+          <Smartphone size={28} className="mx-auto mb-3 text-[#8FBC8F]" />
           <h2 className="font-display text-2xl tracking-tight">{t('mitra.landing.applyTitle')}</h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-cream/60">
             {t('mitra.landing.applyBody')}
           </p>
           <a
-            href={`https://wa.me/${WA_NUMBER}?text=${waText}`}
-            target="_blank"
-            rel="noreferrer"
+            href={ctaHref}
+            target={PLAY_STORE_URL ? '_blank' : undefined}
+            rel={PLAY_STORE_URL ? 'noreferrer' : undefined}
             className="mt-5 inline-block rounded-xl bg-[#8FBC8F] px-6 py-3 text-sm font-bold text-white"
           >
             {t('mitra.landing.cta')}

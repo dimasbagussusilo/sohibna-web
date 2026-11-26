@@ -8,7 +8,7 @@ export const content: LegalContent = {
     metaDescription:
       'Sohibna verilerinizi nasıl toplar, kullanır ve korur — reklamsız, izleyicisiz, veri satışı yok.',
     updatedLabel: 'Son güncelleme',
-    updated: '23 Kasım 2026',
+    updated: '26 Kasım 2026',
     backHome: 'Ana Sayfaya Dön',
     sections: [
       {
@@ -49,6 +49,12 @@ export const content: LegalContent = {
         h: 'Profil fotoğrafı (isteğe bağlı)',
         p: [
           'Profil fotoğrafı yüklerseniz dosya depomuzda saklanır ve bir bağlantıyla erişilebilir. Lütfen yalnızca paylaşmakta sakınca görmediğiniz bir fotoğraf yükleyin. Fotoğrafı profil sayfanızdan dilediğiniz zaman değiştirebilir veya kaldırabilirsiniz.',
+        ],
+      },
+      {
+        h: 'Partner Programı',
+        p: [
+          'Partner Programı’na katılırsanız davet kodunuzu kaydeder ve yönlendirmenizle kayıt olan kullanıcıların Google Play’deki ücretli satın alımlarından komisyonu hesaplarız. Yalnızca anonim bir özet görürsünüz — ürün, zaman ve komisyon tutarı; yönlendirdiğiniz kişilerin kimliği ortaklarla asla paylaşılmaz. Banka bilgileri uygulamada toplanmaz. Komisyon ve ödeme kayıtları yalnızca partner kodunu ve tutarları içerir ve muhasebe amacıyla hesap silindikten sonra da kalır.',
         ],
       },
       {
@@ -108,7 +114,7 @@ export const content: LegalContent = {
     metaDescription:
       'Sohibna uygulamasının kullanım koşulları — PT. FRAME DIGITAL SOLUSINDO\'dan bir ibadet ve İslam öğrenme yardımcısı.',
     updatedLabel: 'Son güncelleme',
-    updated: '23 Kasım 2026',
+    updated: '26 Kasım 2026',
     backHome: 'Ana Sayfaya Dön',
     sections: [
       {
@@ -166,6 +172,16 @@ export const content: LegalContent = {
         p: [
           'Temel ibadet özellikleri — Kur\'an okuma ve ezberleme, namaz vakitleri, ezan, kıble, zikir — ücretsiz kalır. Uygulamada isteğe bağlı satın almalar sunulur: Sohibna+ programı kapsamındaki "Supporter" ve "Premium" paketleri (aylık/yıllık abonelik veya ömür boyu tek ödeme); bunlar Yapay Zekâ\'ya Sor ve talim gibi yardımcı özellik kotalarını genişletir, rozetler, profil süslemeleri ve belirli temalar gibi kozmetik dokunuşların kilidini açar.',
           'Tüm ödemeler Google Play Billing üzerinden işlenir; abonelik, iptal ve iade dâhil Google Play koşullarına tabidir. Bazı ücretli özellikler sınırlı süreyle ücretsiz denenebilir.',
+        ],
+      },
+      {
+        h: 'Partner Programı',
+        anchor: 'mitra',
+        p: [
+          'Partner Programı, giriş yapmış her kullanıcının başkalarını bir davet bağlantısı veya koduyla Sohibna’ya davet etmesine ve bu davetle kayıt olan kullanıcıların Google Play’deki ücretli satın alımlarından komisyon kazanmasına imkân tanır. Programın tam kuralları uygulama içinde yayımlanır (Ben ← Partner Programı ← Partner Programı Kuralları) ve bu Şartlar’ın parçasıdır.',
+          'Komisyon, net gelirin — mağaza kesintisi ve vergi sonrası tutarın — belirli bir yüzdesidir; ilk satın alma ve sonraki her abonelik yenilemesi için geçerlidir. Tıklamalar, kayıtlar, yüklemeler, yorumlar ve puanlar asla ödenmez. Program tek düzeydir, gönüllü desteğe ilişkin düzenlemeden ayrıdır ve zekât, infak veya sadaka fonlarını kapsamaz.',
+          'Komisyon oranını, bekletme süresini ve asgari ödeme tutarını değiştirebiliriz; değişiklikler sonrasında kaydedilen ödemelere uygulanır ve uygulamada gösterilir. Ödenmiş komisyon sizde kalır. Kendi hesabınızı yönlendirme, yorumlar veya yüklemeler için teşvik sunma ya da spam gibi ihlaller halinde komisyonu iptal edebilir ve üyeliği askıya alabiliriz.',
+          'Ödemeler, banka bilgileri uygulama dışında teyit edildikten sonra havale yoluyla yapılır. Komisyon üzerindenki vergiler ilgili kurallar uyarınca sizin sorumluluğunuzdadır. Katılan partner, 18 yaşında veya üzeri olduğunu ya da vasi izni olduğunu onaylar.',
         ],
       },
       {

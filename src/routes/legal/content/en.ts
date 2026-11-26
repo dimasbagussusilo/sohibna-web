@@ -8,7 +8,7 @@ export const content: LegalContent = {
     metaDescription:
       'How Sohibna collects, uses, and protects your data — no ads, no trackers, no data selling.',
     updatedLabel: 'Last updated',
-    updated: 'November 23, 2026',
+    updated: 'November 26, 2026',
     backHome: 'Back to Home',
     sections: [
       {
@@ -49,6 +49,12 @@ export const content: LegalContent = {
         h: 'Profile photo (optional)',
         p: [
           'If you upload a profile photo, it is stored in our file storage and reachable through a link. Please upload only a photo you are comfortable sharing. You can replace or remove it at any time from your profile page.',
+        ],
+      },
+      {
+        h: 'Partner Program',
+        p: [
+          'If you take part in the Partner Program, we record your referral code and calculate commission from Google Play purchases made by users who signed up through your referral. You only see an anonymous summary — product, time and commission amount; the identity of the people you refer is never shared with partners. Bank details are not collected in the app. Commission and payout records keep only the partner code and amounts, and remain after an account is deleted for bookkeeping purposes.',
         ],
       },
       {
@@ -108,7 +114,7 @@ export const content: LegalContent = {
     metaDescription:
       'The terms of use for the Sohibna app — an Islamic worship and learning companion by PT. FRAME DIGITAL SOLUSINDO.',
     updatedLabel: 'Last updated',
-    updated: 'November 23, 2026',
+    updated: 'November 26, 2026',
     backHome: 'Back to Home',
     sections: [
       {
@@ -166,6 +172,16 @@ export const content: LegalContent = {
         p: [
           'The core worship features — reading and memorizing the Qur\'an, prayer times, adhan, qibla, dhikr — remain free. The app offers optional in-app purchases: the "Supporter" and "Premium" plans under the Sohibna+ program (monthly or yearly subscription, or a one-time lifetime purchase), which expand helper-feature quotas such as Ask AI and recitation, and unlock cosmetic touches (badges, profile decorations, and certain themes).',
           'All payments are processed through Google Play Billing and are subject to Google Play\'s terms, including how to subscribe, cancel, and request refunds. Some paid features can be tried free for a limited time.',
+        ],
+      },
+      {
+        h: 'Partner Program',
+        anchor: 'mitra',
+        p: [
+          'The Partner Program lets any signed-in user invite others to Sohibna through a referral link or code and earn commission on Google Play purchases made by users who signed up through that referral. The full program rules are published inside the app (Me → Partner Program → Partner Program Rules) and form part of these Terms.',
+          'Commission is a percentage of net proceeds — the purchase price after the store fee and tax — and applies to the first purchase and every subscription renewal after it. Clicks, signups, installs, reviews and ratings are never paid. The program is single level, separate from voluntary support, and involves no zakat, infaq or sadaqah funds.',
+          'We may change the commission rate, the hold and the payout minimum; changes apply to payments recorded afterwards and are shown in the app. Commission already paid out remains yours. We may cancel commission and suspend a membership in case of violations, such as self-referral, incentives for reviews or installs, or spam.',
+          'Payouts are made by bank transfer once bank details are confirmed outside the app. Taxes on commission are your responsibility under the applicable rules. By joining, a partner confirms being 18 or older or having a guardian’s permission.',
         ],
       },
       {
