@@ -905,6 +905,33 @@ export const joinCommunityGroup = (code: string, alias: string | null) =>
 export const leaveCommunityGroup = (id: string) =>
   authedFetch<{ ok: boolean }>(`/community/groups/${id}/leave`, { method: 'POST' })
 
+export type CommunityExploreEntry = {
+  id: string
+  name: string
+  kind: CommunityGroupKind
+  goalType: CommunityGoalType
+  goalUnit: CommunityGoalUnit
+  goalTarget: number
+  goalRangeFrom: string | null
+  goalRangeTo: string | null
+  goalEndAt: string | null
+  memberCount: number
+  todayOnTarget: number
+  todayTotal: number
+  streak: number
+  joined: boolean
+  full: boolean
+}
+
+export const fetchCommunityExplore = () =>
+  authedFetch<{ groups: CommunityExploreEntry[] }>('/community/explore')
+
+export const joinCommunityGroupById = (id: string, alias: string | null) =>
+  authedFetch<CommunityGroupSummary>(`/community/groups/${id}/join`, {
+    method: 'POST',
+    body: JSON.stringify({ alias: alias ?? undefined }),
+  })
+
 // ── Hafalan (memorization) — targets + per-verse memorized records ──────────
 
 export const upsertHafalanTarget = (
