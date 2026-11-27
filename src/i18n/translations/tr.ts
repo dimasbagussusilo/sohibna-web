@@ -1485,6 +1485,8 @@ export const translations: Translation = {
       signupsTotal: 'Toplam kayıt',
       active30: 'Aktif okuyucu (30 gün)',
       circleMembers: 'Ders grubuna katıldı',
+      uniqueReferrals: 'Benzersiz yönlendirmeler (tüm zamanlar)',
+      calcNote: 'Komisyon, yönlendirdiğiniz kişinin her ücretli satın alımında net gelirin — mağaza kesintisi ve vergi sonrası fiyatın — {{rate}} oranıdır.',
       empty: 'Bu hesap için henüz partner programı yok.',
     },
     status: {

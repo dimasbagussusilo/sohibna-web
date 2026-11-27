@@ -1473,6 +1473,8 @@ export const translations: Translation = {
       signupsTotal: 'Total signups',
       active30: 'Active readers (30d)',
       circleMembers: 'Joined groups',
+      uniqueReferrals: 'Unique referrals (all-time)',
+      calcNote: 'Commission is {{rate}} of net proceeds — the price after Google Play’s fee and tax — on every paid purchase by someone you referred.',
       empty: 'No partner program for this account yet.',
     },
     status: {

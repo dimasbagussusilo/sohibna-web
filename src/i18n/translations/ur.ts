@@ -1485,6 +1485,8 @@ export const translations: Translation = {
       signupsTotal: 'کل رجسٹریشن',
       active30: 'فعال قاری (30 دن)',
       circleMembers: 'گروپ میں شامل ہوئے',
+      uniqueReferrals: 'منفرد ریفرلز (پورا وقت)',
+      calcNote: 'کمیشن خالص آمدنی کا {{rate}} ہے — اسٹور کی فیس اور ٹیکس کے بعد قیمت — جو آپ کے ریفر کردہ صارف کی ہر ادا شدہ خریداری پر۔',
       empty: 'اس اکاؤنٹ کے لیے ابھی کوئی پارٹنر پروگرام نہیں۔',
     },
     status: {

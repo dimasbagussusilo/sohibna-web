@@ -202,7 +202,7 @@ function isAIPath(path: string): boolean {
   );
 }
 
-async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<T> {
+async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS, headers?: Record<string, string>): Promise<T> {
   // v2 quotas (0039): AI is login-gated server-side — signed-in sessions
   // stamp their Bearer so the quota counts against the account; guests stay
   // anonymous (the server 401s them with ai_login_required once enforcement
@@ -213,6 +213,7 @@ async function postJSON<T>(path: string, body: unknown, timeoutMs: number = REQU
     headers: {
       'Content-Type': 'application/json',
       ...(isAIPath(path) ? { 'X-Device-ID': getDeviceId() } : {}),
+      ...(headers ?? {}),
       ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
     },
     body: JSON.stringify(body),
@@ -401,7 +402,7 @@ export const resendVerification = (email: string) =>
 // pingPartnerClick counts one referral-link landing (fire-and-forget; errors
 // are swallowed — a failed count must never affect signup UX).
 export const pingPartnerClick = (code: string) =>
-  postJSON<void>('/partners/track/click', { code }).catch(() => undefined);
+  postJSON<void>('/partners/track/click', { code }, REQUEST_TIMEOUT_MS, { 'X-Device-ID': getDeviceId() }).catch(() => undefined);
 
 export type PartnerType = 'lembaga' | 'individual' | 'agent';
 export type PartnerStatus = 'invited' | 'active' | 'suspended';
@@ -413,6 +414,7 @@ export type PartnerStats = {
   signups30d: number;
   active30d: number;
   circleMembers: number;
+  uniqueReferrals: number; // distinct devices that clicked once (first valid ref)
 };
 
 export type PartnerRow = {
@@ -425,10 +427,54 @@ export type PartnerRow = {
   stats: PartnerStats;
 };
 
-// getMyPartners returns the signed-in user's partner rows; a non-partner gets
-// an empty list (the dashboard renders its empty state).
+// The money half of the Partner Program (Phase 2). Server mirrors these wire
+// shapes from internal/partner/models.go — keep them in step.
+export type ProgramView = {
+  defaultBps: number;
+  holdDays: number;
+  payoutMinIdr: number;
+  currency: string;
+  ledgerEnabled: boolean;
+};
+
+export type EarningsSummary = {
+  partnerId: string;
+  effectiveBps: number;
+  pendingIdr: number;
+  availableIdr: number;
+  requestedIdr: number;
+  paidIdr: number;
+  reversedIdr: number;
+  payers: number;
+};
+
+export type CommissionEntry = {
+  id: number;
+  partnerId: string;
+  productId: string;
+  purchasedAt: string;
+  currency: string;
+  proceedsAmount: number;
+  proceedsIdr: number | null;
+  rateBps: number;
+  amountIdr: number | null;
+  status: string;
+  availableAt: string;
+  adjustment: boolean;
+};
+
+export type MitraMeResponse = {
+  partners: PartnerRow[];
+  program: ProgramView;
+  earnings: EarningsSummary[];
+  entries: CommissionEntry[];
+};
+
+// getMyPartners returns the signed-in user's partner rows AND the commission
+// half (program defaults, per-partner earnings, recent ledger entries); a
+// non-partner gets empty arrays (the dashboard renders its empty state).
 export const getMyPartners = () =>
-  authedFetch<{ partners: PartnerRow[] }>('/partners/me', { method: 'GET' });
+  authedFetch<MitraMeResponse>('/partners/me', { method: 'GET' });
 
 // ── AI-answer flagging (0036, Play GenAI policy) ─────────────────────────────
 // Fire-and-forget: the endpoint always 201s (server-side insert is fail-soft),

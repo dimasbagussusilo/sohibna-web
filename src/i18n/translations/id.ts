@@ -1491,6 +1491,8 @@ export const translations = {
       signupsTotal: 'Total pendaftar',
       active30: 'Pembaca aktif 30 hari',
       circleMembers: 'Gabung grup',
+      uniqueReferrals: 'Referral unik (semua waktu)',
+      calcNote: 'Komisi adalah {{rate}} dari proceeds bersih — harga setelah potongan dan pajak Google Play — pada setiap pembelian berbayar oleh orang yang Anda ajak.',
       empty: 'Belum ada program mitra untuk akun ini.',
     },
     status: {

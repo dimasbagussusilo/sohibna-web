@@ -120,6 +120,44 @@ function MitraBody({ routeLang }: { routeLang?: Lang }) {
           ))}
         </ol>
 
+        <section className="mt-14">
+          <h2 className="font-display text-center text-2xl tracking-tight">
+            {t('mitra.program.yourRate')}
+          </h2>
+          <div className="mx-auto mt-6 max-w-xl rounded-3xl bg-white p-6 shadow-sm dark:bg-[#122A1F]">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-ink dark:text-cream">{t('mitra.program.yourRate')}</p>
+              <span className="rounded-full bg-[#8FBC8F] px-3 py-1 text-xs font-bold text-white">30%</span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-ink/75 dark:text-cream/75">
+              {t('mitra.join.rateLine', { rate: '30%' })}
+            </p>
+            <ul className="mt-4 space-y-2.5 text-sm text-ink/70 dark:text-cream/70">
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
+                {t('mitra.join.rule1')}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
+                {t('mitra.join.rule2')}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
+                {t('mitra.join.rule3', { days: 30 })}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
+                {t('mitra.join.rule4', { min: 'Rp 50.000' })}
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
+                {t('mitra.join.rule5')}
+              </li>
+            </ul>
+            <p className="mt-4 text-xs text-ink/50 dark:text-cream/50">{t('mitra.rules.updated')}</p>
+          </div>
+        </section>
+
         <div className="mt-14 rounded-3xl bg-[#0A1812] p-8 text-center text-cream">
           <Smartphone size={28} className="mx-auto mb-3 text-[#8FBC8F]" />
           <h2 className="font-display text-2xl tracking-tight">{t('mitra.landing.applyTitle')}</h2>
