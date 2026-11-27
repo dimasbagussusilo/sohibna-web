@@ -300,9 +300,10 @@ export function SurahReader() {
   }, [surahId, t])
 
   // Preload the QCF page fonts for the loaded verses (progressive upgrade from
-  // the Unicode fallback).
-  const fontRev = useQuranFonts(verses, ud.script)
-  void fontRev
+  // the Unicode fallback). `ready` gates the reading UI on those fonts being
+  // loaded (or failed) so the first open never shows a half-rendered fallback
+  // while fonts stream in.
+  const { ready: fontsReady } = useQuranFonts(verses, ud.script)
 
   // Consume a deep-link ayah jump (?v=2:255) once verses arrive. A deep link
   // is deliberate navigation (like the app's): it arms the interaction gate so
@@ -565,9 +566,20 @@ export function SurahReader() {
             onSettle={onMushafSettle}
           />
         </div>
-      ) : loading ? (
-        <div className="flex justify-center py-24">
-          <div className="h-8 w-8 animate-pulse rounded-full bg-sage/40" />
+      ) : loading || !fontsReady ? (
+        <div role="status" aria-live="polite" className="px-6 py-10">
+          <div className="mx-auto mb-6 h-5 w-44 animate-pulse rounded-full bg-sage/30" />
+          <div className="space-y-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-2xl bg-black/[0.03] p-5 dark:bg-white/5">
+                <div className="mx-auto h-5 w-3/4 animate-pulse rounded-full bg-sage/30" />
+                <div className="mx-auto mt-4 h-3 w-1/2 animate-pulse rounded-full bg-sage/20" />
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 text-center text-xs text-ink/40 dark:text-cream/40">
+            {t('reader.loadingSource', { title: chapter?.translated_name?.name || chapter?.name_simple || '' })}
+          </p>
         </div>
       ) : error ? (
         <div className="px-6 py-24 text-center text-sm text-red-500">{error}</div>

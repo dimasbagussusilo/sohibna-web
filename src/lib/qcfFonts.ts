@@ -71,12 +71,26 @@ export const isFontLoaded = (family: string): boolean => loaded.has(family)
 // then bumps a revision counter to force a re-render — so ArabicText swaps from
 // the Unicode fallback to the proper glyph font once it's ready (progressive).
 // Tajweed/Indonesian are no-ops here (their HTML loads its own font).
-export function useQuranFonts(verses: Verse[], script: Script): number {
+//
+// It also exposes `ready`, which flips to true once those fonts have finished
+// loading (or failed — loadFont resolves either way). Callers can gate the
+// reading UI on `ready` so the first open never shows a partially-rendered
+// fallback while fonts are still downloading; later opens are instant because
+// the module-level `loaded` set already holds them.
+export function useQuranFonts(
+  verses: Verse[],
+  script: Script,
+): { rev: number; ready: boolean } {
   const [rev, setRev] = useState(0)
+  const [ready, setReady] = useState(script === 'tajweed' || script === 'indonesian')
 
   useEffect(() => {
-    if (script === 'tajweed' || script === 'indonesian') return
+    if (script === 'tajweed' || script === 'indonesian') {
+      setReady(true)
+      return
+    }
     let alive = true
+    setReady(false)
     ;(async () => {
       const tasks: Promise<void>[] = []
       // QCF V2 page fonts we need. Uthmani renders EVERY word through its page
@@ -94,12 +108,15 @@ export function useQuranFonts(verses: Verse[], script: Script): number {
       if (script === 'indopak') tasks.push(loadFont(INDO_PAK_FAMILY, INDO_PAK_URL))
       pages.forEach((pg) => tasks.push(loadFont(pageFontFamily(pg), pageFontUrl(pg))))
       await Promise.all(tasks)
-      if (alive) setRev((r) => r + 1)
+      if (alive) {
+        setRev((r) => r + 1)
+        setReady(true)
+      }
     })()
     return () => {
       alive = false
     }
   }, [verses, script])
 
-  return rev
+  return { rev, ready }
 }
