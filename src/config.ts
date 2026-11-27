@@ -27,3 +27,12 @@ export const FIREBASE_CONFIG = {
 // state (no dead links). The web NEVER sells digital goods (Play policy):
 // this is a link-out only.
 export const PLAY_STORE_URL: string = import.meta.env.VITE_PLAY_STORE_URL ?? ''
+
+// Partner Program figures for the STATIC landing page (sohibna.com/mitra).
+// The landing cannot call the API (its CSP is connect-src 'self'), so these
+// mirror the server's partner_program row: change them here and redeploy
+// when ops changes the program. The app and the dashboard always show the
+// live values from /partners/me — only this page is baked at build time.
+export const MITRA_DEFAULT_RATE: string = import.meta.env.VITE_MITRA_DEFAULT_RATE ?? '30%'
+export const MITRA_HOLD_DAYS: number = Number(import.meta.env.VITE_MITRA_HOLD_DAYS ?? 30)
+export const MITRA_PAYOUT_MIN: string = import.meta.env.VITE_MITRA_PAYOUT_MIN ?? 'Rp 50.000'

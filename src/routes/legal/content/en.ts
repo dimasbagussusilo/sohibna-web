@@ -55,6 +55,7 @@ export const content: LegalContent = {
         h: 'Partner Program',
         p: [
           'If you take part in the Partner Program, we record your referral code and calculate commission from Google Play purchases made by users who signed up through your referral. You only see an anonymous summary — product, time and commission amount; the identity of the people you refer is never shared with partners. Bank details are not collected in the app. Commission and payout records keep only the partner code and amounts, and remain after an account is deleted for bookkeeping purposes.',
+          'When the registration page is opened through a partner link, we count one click per device. What is stored is a one-way hash of the device identifier — not the identifier itself — only so the same device is not counted twice; the hash cannot be mapped back to a device or a person and is used for nothing else.',
         ],
       },
       {

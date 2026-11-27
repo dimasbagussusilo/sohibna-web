@@ -59,6 +59,7 @@ export const content: LegalContent = {
         h: 'Program Mitra',
         p: [
           'Jika Anda mengikuti Program Mitra, kami mencatat kode rujukan Anda dan menghitung komisi dari pembelian berbayar di Google Play oleh pengguna yang mendaftar lewat rujukan Anda. Anda hanya melihat ringkasan anonim — produk, waktu, dan nominal komisi; identitas pengguna yang Anda ajak tidak pernah dibagikan kepada mitra. Data rekening bank tidak dikumpulkan di dalam aplikasi. Catatan komisi dan pencairan disimpan hanya dengan kode mitra dan nominal, dan tetap tersimpan setelah akun dihapus untuk kebutuhan pembukuan.',
+          'Jika halaman pendaftaran dibuka lewat tautan mitra, kami mencatat satu klik per perangkat. Yang disimpan adalah sidik jari satu-arah (hash) dari ID perangkat — bukan ID-nya — hanya agar perangkat yang sama tidak terhitung dua kali; hash itu tidak dapat dipetakan kembali ke perangkat atau orang, dan tidak dipakai untuk tujuan lain.',
         ],
       },
       {

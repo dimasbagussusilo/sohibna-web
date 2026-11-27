@@ -34,6 +34,8 @@ export function Community() {
   const [exploreEntries, setExploreEntries] = useState<CommunityExploreEntry[] | null>(null)
   const [exploreSearch, setExploreSearch] = useState('')
   const [code, setCode] = useState('')
+  // A failed read must not read as "you have no groups".
+  const [loadFailed, setLoadFailed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [busyExploreId, setBusyExploreId] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -42,8 +44,11 @@ export function Community() {
     try {
       const res = await fetchCommunityGroups()
       setGroups(res.groups)
+      setLoadFailed(false)
     } catch {
-      setGroups([])
+      // Keep whatever was shown; remember the failure so the page can say so
+      // and offer a retry instead of presenting an empty list as fact.
+      setLoadFailed(true)
     }
   }, [])
 
@@ -58,8 +63,10 @@ export function Community() {
 
   useEffect(() => {
     if (!token) return
-    void loadGroups()
-    void loadExplore()
+    void (async () => {
+      await loadGroups()
+      await loadExplore()
+    })()
   }, [token, loadGroups, loadExplore])
 
   const joinByCode = useCallback(async () => {
@@ -87,8 +94,11 @@ export function Community() {
     try {
       const text = await navigator.clipboard?.readText()
       if (text) {
-        const cleaned = text.trim().slice(0, 6).toUpperCase()
-        setCode(cleaned)
+        // The app's share text ends with the code: take the code, not the
+        // first six characters of the sentence.
+        const upper = text.trim().toUpperCase()
+        const match = upper.match(/\b[A-Z0-9]{6}\b/)
+        setCode(match ? match[0] : upper.slice(0, 6))
       }
     } catch {
       // Clipboard permissions may be denied; safe to ignore
@@ -201,7 +211,7 @@ export function Community() {
                 </div>
                 {allGroupsDone ? (
                   <span className="flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                    <CheckCircle2 size={11} /> 100% Selesai
+                    <CheckCircle2 size={11} /> {t('community.allDoneBadge')}
                   </span>
                 ) : null}
               </div>
@@ -258,7 +268,18 @@ export function Community() {
           </div>
 
           {/* My Groups List / Empty State */}
-          {(groups ?? []).length === 0 ? (
+          {loadFailed && (groups ?? []).length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-gray-300 p-6 text-center dark:border-white/15">
+              <p className="text-sm text-red-500">{t('common.couldNotReach')}</p>
+              <button
+                type="button"
+                onClick={() => void loadGroups()}
+                className="mt-3 rounded-xl bg-[#8FBC8F] px-4 py-2 text-xs font-bold text-white"
+              >
+                {t('common.retry')}
+              </button>
+            </div>
+          ) : (groups ?? []).length === 0 ? (
             <div className="rounded-3xl border border-dashed border-gray-300 p-6 text-center dark:border-white/15">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#8FBC8F]/15">
                 <UsersRound className="text-[#8FBC8F]" size={28} />

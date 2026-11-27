@@ -400,7 +400,9 @@ export const resendVerification = (email: string) =>
 // caller's OWN partner rows with aggregate-only stats.
 
 // pingPartnerClick counts one referral-link landing (fire-and-forget; errors
-// are swallowed — a failed count must never affect signup UX).
+// are swallowed — a failed count must never affect signup UX). The device id
+// lets the server count a device once, ever; it stores a one-way hash of it,
+// never the id itself (sohibna-api DeviceIDHash).
 export const pingPartnerClick = (code: string) =>
   postJSON<void>('/partners/track/click', { code }, REQUEST_TIMEOUT_MS, { 'X-Device-ID': getDeviceId() }).catch(() => undefined);
 
@@ -448,6 +450,11 @@ export type EarningsSummary = {
   payers: number;
 };
 
+export type MitraEntryStatus = 'pending' | 'available' | 'paid' | 'reversed' | 'needs_review';
+
+// One ledger row on the partner's OWN screen: what was bought and when —
+// never by whom. The amounts are null on a row the server could not price
+// (needs_review); `reversed` rows keep their original amount as history.
 export type CommissionEntry = {
   id: number;
   partnerId: string;
@@ -458,9 +465,25 @@ export type CommissionEntry = {
   proceedsIdr: number | null;
   rateBps: number;
   amountIdr: number | null;
-  status: string;
+  status: MitraEntryStatus;
   availableAt: string;
   adjustment: boolean;
+};
+
+export type MitraPayoutStatus = 'requested' | 'paid' | 'rejected';
+
+// One payout request on the partner's own screen. Bank details are never
+// part of it — ops collects them off-app.
+export type MitraPayout = {
+  id: string;
+  partnerId: string;
+  amountIdr: number;
+  taxAmountIdr: number;
+  netAmountIdr: number;
+  status: MitraPayoutStatus;
+  note: string;
+  requestedAt: string;
+  paidAt: string | null;
 };
 
 export type MitraMeResponse = {
@@ -468,7 +491,17 @@ export type MitraMeResponse = {
   program: ProgramView;
   earnings: EarningsSummary[];
   entries: CommissionEntry[];
+  payouts: MitraPayout[];
 };
+
+// requestMitraPayout asks for the partner's matured balance. A refusal
+// carries a machine code on ApiError.code: payout_below_minimum |
+// payout_already_requested | mitra_suspended | mitra_not_partner.
+export const requestMitraPayout = (partnerId: string) =>
+  authedFetch<{ payout: MitraPayout }>('/partners/payout-request', {
+    method: 'POST',
+    body: JSON.stringify({ partnerId }),
+  });
 
 // getMyPartners returns the signed-in user's partner rows AND the commission
 // half (program defaults, per-partner earnings, recent ledger entries); a

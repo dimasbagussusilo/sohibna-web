@@ -55,6 +55,7 @@ export const content: LegalContent = {
         h: 'Partner Programı',
         p: [
           'Partner Programı’na katılırsanız davet kodunuzu kaydeder ve yönlendirmenizle kayıt olan kullanıcıların Google Play’deki ücretli satın alımlarından komisyonu hesaplarız. Yalnızca anonim bir özet görürsünüz — ürün, zaman ve komisyon tutarı; yönlendirdiğiniz kişilerin kimliği ortaklarla asla paylaşılmaz. Banka bilgileri uygulamada toplanmaz. Komisyon ve ödeme kayıtları yalnızca partner kodunu ve tutarları içerir ve muhasebe amacıyla hesap silindikten sonra da kalır.',
+          'Kayıt sayfası bir ortak bağlantısıyla açıldığında cihaz başına bir tıklama sayarız. Saklanan, cihaz tanımlayıcısının tek yönlü bir özetidir (hash) — tanımlayıcının kendisi değil; amaç yalnızca aynı cihazın iki kez sayılmamasıdır. Bu özet bir cihaza veya kişiye geri izlenemez ve başka hiçbir amaçla kullanılmaz.',
         ],
       },
       {

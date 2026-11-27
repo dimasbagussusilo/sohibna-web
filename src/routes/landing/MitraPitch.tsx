@@ -2,7 +2,7 @@ import { useI18n } from '@/context/I18nContext'
 import type { Lang } from '@/i18n/types'
 import { useDocumentMeta, type MetaAlternate } from '@/hooks/useDocumentMeta'
 import { LANDING_ORIGIN } from '@/origins'
-import { PLAY_STORE_URL } from '@/config'
+import { MITRA_DEFAULT_RATE, MITRA_HOLD_DAYS, MITRA_PAYOUT_MIN, PLAY_STORE_URL } from '@/config'
 import { Building2, Smartphone, User, UserCheck } from 'lucide-react'
 import { LandingI18n } from './LandingI18n'
 import { Footer } from './Footer'
@@ -122,15 +122,15 @@ function MitraBody({ routeLang }: { routeLang?: Lang }) {
 
         <section className="mt-14">
           <h2 className="font-display text-center text-2xl tracking-tight">
-            {t('mitra.program.yourRate')}
+            {t('mitra.join.rulesTitle')}
           </h2>
           <div className="mx-auto mt-6 max-w-xl rounded-3xl bg-white p-6 shadow-sm dark:bg-[#122A1F]">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-bold text-ink dark:text-cream">{t('mitra.program.yourRate')}</p>
-              <span className="rounded-full bg-[#8FBC8F] px-3 py-1 text-xs font-bold text-white">30%</span>
+              <span className="rounded-full bg-[#8FBC8F] px-3 py-1 text-xs font-bold text-white">{MITRA_DEFAULT_RATE}</span>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-ink/75 dark:text-cream/75">
-              {t('mitra.join.rateLine', { rate: '30%' })}
+              {t('mitra.join.rateLine', { rate: MITRA_DEFAULT_RATE })}
             </p>
             <ul className="mt-4 space-y-2.5 text-sm text-ink/70 dark:text-cream/70">
               <li className="flex items-start gap-2">
@@ -143,11 +143,11 @@ function MitraBody({ routeLang }: { routeLang?: Lang }) {
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
-                {t('mitra.join.rule3', { days: 30 })}
+                {t('mitra.join.rule3', { days: MITRA_HOLD_DAYS })}
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />
-                {t('mitra.join.rule4', { min: 'Rp 50.000' })}
+                {t('mitra.join.rule4', { min: MITRA_PAYOUT_MIN })}
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8FBC8F]" />

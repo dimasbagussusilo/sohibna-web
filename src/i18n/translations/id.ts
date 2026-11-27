@@ -1455,6 +1455,7 @@ export const translations = {
     pulseTitle: 'Aktivitas Hari Ini',
     pulseDone: '{{done}} dari {{total}} grup mencapai target hari ini',
     pulseAllDone: 'Alhamdulillah! Semua target grup hari ini tercapai 🔥',
+    allDoneBadge: '100% selesai',
     quorumMet: 'Quorum tercapai · Streak aman!',
     quorumNeededShort: 'Butuh {{n}} lagi hari ini',
     pasteCode: 'Tempel',
@@ -1491,8 +1492,8 @@ export const translations = {
       signupsTotal: 'Total pendaftar',
       active30: 'Pembaca aktif 30 hari',
       circleMembers: 'Gabung grup',
-      uniqueReferrals: 'Referral unik (semua waktu)',
-      calcNote: 'Komisi adalah {{rate}} dari proceeds bersih — harga setelah potongan dan pajak Google Play — pada setiap pembelian berbayar oleh orang yang Anda ajak.',
+      uniqueReferrals: 'Klik unik (semua waktu)',
+      calcNote: 'Komisi adalah {rate} dari pendapatan bersih — harga setelah potongan Google Play dan pajak — dari setiap pembayaran pengguna yang mendaftar lewat tautan Anda. Dihitung di server dari laporan toko, bukan dari harga cetak.',
       empty: 'Belum ada program mitra untuk akun ini.',
     },
     status: {

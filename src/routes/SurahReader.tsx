@@ -305,19 +305,22 @@ export function SurahReader() {
   // while fonts stream in.
   const { ready: fontsReady } = useQuranFonts(verses, ud.script)
 
-  // Consume a deep-link ayah jump (?v=2:255) once verses arrive. A deep link
-  // is deliberate navigation (like the app's): it arms the interaction gate so
-  // the landing position records honestly — but the auto-scroll itself is not
-  // user scrolling.
+  // Consume a deep-link ayah jump (?v=2:255) once the verse list is actually
+  // on screen — i.e. after the font gate opened, not merely once verses
+  // arrived (while the skeleton is up there is no element to scroll to, and
+  // marking the jump done then would lose it). A deep link is deliberate
+  // navigation (like the app's): it arms the interaction gate so the landing
+  // position records honestly — but the auto-scroll itself is not user
+  // scrolling.
   const jumpedRef = useRef(false)
   useEffect(() => {
-    if (verses.length === 0 || jumpedRef.current || !jumpVk) return
+    if (verses.length === 0 || !fontsReady || jumpedRef.current || !jumpVk) return
     jumpedRef.current = true
     userInteractedRef.current = true // deliberate navigation
     const el = document.getElementById(`verse-${CSS.escape(jumpVk)}`)
     el?.scrollIntoView({ block: 'center' })
     focusVkRef.current = jumpVk
-  }, [verses, jumpVk])
+  }, [verses, jumpVk, fontsReady])
 
   // Document.title (previously coupled to the on-load last-read record).
   useEffect(() => {
@@ -566,6 +569,8 @@ export function SurahReader() {
             onSettle={onMushafSettle}
           />
         </div>
+      ) : error ? (
+        <div className="px-6 py-24 text-center text-sm text-red-500">{error}</div>
       ) : loading || !fontsReady ? (
         <div role="status" aria-live="polite" className="px-6 py-10">
           <div className="mx-auto mb-6 h-5 w-44 animate-pulse rounded-full bg-sage/30" />
@@ -581,8 +586,6 @@ export function SurahReader() {
             {t('reader.loadingSource', { title: chapter?.translated_name?.name || chapter?.name_simple || '' })}
           </p>
         </div>
-      ) : error ? (
-        <div className="px-6 py-24 text-center text-sm text-red-500">{error}</div>
       ) : (
         <div className="flex">
           {/* Desktop sidebar: searchable surah list */}

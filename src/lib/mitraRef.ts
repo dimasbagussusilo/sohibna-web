@@ -1,8 +1,10 @@
 // Program Mitra referral capture (0033, Phase 1). A guest landing on
 // /register?ref=CODE keeps the code in localStorage so a signup days later
 // still carries it (first-touch); the click ping is deduped per browser per
-// day — we deliberately store no per-click identity server-side, so honest
-// client-side dedupe is the only dedupe there is.
+// day here, and since 0048 once per device ever on the server — which stores
+// only a one-way hash of the device id (sohibna-api DeviceIDHash), never the
+// identifier, so no per-click identity exists server-side. This client-side
+// dedupe stays as the cheap first line.
 
 import { pingPartnerClick } from '@/api';
 

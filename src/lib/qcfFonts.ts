@@ -67,16 +67,26 @@ export async function loadFont(family: string, url: string): Promise<void> {
 // Whether a family has finished registering.
 export const isFontLoaded = (family: string): boolean => loaded.has(family)
 
+// How long the reading UI may wait for the page fonts before showing the
+// Unicode fallback. A stalled request (dead radio mid-stream) must never pin
+// the skeleton forever; the fonts still upgrade the text when they do land.
+export const FONT_GATE_DEADLINE_MS = 6000
+
 // useQuranFonts loads every font the current verses need for the chosen script,
 // then bumps a revision counter to force a re-render — so ArabicText swaps from
 // the Unicode fallback to the proper glyph font once it's ready (progressive).
 // Tajweed/Indonesian are no-ops here (their HTML loads its own font).
 //
-// It also exposes `ready`, which flips to true once those fonts have finished
-// loading (or failed — loadFont resolves either way). Callers can gate the
-// reading UI on `ready` so the first open never shows a partially-rendered
-// fallback while fonts are still downloading; later opens are instant because
-// the module-level `loaded` set already holds them.
+// It also exposes `ready`, which callers gate the reading UI on so the first
+// open never shows a partially-rendered fallback while fonts are still
+// downloading. Three rules keep that gate honest:
+//   - no verses yet = NOT ready. (It used to flip to true on the empty verse
+//     list, which mounted the whole chapter on fallback glyphs for one commit
+//     and unmounted it again — losing a `?v=` deep-link jump made in it.)
+//   - everything already registered (a revisited surah) = ready at once, no
+//     skeleton flash in between;
+//   - a stalled font stops mattering after FONT_GATE_DEADLINE_MS: the text
+//     shows on the fallback and upgrades later through `rev`.
 export function useQuranFonts(
   verses: Verse[],
   script: Script,
@@ -90,24 +100,46 @@ export function useQuranFonts(
       return
     }
     let alive = true
+    let deadline: ReturnType<typeof setTimeout> | undefined
+    if (verses.length === 0) {
+      setReady(false)
+      return () => {
+        alive = false
+      }
+    }
+    // QCF V2 page fonts we need. Uthmani renders EVERY word through its page
+    // font; IndoPak renders word text in Nastaleeq, but its ayah-end marker
+    // (the `end` word's code_v2 medallion) still needs the QCF V2 page font
+    // so the verse number shows inside the ornament — collect end-word pages.
+    const pages = new Set<number>()
+    verses.forEach((v) =>
+      v.words.forEach((w) => {
+        if (!w.page_number) return
+        if (script === 'indopak' && w.char_type_name !== 'end') return
+        pages.add(w.page_number)
+      }),
+    )
+    const needIndoPak = script === 'indopak'
+    const families = [
+      ...(needIndoPak ? [INDO_PAK_FAMILY] : []),
+      ...[...pages].map((pg) => pageFontFamily(pg)),
+    ]
+    if (families.every((f) => loaded.has(f))) {
+      setReady(true)
+      return () => {
+        alive = false
+      }
+    }
     setReady(false)
+    deadline = setTimeout(() => {
+      if (alive) setReady(true)
+    }, FONT_GATE_DEADLINE_MS)
     ;(async () => {
       const tasks: Promise<void>[] = []
-      // QCF V2 page fonts we need. Uthmani renders EVERY word through its page
-      // font; IndoPak renders word text in Nastaleeq, but its ayah-end marker
-      // (the `end` word's code_v2 medallion) still needs the QCF V2 page font
-      // so the verse number shows inside the ornament — collect end-word pages.
-      const pages = new Set<number>()
-      verses.forEach((v) =>
-        v.words.forEach((w) => {
-          if (!w.page_number) return
-          if (script === 'indopak' && w.char_type_name !== 'end') return
-          pages.add(w.page_number)
-        }),
-      )
-      if (script === 'indopak') tasks.push(loadFont(INDO_PAK_FAMILY, INDO_PAK_URL))
+      if (needIndoPak) tasks.push(loadFont(INDO_PAK_FAMILY, INDO_PAK_URL))
       pages.forEach((pg) => tasks.push(loadFont(pageFontFamily(pg), pageFontUrl(pg))))
       await Promise.all(tasks)
+      clearTimeout(deadline)
       if (alive) {
         setRev((r) => r + 1)
         setReady(true)
@@ -115,6 +147,7 @@ export function useQuranFonts(
     })()
     return () => {
       alive = false
+      clearTimeout(deadline)
     }
   }, [verses, script])
 
