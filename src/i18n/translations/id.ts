@@ -1676,8 +1676,8 @@ export const translations = {
     loginBody: 'Tanya AI kini untuk pengguna yang masuk — gratis 1 percakapan/hari, lebih banyak dengan Supporter atau Premium.',
     loginCta: 'Masuk / Daftar',
     mFree: 'Gratis: 1 section + 1 chat/hari · uji hafalan 5 mnt',
-    mSup: 'Supporter: 5 + 5 chat/hari · 15 mnt · semua tema · grup WA',
-    mPrem: 'Premium: 15 + 15 chat/hari · 30 mnt · semua tema',
+    mSup: 'Supporter: 5 + 5 chat/hari · 15 mnt · semua tema',
+    mPrem: 'Premium: 15 + 15 chat/hari · 30 mnt · semua tema · grup WA (seumur hidup)',
   },
   supporter: {
     title: 'Sohibna Supporter',

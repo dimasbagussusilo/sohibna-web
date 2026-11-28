@@ -1670,8 +1670,8 @@ export const translations: Translation = {
     loginBody: 'Yapay zekâ artık giriş yapan kullanıcılar için — günde 1 ücretsiz sohbet, Destekçi veya Premium ile daha fazlası.',
     loginCta: 'Giriş yap / Kayıt ol',
     mFree: 'Ücretsiz: günde 1 bölüm + 1 sohbet · 5 dk',
-    mSup: 'Destekçi: günde 5 + 5 sohbet · 15 dk · tüm temalar · WA grubu',
-    mPrem: 'Premium: günde 15 + 15 sohbet · 30 dk · tüm temalar',
+    mSup: 'Destekçi: günde 5 + 5 sohbet · 15 dk · tüm temalar',
+    mPrem: 'Premium: günde 15 + 15 sohbet · 30 dk · tüm temalar · WA grubu (ömür boyu)',
   },
   supporter: {
     title: 'Sohibna Destekçisi',

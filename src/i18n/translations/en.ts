@@ -1658,8 +1658,8 @@ export const translations: Translation = {
     loginBody: 'AI is now for signed-in users — 1 free conversation/day, more with Supporter or Premium.',
     loginCta: 'Sign in / Sign up',
     mFree: 'Free: 1 section + 1 chat/day · 5 min recite',
-    mSup: 'Supporter: 5 + 5 chats/day · 15 min · all themes · WA group',
-    mPrem: 'Premium: 15 + 15 chats/day · 30 min · all themes',
+    mSup: 'Supporter: 5 + 5 chats/day · 15 min · all themes',
+    mPrem: 'Premium: 15 + 15 chats/day · 30 min · all themes · WA group (lifetime)',
   },
   supporter: {
     title: 'Sohibna Supporter',
